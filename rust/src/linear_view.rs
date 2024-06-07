@@ -70,6 +70,13 @@ impl LinearViewObject {
         }
     }
 
+    pub fn llil(view: &BinaryView, settings: &DisassemblySettings) -> Ref<Self> {
+        unsafe {
+            let handle = BNCreateLinearViewLowLevelIL(view.handle, settings.handle);
+            Self::ref_from_raw(handle)
+        }
+    }
+
     pub fn mlil(view: &BinaryView, settings: &DisassemblySettings) -> Ref<Self> {
         unsafe {
             let handle = BNCreateLinearViewMediumLevelIL(view.handle, settings.handle);
