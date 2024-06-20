@@ -30,6 +30,7 @@ mod operand_iter;
 
 pub mod architecture;
 pub mod background_task;
+pub mod base_detection;
 pub mod basic_block;
 pub mod binary_reader;
 pub mod binary_view;

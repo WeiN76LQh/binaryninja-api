@@ -24,6 +24,7 @@
 use binaryninjacore_sys::*;
 
 use crate::architecture::{Architecture, CoreArchitecture};
+use crate::base_detection::BaseAddressDetection;
 use crate::basic_block::BasicBlock;
 use crate::component::{Component, IntoComponentGuid};
 use crate::confidence::Conf;
@@ -366,6 +367,13 @@ pub trait BinaryViewExt: BinaryViewBase {
     fn set_default_platform(&self, plat: &Platform) {
         unsafe {
             BNSetDefaultPlatform(self.as_ref().handle, plat.handle);
+        }
+    }
+
+    fn base_address_detection(&self) -> Option<BaseAddressDetection> {
+        unsafe {
+            let handle = BNCreateBaseAddressDetection(self.as_ref().handle);
+            NonNull::new(handle).map(|base| BaseAddressDetection::from_raw(base))
         }
     }
 
