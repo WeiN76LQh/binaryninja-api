@@ -70,6 +70,7 @@ pub mod references;
 pub mod relocation;
 pub mod render_layer;
 pub mod secrets_provider;
+pub mod repository;
 pub mod section;
 pub mod segment;
 pub mod settings;
@@ -95,6 +96,7 @@ use binaryninjacore_sys::*;
 use metadata::Metadata;
 use metadata::MetadataType;
 use rc::Ref;
+use std::cmp;
 use std::collections::HashMap;
 use std::ffi::{c_char, c_void, CStr};
 use std::path::{Path, PathBuf};
@@ -103,6 +105,7 @@ use string::BnString;
 use string::IntoJson;
 
 use crate::progress::{NoProgressCallback, ProgressCallback};
+use crate::string::raw_to_string;
 pub use binaryninjacore_sys::BNBranchType as BranchType;
 pub use binaryninjacore_sys::BNDataFlowQueryOption as DataFlowQueryOption;
 pub use binaryninjacore_sys::BNEndianness as Endianness;
@@ -436,7 +439,7 @@ pub fn build_id() -> u32 {
     unsafe { BNGetBuildId() }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct VersionInfo {
     pub major: u32,
     pub minor: u32,
@@ -445,12 +448,59 @@ pub struct VersionInfo {
 }
 
 impl VersionInfo {
-    pub(crate) fn from_owned_raw(value: BNVersionInfo) -> Self {
+    pub(crate) fn from_raw(value: &BNVersionInfo) -> Self {
         Self {
             major: value.major,
             minor: value.minor,
             build: value.build,
-            channel: unsafe { BnString::from_raw(value.channel) }.to_string(),
+            // NOTE: Because of plugin manager the channel might not be filled.
+            channel: raw_to_string(value.channel).unwrap_or_default(),
+        }
+    }
+
+    pub(crate) fn from_owned_raw(value: BNVersionInfo) -> Self {
+        let owned = Self::from_raw(&value);
+        Self::free_raw(value);
+        owned
+    }
+
+    pub(crate) fn into_owned_raw(value: &Self) -> BNVersionInfo {
+        BNVersionInfo {
+            major: value.major,
+            minor: value.minor,
+            build: value.build,
+            channel: value.channel.as_ptr() as *mut c_char,
+        }
+    }
+
+    pub(crate) fn free_raw(value: BNVersionInfo) {
+        let _ = unsafe { BnString::from_raw(value.channel) };
+    }
+
+    pub fn from_string<S: BnStrCompatible>(string: S) -> Self {
+        let string = string.into_bytes_with_nul();
+        let result = unsafe { BNParseVersionString(string.as_ref().as_ptr() as *const c_char) };
+        Self::from_owned_raw(result)
+    }
+}
+
+impl PartialOrd for VersionInfo {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for VersionInfo {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        if self == other {
+            return cmp::Ordering::Equal;
+        }
+        let bn_version_0 = VersionInfo::into_owned_raw(self);
+        let bn_version_1 = VersionInfo::into_owned_raw(other);
+        if unsafe { BNVersionLessThan(bn_version_0, bn_version_1) } {
+            cmp::Ordering::Less
+        } else {
+            cmp::Ordering::Greater
         }
     }
 }
