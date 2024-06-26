@@ -86,6 +86,7 @@ pub mod type_printer;
 pub mod types;
 pub mod update;
 pub mod variable;
+pub mod websocket;
 pub mod worker_thread;
 pub mod workflow;
 
