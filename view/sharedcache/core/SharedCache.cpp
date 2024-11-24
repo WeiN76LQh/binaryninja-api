@@ -156,14 +156,14 @@ BNSegmentFlag SegmentFlagsFromMachOProtections(int initProt, int maxProt) {
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-function"
-static int64_t readSLEB128(DataBuffer& buffer, size_t length, size_t& offset)
+static int64_t readSLEB128(const uint8_t*& current, const uint8_t* end)
 {
 	uint8_t cur;
 	int64_t value = 0;
 	size_t shift = 0;
-	while (offset < length)
+	while (current != end)
 	{
-		cur = buffer[offset++];
+		cur = *current++;
 		value |= (cur & 0x7f) << shift;
 		shift += 7;
 		if ((cur & 0x80) == 0)
@@ -175,16 +175,16 @@ static int64_t readSLEB128(DataBuffer& buffer, size_t length, size_t& offset)
 #pragma clang diagnostic pop
 
 
-static uint64_t readLEB128(DataBuffer& p, size_t end, size_t& offset)
+static uint64_t readLEB128(const uint8_t*& current, const uint8_t* end)
 {
 	uint64_t result = 0;
 	int bit = 0;
 	do
 	{
-		if (offset >= end)
+		if (current >= end)
 			return -1;
 
-		uint64_t slice = p[offset] & 0x7f;
+		uint64_t slice = *current & 0x7f;
 
 		if (bit > 63)
 			return -1;
@@ -193,14 +193,14 @@ static uint64_t readLEB128(DataBuffer& p, size_t end, size_t& offset)
 			result |= (slice << bit);
 			bit += 7;
 		}
-	} while (p[offset++] & 0x80);
+	} while (*current++ & 0x80);
 	return result;
 }
 
 
-uint64_t readValidULEB128(DataBuffer& buffer, size_t& cursor)
+uint64_t readValidULEB128(const uint8_t*& current, const uint8_t* end)
 {
-	uint64_t value = readLEB128(buffer, buffer.GetLength(), cursor);
+	uint64_t value = readLEB128(current, end);
 	if ((int64_t)value == -1)
 		throw ReadException();
 	return value;
@@ -2328,7 +2328,7 @@ std::optional<SharedCacheMachOHeader> SharedCache::LoadHeaderForAddress(std::sha
 }
 
 void SharedCache::InitializeHeader(
-	Ref<BinaryView> view, VM* vm, SharedCacheMachOHeader header, std::vector<MemoryRegion*> regionsToLoad)
+	Ref<BinaryView> view, VM* vm, const SharedCacheMachOHeader& header, std::vector<MemoryRegion*> regionsToLoad)
 {
 	WillMutateState();
 
@@ -2599,9 +2599,11 @@ void SharedCache::InitializeHeader(
 		uint64_t curfunc = header.textBase;
 		uint64_t curOffset;
 
-		while (i < header.functionStarts.funcsize)
+		auto current = static_cast<const uint8_t*>(funcStarts.GetData());
+		auto end = current + funcStarts.GetLength();
+		while (current != end)
 		{
-			curOffset = readLEB128(funcStarts, header.functionStarts.funcsize, i);
+			curOffset = readLEB128(current, end);
 			bool addFunction = false;
 			for (const auto& region : regionsToLoad)
 			{
@@ -2756,98 +2758,94 @@ void SharedCache::InitializeHeader(
 	}
 }
 
-struct ExportNode
+
+void SharedCache::ReadExportNode(std::vector<Ref<Symbol>>& symbolList, const SharedCacheMachOHeader& header,
+	const uint8_t* begin, const uint8_t* end, const uint8_t* current, uint64_t textBase, const std::string& currentText)
 {
-	std::string text;
-	uint64_t offset;
-	uint64_t flags;
-};
-
-
-void SharedCache::ReadExportNode(std::vector<Ref<Symbol>>& symbolList, SharedCacheMachOHeader& header, DataBuffer& buffer, uint64_t textBase,
-	const std::string& currentText, size_t cursor, uint32_t endGuard)
-{
-
-	if (cursor > endGuard)
+	if (current >= end)
 		throw ReadException();
 
-	uint64_t terminalSize = readValidULEB128(buffer, cursor);
-	uint64_t childOffset = cursor + terminalSize;
+	uint64_t terminalSize = readValidULEB128(current, end);
+	const uint8_t* child = current + terminalSize;
 	if (terminalSize != 0) {
 		uint64_t imageOffset = 0;
-		uint64_t flags = readValidULEB128(buffer, cursor);
+		uint64_t flags = readValidULEB128(current, end);
 		if (!(flags & EXPORT_SYMBOL_FLAGS_REEXPORT))
 		{
-			imageOffset = readValidULEB128(buffer, cursor);
-			auto symbolType = m_dscView->GetAnalysisFunctionsForAddress(textBase + imageOffset).size() ? FunctionSymbol : DataSymbol;
+			imageOffset = readValidULEB128(current, end);
+			if (!currentText.empty() && textBase + imageOffset)
 			{
-				if (!currentText.empty() && textBase + imageOffset)
+				uint32_t flags;
+				BNSymbolType type;
+				for (auto s : header.sections)
 				{
-					uint32_t flags;
-					BNSymbolType type;
-					for (auto s : header.sections)
+					if (s.addr < textBase + imageOffset)
 					{
-						if (s.addr < textBase + imageOffset)
+						if (s.addr + s.size > textBase + imageOffset)
 						{
-							if (s.addr + s.size > textBase + imageOffset)
-							{
-								flags = s.flags;
-							}
+							flags = s.flags;
+							break;
 						}
 					}
-					if ((flags & S_ATTR_PURE_INSTRUCTIONS) == S_ATTR_PURE_INSTRUCTIONS
-						|| (flags & S_ATTR_SOME_INSTRUCTIONS) == S_ATTR_SOME_INSTRUCTIONS)
-						type = FunctionSymbol;
-					else
-						type = DataSymbol;
+				}
+				if ((flags & S_ATTR_PURE_INSTRUCTIONS) == S_ATTR_PURE_INSTRUCTIONS
+					|| (flags & S_ATTR_SOME_INSTRUCTIONS) == S_ATTR_SOME_INSTRUCTIONS)
+					type = FunctionSymbol;
+				else
+					type = DataSymbol;
 
 #if EXPORT_TRIE_DEBUG
-						// BNLogInfo("export: %s -> 0x%llx", n.text.c_str(), image.baseAddress + n.offset);
+					// BNLogInfo("export: %s -> 0x%llx", n.text.c_str(), image.baseAddress + n.offset);
 #endif
-					auto sym = new Symbol(type, currentText, textBase + imageOffset);
-					symbolList.push_back(sym);
-				}
+				// TODO: The usual `Symbol` constructors take a `NameSpace` and do unnecessary memory allocations
+				// to pass its fields down to the core API. Here we pass nullptr for the namespace which is treated
+				// the same, but avoids the memory allocations. Switch back to directly constructing a `Symbol`
+				// once it gains constructors without that overhead.
+				auto symbol = new Symbol(BNCreateSymbol(type, currentText.c_str(), currentText.c_str(),
+					currentText.c_str(), textBase + imageOffset, NoBinding, nullptr, 0));
+				symbolList.push_back(symbol);
 			}
 		}
 	}
-	cursor = childOffset;
-	uint8_t childCount = buffer[cursor];
-	cursor++;
-	if (cursor > endGuard)
-		throw ReadException();
+	current = child;
+	uint8_t childCount = *current++;
+	std::string childText = currentText;
 	for (uint8_t i = 0; i < childCount; ++i)
 	{
-		std::string childText;
-		while (buffer[cursor] != 0 & cursor <= endGuard)
-			childText.push_back(buffer[cursor++]);
-		cursor++;
-		if (cursor > endGuard)
+		if (current >= end)
 			throw ReadException();
-		auto next = readValidULEB128(buffer, cursor);
+		auto it = std::find(current, end, 0);
+		childText.append(current, it);
+		current = it + 1;
+		if (current >= end)
+			throw ReadException();
+		auto next = readValidULEB128(current, end);
 		if (next == 0)
 			throw ReadException();
-		ReadExportNode(symbolList, header, buffer, textBase, currentText + childText, next, endGuard);
+		ReadExportNode(symbolList, header, begin, end, begin + next, textBase, childText);
+		childText.resize(currentText.size());
 	}
 }
 
 
-std::vector<Ref<Symbol>> SharedCache::ParseExportTrie(std::shared_ptr<MMappedFileAccessor> linkeditFile, SharedCacheMachOHeader header)
+std::vector<Ref<Symbol>> SharedCache::ParseExportTrie(std::shared_ptr<MMappedFileAccessor> linkeditFile, const SharedCacheMachOHeader& header)
 {
-	std::vector<Ref<Symbol>> symbols;
+	if (!header.exportTrie.datasize) {
+		return {};
+	}
+
 	try
 	{
-		auto reader = linkeditFile;
-
-		std::vector<ExportNode> nodes;
-
-		DataBuffer buffer = reader->ReadBuffer(header.exportTrie.dataoff, header.exportTrie.datasize);
-		ReadExportNode(symbols, header, buffer, header.textBase, "", 0, header.exportTrie.datasize);
+		std::vector<Ref<Symbol>> symbols;
+		auto [begin, end] = linkeditFile->ReadSpan(header.exportTrie.dataoff, header.exportTrie.datasize);
+		ReadExportNode(symbols, header, begin, end, begin, header.textBase, "");
+		return symbols;
 	}
 	catch (std::exception& e)
 	{
 		BNLogError("Failed to load Export Trie");
+		return {};
 	}
-	return symbols;
 }
 
 std::vector<std::string> SharedCache::GetAvailableImages()

@@ -463,6 +463,17 @@ BinaryNinja::DataBuffer MMappedFileAccessor::ReadBuffer(size_t address, size_t l
 	return BinaryNinja::DataBuffer(data, length);
 }
 
+std::pair<const uint8_t*, const uint8_t*> MMappedFileAccessor::ReadSpan(size_t address, size_t length)
+{
+	if (address > m_mmap.len)
+		throw MappingReadException();
+	if (address + length > m_mmap.len)
+		throw MappingReadException();
+	const uint8_t* data = (&(((uint8_t*)m_mmap._mmap)[address]));
+	return {data, data + length};
+}
+
+
 void MMappedFileAccessor::Read(void* dest, size_t address, size_t length)
 {
 	if (address > m_mmap.len)
