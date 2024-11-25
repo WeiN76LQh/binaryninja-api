@@ -23,7 +23,6 @@ namespace SharedCacheCore {
 		DSCViewStateLoadedWithImages,
 	};
 
-
 	const std::string SharedCacheMetadataTag = "SHAREDCACHE-SharedCacheData";
 
 	struct MemoryRegion : public MetadataSerializable<MemoryRegion>
@@ -91,26 +90,6 @@ namespace SharedCacheCore {
 		}
 	};
 
-	struct BackingCache : public MetadataSerializable<BackingCache>
-	{
-		std::string path;
-		bool isPrimary = false;
-		std::vector<std::pair<uint64_t, std::pair<uint64_t, uint64_t>>> mappings;
-
-		void Store(SerializationContext& context) const
-		{
-			MSS(path);
-			MSS(isPrimary);
-			MSS(mappings);
-		}
-		void Load(DeserializationContext& context)
-		{
-			MSL(path);
-			MSL(isPrimary);
-			MSL(mappings);
-		}
-	};
-
 	#if defined(__GNUC__) || defined(__clang__)
 		#define PACKED_STRUCT __attribute__((packed))
 	#else
@@ -130,6 +109,16 @@ namespace SharedCacheCore {
 		uint64_t fileOffset;
 		uint32_t maxProt;
 		uint32_t initProt;
+	};
+
+	struct BackingCache : public MetadataSerializable<BackingCache>
+	{
+		std::string path;
+		bool isPrimary = false;
+		std::vector<dyld_cache_mapping_info> mappings;
+
+		void Store(SerializationContext& context) const;
+		void Load(DeserializationContext& context);
 	};
 
 	struct LoadedMapping
