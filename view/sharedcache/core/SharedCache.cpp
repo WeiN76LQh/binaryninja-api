@@ -2634,33 +2634,34 @@ void SharedCache::InitializeHeader(
 
 	if (header.exportTriePresent && header.linkeditPresent && vm->AddressIsMapped(header.linkeditSegment.vmaddr))
 	{
-		auto symbols = SharedCache::ParseExportTrie(vm->MappingAtAddress(header.linkeditSegment.vmaddr).first.fileAccessor->lock(), header);
-		std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> exportMapping;
+		auto symbols = GetExportListForHeader(header, [&]() {
+			return vm->MappingAtAddress(header.linkeditSegment.vmaddr).first.fileAccessor->lock();
+		});
 		for (const auto& symbol : symbols)
 		{
-			exportMapping.push_back({symbol->GetAddress(), {symbol->GetType(), symbol->GetRawName()}});
+			auto bnSymbol = new Symbol(symbol.second.first, symbol.second.second, symbol.first);
 			if (typeLib)
 			{
-				auto type = m_dscView->ImportTypeLibraryObject(typeLib, {symbol->GetFullName()});
+				auto type = m_dscView->ImportTypeLibraryObject(typeLib, {symbol.second.second});
 
 				if (type)
 				{
-					view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symbol, type);
+					view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), bnSymbol, type);
 				}
 				else
-					view->DefineAutoSymbol(symbol);
+					view->DefineAutoSymbol(bnSymbol);
 
-				if (view->GetAnalysisFunction(view->GetDefaultPlatform(), symbol->GetAddress()))
+				if (view->GetAnalysisFunction(view->GetDefaultPlatform(), symbol.first))
 				{
-					auto func = view->GetAnalysisFunction(view->GetDefaultPlatform(), symbol->GetAddress());
-					if (symbol->GetFullName() == "_objc_msgSend")
+					auto func = view->GetAnalysisFunction(view->GetDefaultPlatform(), symbol.first);
+					if (symbol.second.second == "_objc_msgSend")
 					{
 						func->SetHasVariableArguments(false);
 					}
-					else if (symbol->GetFullName().find("_objc_retain_x") != std::string::npos || symbol->GetFullName().find("_objc_release_x") != std::string::npos)
+					else if (symbol.second.second.find("_objc_retain_x") != std::string::npos || symbol.second.second.find("_objc_release_x") != std::string::npos)
 					{
-						auto x = symbol->GetFullName().rfind("x");
-						auto num = symbol->GetFullName().substr(x + 1);
+						auto x = symbol.second.second.rfind("x");
+						auto num = symbol.second.second.substr(x + 1);
 
 						std::vector<BinaryNinja::FunctionParameter> callTypeParams;
 						auto cc = m_dscView->GetDefaultArchitecture()->GetCallingConventionByName("apple-arm64-objc-fast-arc-" + num);
@@ -2673,9 +2674,8 @@ void SharedCache::InitializeHeader(
 				}
 			}
 			else
-				view->DefineAutoSymbol(symbol);
+				view->DefineAutoSymbol(bnSymbol);
 		}
-		m_exportInfos[header.textBase] = exportMapping;
 	}
 	view->EndBulkModifySymbols();
 
@@ -2779,6 +2779,31 @@ std::vector<Ref<Symbol>> SharedCache::ParseExportTrie(std::shared_ptr<MMappedFil
 	return symbols;
 }
 
+
+std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> SharedCache::GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile)
+{
+	if (auto it = m_exportInfos.find(header.textBase); it != m_exportInfos.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		std::shared_ptr<MMappedFileAccessor> linkeditFile = provideLinkeditFile();
+		if (!linkeditFile)
+			return std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>();
+
+		auto exportList = SharedCache::ParseExportTrie(linkeditFile, header);
+		std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> exportMapping(exportList.size());
+		for (const auto& sym : exportList)
+		{
+			exportMapping.push_back({sym->GetAddress(), {sym->GetType(), sym->GetRawName()}});
+		}
+		m_exportInfos[header.textBase] = exportMapping;
+		return exportMapping;
+	}
+}
+
+
 std::vector<std::string> SharedCache::GetAvailableImages()
 {
 	std::vector<std::string> installNames;
@@ -2794,30 +2819,32 @@ std::vector<std::pair<std::string, Ref<Symbol>>> SharedCache::LoadAllSymbolsAndW
 {
 	std::unique_lock<std::mutex> initialLoadBlock(viewSpecificMutexes[m_dscView->GetFile()->GetSessionId()].viewOperationsThatInfluenceMetadataMutex);
 
+	bool doSave = false;
 	std::vector<std::pair<std::string, Ref<Symbol>>> symbols;
 	for (const auto& img : m_images)
 	{
 		auto header = HeaderForAddress(img.headerLocation);
-		std::shared_ptr<MMappedFileAccessor> mapping;
-		try {
-			mapping = MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
-		}
-		catch (...)
-		{
-			m_logger->LogWarn("Serious Error: Failed to open export trie %s for %s", header->exportTriePath.c_str(), header->installName.c_str());
-			continue;
-		}
-		auto exportList = SharedCache::ParseExportTrie(mapping, *header);
-		std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> exportMapping;
+		auto exportList = GetExportListForHeader(*header, [&]() {
+			try {
+				auto mapping = MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
+				doSave = true;
+				return mapping;
+			}
+			catch (...)
+			{
+				m_logger->LogWarn("Serious Error: Failed to open export trie %s for %s", header->exportTriePath.c_str(), header->installName.c_str());
+				return std::shared_ptr<MMappedFileAccessor>(nullptr);
+			}
+		});
 		for (const auto& sym : exportList)
 		{
-			exportMapping.push_back({sym->GetAddress(), {sym->GetType(), sym->GetRawName()}});
-			symbols.push_back({img.installName, sym});
+			symbols.push_back({img.installName, new Symbol(sym.second.first, sym.second.second, sym.first)});
 		}
-		m_exportInfos[header->textBase] = exportMapping;
 	}
 
-	SaveToDSCView();
+	// Only save to DSC view if a header was actually loaded
+	if (doSave)
+		SaveToDSCView();
 
 	return symbols;
 }
@@ -2874,17 +2901,6 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(uint64_t symbolLocation, uint64
 	auto header = HeaderForAddress(symbolLocation);
 	if (header)
 	{
-		std::shared_ptr<MMappedFileAccessor> mapping;
-		try {
-			mapping = MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
-		}
-		catch (...)
-		{
-			m_logger->LogWarn("Serious Error: Failed to open export trie for %s", header->installName.c_str());
-			return;
-		}
-		auto exportList = SharedCache::ParseExportTrie(mapping, *header);
-		std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> exportMapping;
 		std::unique_lock<std::mutex> lock(viewSpecificMutexes[m_dscView->GetFile()->GetSessionId()].typeLibraryLookupAndApplicationMutex);
 		auto typeLib = m_dscView->GetTypeLibrary(header->installName);
 		if (!typeLib)
@@ -2897,29 +2913,40 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(uint64_t symbolLocation, uint64
 			}
 		}
 		lock.unlock();
+
+		auto exportList = GetExportListForHeader(*header, [&]() {
+			try {
+				return MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
+			}
+			catch (...)
+			{
+				m_logger->LogWarn("Serious Error: Failed to open export trie %s for %s", header->exportTriePath.c_str(), header->installName.c_str());
+				return std::shared_ptr<MMappedFileAccessor>(nullptr);
+			}
+		});
+
 		id = m_dscView->BeginUndoActions();
 		m_dscView->BeginBulkModifySymbols();
 		for (const auto& sym : exportList)
 		{
-			exportMapping.push_back({sym->GetAddress(), {sym->GetType(), sym->GetRawName()}});
-			if (sym->GetAddress() == symbolLocation)
+			if (sym.first == symbolLocation)
 			{
 				if (auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation))
 				{
 					m_dscView->DefineUserSymbol(
-						new Symbol(FunctionSymbol, prefix + sym->GetFullName(), targetLocation));
+						new Symbol(FunctionSymbol, prefix + sym.second.second, targetLocation));
 
 					if (typeLib)
-						if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {sym->GetFullName()}))
+						if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {sym.second.second}))
 							func->SetUserType(type);
 				}
 				else
 				{
 					m_dscView->DefineUserSymbol(
-						new Symbol(sym->GetType(), prefix + sym->GetFullName(), targetLocation));
+						new Symbol(sym.second.first, prefix + sym.second.second, targetLocation));
 
 					if (typeLib)
-						if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {sym->GetFullName()}))
+						if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {sym.second.second}))
 							m_dscView->DefineUserDataVariable(targetLocation, type);
 				}
 				if (triggerReanalysis)
@@ -2930,10 +2957,6 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(uint64_t symbolLocation, uint64
 				}
 				break;
 			}
-		}
-		{
-			std::unique_lock<std::mutex> _lock(viewSpecificMutexes[m_dscView->GetFile()->GetSessionId()].viewOperationsThatInfluenceMetadataMutex);
-			m_exportInfos[header->textBase] = exportMapping;
 		}
 		m_dscView->EndBulkModifySymbols();
 		m_dscView->ForgetUndoActions(id);

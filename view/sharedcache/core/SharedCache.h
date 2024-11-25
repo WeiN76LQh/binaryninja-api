@@ -1196,6 +1196,7 @@ namespace SharedCacheCore {
 			const std::string& currentText, size_t cursor, uint32_t endGuard);
 		std::vector<Ref<Symbol>> ParseExportTrie(
 			std::shared_ptr<MMappedFileAccessor> linkeditFile, SharedCacheMachOHeader header);
+		std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile);
 	};
 
 
