@@ -73,6 +73,8 @@ struct SharedCache::State
 	std::vector<MemoryRegion> dyldDataRegions;
 	std::vector<MemoryRegion> nonImageRegions;
 
+	std::optional<std::pair<size_t, size_t>> objcOptimizationDataRange;
+
 	std::string baseFilePath;
 	SharedCacheFormat cacheFormat;
 	DSCViewState viewState = DSCViewStateUnloaded;
@@ -275,6 +277,10 @@ void SharedCache::PerformInitialLoad()
 		}
 		else
 			MutableState().cacheFormat = iOS16CacheFormat;
+	}
+
+	if (primaryCacheHeader.objcOptsOffset && primaryCacheHeader.objcOptsSize) {
+		MutableState().objcOptimizationDataRange = {primaryCacheHeader.objcOptsOffset, primaryCacheHeader.objcOptsSize};
 	}
 
 	switch (State().cacheFormat)
@@ -3552,4 +3558,42 @@ const std::unordered_map<uint64_t, SharedCacheMachOHeader>& SharedCache::AllImag
 {
 	return State().headers;
 }
+size_t SharedCache::GetBaseAddress() const {
+	if (State().backingCaches.empty()) {
+		return 0;
+	}
+
+	const BackingCache& primaryCache = State().backingCaches[0];
+	if (!primaryCache.isPrimary) {
+		abort();
+		return 0;
+	}
+
+	if (primaryCache.mappings.empty()) {
+		return 0;
+	}
+
+	return primaryCache.mappings[0].address;
+}
+
+// Intentionally takes a copy to avoid modifying the cursor position in the original reader.
+std::optional<ObjCOptimizationHeader> SharedCache::GetObjCOptimizationHeader(VMReader reader) const {
+	if (!State().objcOptimizationDataRange) {
+		return {};
+	}
+
+	ObjCOptimizationHeader header{};
+	// Ignoring `objcOptsSize` in favor of `sizeof(ObjCOptimizationHeader)` matches dyld's behavior.
+	reader.Read(&header, GetBaseAddress() + State().objcOptimizationDataRange->first, sizeof(ObjCOptimizationHeader));
+
+	return header;
+}
+
+size_t SharedCache::GetObjCRelativeMethodBaseAddress(const VMReader& reader) const {
+	if (auto header = GetObjCOptimizationHeader(reader); header.has_value()) {
+		return GetBaseAddress() + header->relativeMethodSelectorBaseAddressOffset;
+	}
+	return 0;
+}
+
 }  // namespace SharedCacheCore

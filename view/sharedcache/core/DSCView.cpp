@@ -200,6 +200,15 @@ bool DSCView::Init()
 		"\t\tuint64_t rosettaReadWriteSize;\t// maximum size of the Rosetta read-write region\n"
 		"\t\tuint32_t imagesOffset;\t\t\t// file offset to first dyld_cache_image_info\n"
 		"\t\tuint32_t imagesCount;\t\t\t// number of dyld_cache_image_info entries\n"
+		"\t\tuint32_t cacheSubType;           // 0 for development, 1 for production, when cacheType is multi-cache(2)\n"
+		"\t\tuint64_t objcOptsOffset;         // VM offset from cache_header* to ObjC optimizations header\n"
+		"\t\tuint64_t objcOptsSize;           // size of ObjC optimizations header\n"
+		"\t\tuint64_t cacheAtlasOffset;       // VM offset from cache_header* to embedded cache atlas for process introspection\n"
+		"\t\tuint64_t cacheAtlasSize;         // size of embedded cache atlas\n"
+		"\t\tuint64_t dynamicDataOffset;      // VM offset from cache_header* to the location of dyld_cache_dynamic_data_header\n"
+		"\t\tuint64_t dynamicDataMaxSize;     // maximum size of space reserved from dynamic data\n"
+		"\t\tuint32_t tproMappingsOffset;     // file offset to first dyld_cache_tpro_mapping_info\n"
+		"\t\tuint32_t tproMappingsCount;      // number of dyld_cache_tpro_mapping_info entries\n"
 		"\t};", headerType, err);
 
 	Ref<Settings> settings = GetLoadSettings(GetTypeName());
@@ -732,8 +741,13 @@ bool DSCView::Init()
 		return false;
 	}
 
-	AddAutoSegment(primaryBase, 0x200, 0, 0x200, SegmentReadable);
-	AddAutoSection("__dsc_header", primaryBase, 0x200, ReadOnlyCodeSectionSemantics);
+	uint64_t headerSize = std::min(basePointer, headerType.type->GetWidth());
+	// Truncate the `dyld_cache_header` structure to the structure present in the cache file.
+	auto newStructure = StructureBuilder(headerType.type->GetStructure()).SetWidth(headerSize).Finalize();
+	headerType.type = TypeBuilder::StructureType(newStructure).Finalize();
+
+	AddAutoSegment(primaryBase, headerSize, 0, headerSize, SegmentReadable);
+	AddAutoSection("__dsc_header", primaryBase, headerSize, ReadOnlyDataSectionSemantics);
 	DefineType("dyld_cache_header", headerType.name, headerType.type);
 	DefineAutoSymbolAndVariableOrFunction(GetDefaultPlatform(), new Symbol(DataSymbol, "primary_cache_header", primaryBase), headerType.type);
 
