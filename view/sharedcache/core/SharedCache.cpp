@@ -72,7 +72,7 @@ struct ViewStateCacheStore {
 
 	std::string m_baseFilePath;
 
-	std::unordered_map<uint64_t, std::unordered_map<uint64_t, Ref<Symbol>>> m_exportInfos;
+	std::unordered_map<uint64_t, std::shared_ptr<std::unordered_map<uint64_t, Ref<Symbol>>>> m_exportInfos;
 	std::unordered_map<uint64_t, std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>> m_symbolInfos;
 };
 
@@ -2638,44 +2638,47 @@ void SharedCache::InitializeHeader(
 		auto symbols = GetExportListForHeader(header, [&]() {
 			return vm->MappingAtAddress(header.linkeditSegment.vmaddr).first.fileAccessor->lock();
 		});
-		for (const auto& symPair : symbols)
+		if (symbols)
 		{
-			if (typeLib)
+			for (const auto& [symbolAddress, symbol] : *symbols)
 			{
-				auto type = m_dscView->ImportTypeLibraryObject(typeLib, symPair.second->GetRawName());
-
-				if (type)
+				if (typeLib)
 				{
-					view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symPair.second, type);
+					auto type = m_dscView->ImportTypeLibraryObject(typeLib, symbol->GetRawName());
+
+					if (type)
+					{
+						view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symbol, type);
+					}
+					else
+						view->DefineAutoSymbol(symbol);
+
+					if (view->GetAnalysisFunction(view->GetDefaultPlatform(), symbolAddress))
+					{
+						auto func = view->GetAnalysisFunction(view->GetDefaultPlatform(), symbolAddress);
+						auto name = symbol->GetFullName();
+						if (name == "_objc_msgSend")
+						{
+							func->SetHasVariableArguments(false);
+						}
+						else if (name.find("_objc_retain_x") != std::string::npos || name.find("_objc_release_x") != std::string::npos)
+						{
+							auto x = name.rfind("x");
+							auto num = name.substr(x + 1);
+
+							std::vector<BinaryNinja::FunctionParameter> callTypeParams;
+							auto cc = m_dscView->GetDefaultArchitecture()->GetCallingConventionByName("apple-arm64-objc-fast-arc-" + num);
+
+							callTypeParams.push_back({"obj", m_dscView->GetTypeByName({ "id" }), true, BinaryNinja::Variable()});
+
+							auto funcType = BinaryNinja::Type::FunctionType(m_dscView->GetTypeByName({ "id" }), cc, callTypeParams);
+							func->SetUserType(funcType);
+						}
+					}
 				}
 				else
-					view->DefineAutoSymbol(symPair.second);
-
-				if (view->GetAnalysisFunction(view->GetDefaultPlatform(), symPair.first))
-				{
-					auto func = view->GetAnalysisFunction(view->GetDefaultPlatform(), symPair.first);
-					auto name = symPair.second->GetFullName();
-					if (name == "_objc_msgSend")
-					{
-						func->SetHasVariableArguments(false);
-					}
-					else if (name.find("_objc_retain_x") != std::string::npos || name.find("_objc_release_x") != std::string::npos)
-					{
-						auto x = name.rfind("x");
-						auto num = name.substr(x + 1);
-
-						std::vector<BinaryNinja::FunctionParameter> callTypeParams;
-						auto cc = m_dscView->GetDefaultArchitecture()->GetCallingConventionByName("apple-arm64-objc-fast-arc-" + num);
-
-						callTypeParams.push_back({"obj", m_dscView->GetTypeByName({ "id" }), true, BinaryNinja::Variable()});
-
-						auto funcType = BinaryNinja::Type::FunctionType(m_dscView->GetTypeByName({ "id" }), cc, callTypeParams);
-						func->SetUserType(funcType);
-					}
-				}
+					view->DefineAutoSymbol(symbol);
 			}
-			else
-				view->DefineAutoSymbol(symPair.second);
 		}
 	}
 	view->EndBulkModifySymbols();
@@ -2781,7 +2784,7 @@ std::vector<Ref<Symbol>> SharedCache::ParseExportTrie(std::shared_ptr<MMappedFil
 }
 
 
-std::unordered_map<uint64_t, Ref<Symbol>> SharedCache::GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList)
+std::shared_ptr<std::unordered_map<uint64_t, Ref<Symbol>>> SharedCache::GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList)
 {
 	if (auto it = m_exportInfos.find(header.textBase); it != m_exportInfos.end())
 	{
@@ -2796,19 +2799,19 @@ std::unordered_map<uint64_t, Ref<Symbol>> SharedCache::GetExportListForHeader(Sh
 		{
 			if (didModifyExportList)
 				*didModifyExportList = false;
-			return std::unordered_map<uint64_t, Ref<Symbol>>();
+			return nullptr;
 		}
 
 		auto exportList = SharedCache::ParseExportTrie(linkeditFile, header);
-		std::unordered_map<uint64_t, Ref<Symbol>> exportMapping(exportList.size());
+		auto exportMapping = std::make_shared<std::unordered_map<uint64_t, Ref<Symbol>>>(exportList.size());
 		for (const auto& sym : exportList)
 		{
-			exportMapping[sym->GetAddress()] = sym;
+			exportMapping->insert_or_assign(sym->GetAddress(), sym);
 		}
-		m_exportInfos[header.textBase] = exportMapping;
+		m_exportInfos.emplace(header.textBase, exportMapping);
 		if (didModifyExportList)
 			*didModifyExportList = true;
-		return exportMapping;
+		return m_exportInfos[header.textBase];
 	}
 }
 
@@ -2844,9 +2847,11 @@ std::vector<std::pair<std::string, Ref<Symbol>>> SharedCache::LoadAllSymbolsAndW
 				return std::shared_ptr<MMappedFileAccessor>(nullptr);
 			}
 		}, &doSave);
-		for (const auto& symPair : exportList)
+		if (!exportList)
+			continue;
+		for (const auto& [_, symbol] : *exportList)
 		{
-			symbols.push_back({img.installName, symPair.second});
+			symbols.push_back({img.installName, symbol});
 		}
 	}
 
@@ -2933,38 +2938,41 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(uint64_t symbolLocation, uint64
 			}
 		});
 
-		if (auto it = exportList.find(symbolLocation); it != exportList.end())
+		if (exportList)
 		{
-			id = m_dscView->BeginUndoActions();
-			m_dscView->BeginBulkModifySymbols();
-			
-			auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation);
-			if (func)
+			if (auto it = exportList->find(symbolLocation); it != exportList->end())
 			{
-				m_dscView->DefineUserSymbol(
-					new Symbol(FunctionSymbol, prefix + it->second->GetFullName(), targetLocation));
+				id = m_dscView->BeginUndoActions();
+				m_dscView->BeginBulkModifySymbols();
 
-				if (typeLib)
-					if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {it->second->GetFullName()}))
-						func->SetUserType(type);
-			}
-			else
-			{
-				m_dscView->DefineUserSymbol(
-					new Symbol(it->second->GetType(), prefix + it->second->GetFullName(), targetLocation));
-
-				if (typeLib)
-					if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {it->second->GetFullName()}))
-						m_dscView->DefineUserDataVariable(targetLocation, type);
-			}
-			if (triggerReanalysis)
-			{
+				auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation);
 				if (func)
-					func->Reanalyze();
-			}
+				{
+					m_dscView->DefineUserSymbol(
+						new Symbol(FunctionSymbol, prefix + it->second->GetFullName(), targetLocation));
 
-			m_dscView->EndBulkModifySymbols();
-			m_dscView->ForgetUndoActions(id);
+					if (typeLib)
+						if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {it->second->GetFullName()}))
+							func->SetUserType(type);
+				}
+				else
+				{
+					m_dscView->DefineUserSymbol(
+						new Symbol(it->second->GetType(), prefix + it->second->GetFullName(), targetLocation));
+
+					if (typeLib)
+						if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {it->second->GetFullName()}))
+							m_dscView->DefineUserDataVariable(targetLocation, type);
+				}
+				if (triggerReanalysis)
+				{
+					if (func)
+						func->Reanalyze();
+				}
+
+				m_dscView->EndBulkModifySymbols();
+				m_dscView->ForgetUndoActions(id);
+			}
 		}
 	}
 }
@@ -2990,7 +2998,7 @@ bool SharedCache::SaveToDSCView()
 		c.m_dyldDataRegions = m_dyldDataRegions;
 		c.m_nonImageRegions = m_nonImageRegions;
 		c.m_baseFilePath = m_baseFilePath;
-		c.m_exportInfos = m_exportInfos;
+		//c.m_exportInfos = m_exportInfos;
 		c.m_symbolInfos = m_symbolInfos;
 		viewStateCache[m_dscView->GetFile()->GetSessionId()] = c;
 
