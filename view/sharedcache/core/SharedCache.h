@@ -643,7 +643,8 @@ private:
 			std::shared_ptr<MMappedFileAccessor> linkeditFile, const SharedCacheMachOHeader& header);
 
 		std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> GetExportListForHeader(
-			SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile);
+			SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile,
+			bool* didModifyExportList = nullptr);
 
 		Ref<TypeLibrary> TypeLibraryForImage(const std::string& installName);
 
