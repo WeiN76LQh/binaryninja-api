@@ -1577,8 +1577,8 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 
 				// The region appears not to be loaded. Acquire the loading lock, re-check 
 				// that it hasn't been loaded and if it still hasn't then actually load it.
-				std::unique_lock<std::mutex> memoryRegionLoadingLockslock(ViewSpecificStateForView(m_dscView)->memoryRegionLoadingMutexesMutex);
-				auto& memoryRegionLoadingMutex = ViewSpecificStateForView(m_dscView)->memoryRegionLoadingMutexes[stubIsland.start];
+				std::unique_lock<std::mutex> memoryRegionLoadingLockslock(m_viewSpecificState->memoryRegionLoadingMutexesMutex);
+				auto& memoryRegionLoadingMutex = m_viewSpecificState->memoryRegionLoadingMutexes[stubIsland.start];
 				// Now the specific memory region's loading mutex has been retrieved, this one can be dropped
 				memoryRegionLoadingLockslock.unlock();
 				// Hold this lock until loading of the region is done
@@ -1586,10 +1586,9 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 
 				// Check the latest state to see if the memory region has been loaded while acquiring the lock
 				{
-					auto viewSpecificState = ViewSpecificStateForView(m_dscView);
-					std::unique_lock<std::mutex> viewStateCacheLock(viewSpecificState->stateMutex);
+					std::unique_lock<std::mutex> viewStateCacheLock(m_viewSpecificState->stateMutex);
 					
-					for (auto& cacheStubIsland : viewSpecificState->state->m_stubIslandRegions)
+					for (auto& cacheStubIsland : m_viewSpecificState->state->m_stubIslandRegions)
 					{
 						if (cacheStubIsland.start <= address && cacheStubIsland.start + cacheStubIsland.size > address)
 						{
@@ -1604,7 +1603,7 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 				}
 
 				// Still not loaded, so load it below
-				std::unique_lock<std::mutex> lock(ViewSpecificStateForView(m_dscView)->viewOperationsThatInfluenceMetadataMutex);
+				std::unique_lock<std::mutex> lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
 				DeserializeFromRawView();
 
 				auto vm = GetVMMap();
@@ -1657,8 +1656,8 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 
 				// The region appears not to be loaded. Acquire the loading lock, re-check 
 				// that it hasn't been loaded and if it still hasn't then actually load it.
-				std::unique_lock<std::mutex> memoryRegionLoadingLockslock(ViewSpecificStateForView(m_dscView)->memoryRegionLoadingMutexesMutex);
-				auto& memoryRegionLoadingMutex = ViewSpecificStateForView(m_dscView)->memoryRegionLoadingMutexes[dyldData.start];
+				std::unique_lock<std::mutex> memoryRegionLoadingLockslock(m_viewSpecificState->memoryRegionLoadingMutexesMutex);
+				auto& memoryRegionLoadingMutex = m_viewSpecificState->memoryRegionLoadingMutexes[dyldData.start];
 				// Now the specific memory region's loading mutex has been retrieved, this one can be dropped
 				memoryRegionLoadingLockslock.unlock();
 				// Hold this lock until loading of the region is done
@@ -1666,10 +1665,9 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 
 				// Check the latest state to see if the memory region has been loaded while acquiring the lock
 				{
-					auto viewSpecificState = ViewSpecificStateForView(m_dscView);
-					std::unique_lock<std::mutex> viewStateCacheLock(viewSpecificState->stateMutex);
+					std::unique_lock<std::mutex> viewStateCacheLock(m_viewSpecificState->stateMutex);
 					
-					for (auto& cacheDyldData : viewSpecificState->state->m_dyldDataRegions)
+					for (auto& cacheDyldData : m_viewSpecificState->state->m_dyldDataRegions)
 					{
 						if (cacheDyldData.start <= address && cacheDyldData.start + cacheDyldData.size > address)
 						{
@@ -1684,7 +1682,7 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 				}
 
 				// Still not loaded, so load it below
-				std::unique_lock<std::mutex> lock(ViewSpecificStateForView(m_dscView)->viewOperationsThatInfluenceMetadataMutex);
+				std::unique_lock<std::mutex> lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
 				DeserializeFromRawView();
 
 				auto vm = GetVMMap();
@@ -1736,8 +1734,8 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 
 				// The region appears not to be loaded. Acquire the loading lock, re-check 
 				// that it hasn't been loaded and if it still hasn't then actually load it.
-				std::unique_lock<std::mutex> memoryRegionLoadingLockslock(ViewSpecificStateForView(m_dscView)->memoryRegionLoadingMutexesMutex);
-				auto& memoryRegionLoadingMutex = ViewSpecificStateForView(m_dscView)->memoryRegionLoadingMutexes[region.start];
+				std::unique_lock<std::mutex> memoryRegionLoadingLockslock(m_viewSpecificState->memoryRegionLoadingMutexesMutex);
+				auto& memoryRegionLoadingMutex = m_viewSpecificState->memoryRegionLoadingMutexes[region.start];
 				// Now the specific memory region's loading mutex has been retrieved, this one can be dropped
 				memoryRegionLoadingLockslock.unlock();
 				// Hold this lock until loading of the region is done
@@ -1745,7 +1743,7 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 
 				// Check the latest state to see if the memory region has been loaded while acquiring the lock
 				{
-					auto viewSpecificState = ViewSpecificStateForView(m_dscView);
+					auto viewSpecificState = m_viewSpecificState;
 					std::unique_lock<std::mutex> viewStateCacheLock(viewSpecificState->stateMutex);
 					
 					for (auto& cacheRegion : viewSpecificState->state->m_nonImageRegions)
@@ -1763,7 +1761,7 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 				}
 
 				// Still not loaded, so load it below
-				std::unique_lock<std::mutex> lock(ViewSpecificStateForView(m_dscView)->viewOperationsThatInfluenceMetadataMutex);
+				std::unique_lock<std::mutex> lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
 				DeserializeFromRawView();
 
 				auto vm = GetVMMap();
