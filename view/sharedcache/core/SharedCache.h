@@ -642,7 +642,9 @@ private:
 			const uint8_t *end, const uint8_t* current, uint64_t textBase, const std::string& currentText);
 		std::vector<Ref<Symbol>> ParseExportTrie(
 			std::shared_ptr<MMappedFileAccessor> linkeditFile, const SharedCacheMachOHeader& header);
-		std::unordered_map<uint64_t, Ref<Symbol>> GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList = nullptr);
+		std::shared_ptr<std::unordered_map<uint64_t, Ref<Symbol>>> GetExportListForHeader(SharedCacheMachOHeader header,
+			std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList = nullptr);
+
 
 		Ref<TypeLibrary> TypeLibraryForImage(const std::string& installName);
 
