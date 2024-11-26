@@ -27,7 +27,6 @@
 #include "SharedCache.h"
 #include "ObjC.h"
 #include <filesystem>
-#include <unordered_map>
 #include <utility>
 #include <fcntl.h>
 #include <memory>
@@ -2998,7 +2997,7 @@ bool SharedCache::SaveToDSCView()
 		c.m_dyldDataRegions = m_dyldDataRegions;
 		c.m_nonImageRegions = m_nonImageRegions;
 		c.m_baseFilePath = m_baseFilePath;
-		//c.m_exportInfos = m_exportInfos;
+		c.m_exportInfos = m_exportInfos;
 		c.m_symbolInfos = m_symbolInfos;
 		viewStateCache[m_dscView->GetFile()->GetSessionId()] = c;
 
