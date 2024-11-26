@@ -2780,17 +2780,23 @@ std::vector<Ref<Symbol>> SharedCache::ParseExportTrie(std::shared_ptr<MMappedFil
 }
 
 
-std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> SharedCache::GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile)
+std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> SharedCache::GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList)
 {
 	if (auto it = m_exportInfos.find(header.textBase); it != m_exportInfos.end())
 	{
+		if (didModifyExportList)
+			*didModifyExportList = false;
 		return it->second;
 	}
 	else
 	{
 		std::shared_ptr<MMappedFileAccessor> linkeditFile = provideLinkeditFile();
 		if (!linkeditFile)
+		{
+			if (didModifyExportList)
+				*didModifyExportList = false;
 			return std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>();
+		}
 
 		auto exportList = SharedCache::ParseExportTrie(linkeditFile, header);
 		std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> exportMapping(exportList.size());
@@ -2799,6 +2805,8 @@ std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> SharedCac
 			exportMapping.push_back({sym->GetAddress(), {sym->GetType(), sym->GetRawName()}});
 		}
 		m_exportInfos[header.textBase] = exportMapping;
+		if (didModifyExportList)
+			*didModifyExportList = true;
 		return exportMapping;
 	}
 }
@@ -2827,7 +2835,6 @@ std::vector<std::pair<std::string, Ref<Symbol>>> SharedCache::LoadAllSymbolsAndW
 		auto exportList = GetExportListForHeader(*header, [&]() {
 			try {
 				auto mapping = MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
-				doSave = true;
 				return mapping;
 			}
 			catch (...)
@@ -2835,7 +2842,7 @@ std::vector<std::pair<std::string, Ref<Symbol>>> SharedCache::LoadAllSymbolsAndW
 				m_logger->LogWarn("Serious Error: Failed to open export trie %s for %s", header->exportTriePath.c_str(), header->installName.c_str());
 				return std::shared_ptr<MMappedFileAccessor>(nullptr);
 			}
-		});
+		}, &doSave);
 		for (const auto& sym : exportList)
 		{
 			symbols.push_back({img.installName, new Symbol(sym.second.first, sym.second.second, sym.first)});
