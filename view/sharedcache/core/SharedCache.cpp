@@ -2974,13 +2974,14 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 			}
 		});
 
-		std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> exportMapping;
-		auto typeLib = TypeLibraryForImage(header->installName);
-		id = m_dscView->BeginUndoActions();
-		m_dscView->BeginBulkModifySymbols();
 		if (auto it = exportList.find(symbolLocation); it != exportList.end())
 		{
-			if (auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation))
+			auto typeLib = TypeLibraryForImage(header->installName);
+			id = m_dscView->BeginUndoActions();
+			m_dscView->BeginBulkModifySymbols();
+			
+			auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation);
+			if (func)
 			{
 				m_dscView->DefineUserSymbol(
 					new Symbol(FunctionSymbol, prefix + it->second->GetFullName(), targetLocation));
@@ -3000,13 +3001,13 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 			}
 			if (triggerReanalysis)
 			{
-				auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation);
 				if (func)
 					func->Reanalyze();
 			}
+
+			m_dscView->EndBulkModifySymbols();
+			m_dscView->ForgetUndoActions(id);
 		}
-		m_dscView->EndBulkModifySymbols();
-		m_dscView->ForgetUndoActions(id);
 	}
 }
 
