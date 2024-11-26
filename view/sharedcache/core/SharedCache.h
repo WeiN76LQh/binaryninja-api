@@ -964,8 +964,8 @@ namespace SharedCacheCore {
 				{
 					rapidjson::Value subSubObj(rapidjson::kObjectType);
 					subSubObj.AddMember("key", pair2.first, m_activeContext.allocator);
-					subSubObj.AddMember("val1", pair2.second.first, m_activeContext.allocator);
-					subSubObj.AddMember("val2", pair2.second.second, m_activeContext.allocator);
+					subSubObj.AddMember("val1", pair2.second->GetType(), m_activeContext.allocator);
+					subSubObj.AddMember("val2", pair2.second->GetRawName(), m_activeContext.allocator);
 					subArr.PushBack(subSubObj, m_activeContext.allocator);
 				}
 
@@ -1042,11 +1042,12 @@ namespace SharedCacheCore {
 			m_exportInfos.clear();
 			for (const auto& obj1 : m_activeDeserContext.doc["exportInfos"].GetArray())
 			{
-				std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> innerVec;
+				std::unordered_map<uint64_t, Ref<Symbol>> innerVec;
 				for (const auto& obj2 : obj1["value"].GetArray())
 				{
-					std::pair<BNSymbolType, std::string> innerPair = { (BNSymbolType)obj2["val1"].GetUint64(), obj2["val2"].GetString() };
-					innerVec.push_back({ obj2["key"].GetUint64(), innerPair });
+					auto address = obj2["key"].GetUint64();
+					Ref<Symbol> symbol = new Symbol((BNSymbolType)obj2["val1"].GetUint64(), obj2["val2"].GetString(), address);
+					innerVec[address] = symbol;
 				}
 
 				m_exportInfos[obj1["key"].GetUint64()] = innerVec;
@@ -1114,8 +1115,7 @@ namespace SharedCacheCore {
 
 		// Updated as the view is loaded further, more images are added, etc
 		DSCViewState m_viewState = DSCViewStateUnloaded;
-		std::unordered_map<uint64_t, std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>>
-			m_exportInfos;
+		std::unordered_map<uint64_t, std::unordered_map<uint64_t, Ref<Symbol>>> m_exportInfos;
 		std::unordered_map<uint64_t, std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>>
 			m_symbolInfos;
 		// ---
@@ -1196,7 +1196,7 @@ namespace SharedCacheCore {
 			const std::string& currentText, size_t cursor, uint32_t endGuard);
 		std::vector<Ref<Symbol>> ParseExportTrie(
 			std::shared_ptr<MMappedFileAccessor> linkeditFile, SharedCacheMachOHeader header);
-		std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList = nullptr);
+		std::unordered_map<uint64_t, Ref<Symbol>> GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList = nullptr);
 	};
 
 
