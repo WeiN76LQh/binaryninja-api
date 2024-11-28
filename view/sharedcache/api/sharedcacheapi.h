@@ -105,7 +105,7 @@ namespace SharedCacheAPI {
 
 	struct BackingCache {
 		std::string path;
-		bool isPrimary;
+		BNBackingCacheType cacheType;
 		std::vector<BackingCacheMapping> mappings;
 	};
 

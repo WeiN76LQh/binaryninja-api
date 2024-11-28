@@ -52,14 +52,21 @@ class DSCBackingCacheMapping:
 @dataclasses.dataclass
 class DSCBackingCache:
 	path: str
-	isPrimary: bool
+	cacheType: BackingCacheType
 	mappings: list[DSCBackingCacheMapping]
 
 	def __str__(self):
 		return repr(self)
 
 	def __repr__(self):
-		return f"<DSCBackingCache {self.path} {'Primary' if self.isPrimary else 'Secondary'} | {len(self.mappings)} mappings>"
+		match self.cacheType:
+			case BackingCacheType.BackingCacheTypePrimary:
+				cacheTypeStr = 'Primary'
+			case BackingCacheType.BackingCacheTypeSecondary:
+				cacheTypeStr = 'Secondary'
+			case BackingCacheType.BackingCacheTypeSymbols:
+				cacheTypeStr = 'Symbols'
+		return f"<DSCBackingCache {self.path} {cacheTypeStr} | {len(self.mappings)} mappings>"
 
 
 @dataclasses.dataclass
@@ -136,7 +143,7 @@ class SharedCache:
 				mappings.append(mapping)
 			result.append(DSCBackingCache(
 				value[i].path,
-				value[i].isPrimary,
+				value[i].cacheType,
 				mappings
 			))
 

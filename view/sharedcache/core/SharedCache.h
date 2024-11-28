@@ -59,12 +59,14 @@ namespace SharedCacheCore {
 
 	struct CacheImage : public MetadataSerializable
 	{
+		uint32_t index; // image index in the DSC
 		std::string installName;
 		uint64_t headerLocation;
 		std::vector<MemoryRegion> regions;
 
 		void Store() override
 		{
+			MSS(index);
 			MSS(installName);
 			MSS(headerLocation);
 			rapidjson::Value key("regions", m_activeContext.allocator);
@@ -78,6 +80,7 @@ namespace SharedCacheCore {
 
 		void Load() override
 		{
+			MSL(index);
 			MSL(installName);
 			MSL(headerLocation);
 			auto bArr = m_activeDeserContext.doc["regions"].GetArray();
@@ -94,19 +97,19 @@ namespace SharedCacheCore {
 	struct BackingCache : public MetadataSerializable
 	{
 		std::string path;
-		bool isPrimary = false;
+		BNBackingCacheType cacheType = BackingCacheTypeSecondary;
 		std::vector<std::pair<uint64_t, std::pair<uint64_t, uint64_t>>> mappings;
 
 		void Store() override
 		{
 			MSS(path);
-			MSS(isPrimary);
+			MSS_CAST(cacheType, uint32_t);
 			MSS(mappings);
 		}
 		void Load() override
 		{
 			MSL(path);
-			MSL(isPrimary);
+			MSL_CAST(cacheType, uint32_t, BNBackingCacheType);
 			MSL(mappings);
 		}
 	};
@@ -977,20 +980,20 @@ namespace SharedCacheCore {
 			m_activeContext.doc.AddMember("exportInfos", exportInfos, m_activeContext.allocator);
 
 			rapidjson::Document symbolInfos(rapidjson::kArrayType);
-			for (const auto& pair1 : m_symbolInfos)
+			for (const auto& [headerLocation, symbolVec] : m_symbolInfos)
 			{
 				rapidjson::Value subObj(rapidjson::kObjectType);
 				rapidjson::Value subArr(rapidjson::kArrayType);
-				for (const auto& pair2 : pair1.second)
+				for (const auto& symbol : symbolVec)
 				{
 					rapidjson::Value subSubArr(rapidjson::kArrayType);
-					subSubArr.PushBack(pair2.first, m_activeContext.allocator);
-					subSubArr.PushBack(pair2.second.first, m_activeContext.allocator);
-					subSubArr.PushBack(pair2.second.second, m_activeContext.allocator);
+					subSubArr.PushBack(symbol->GetAddress(), m_activeContext.allocator);
+					subSubArr.PushBack(symbol->GetType(), m_activeContext.allocator);
+					subSubArr.PushBack(symbol->GetRawName(), m_activeContext.allocator);
 					subArr.PushBack(subSubArr, m_activeContext.allocator);
 				}
 
-				subObj.AddMember("key", pair1.first, m_activeContext.allocator);
+				subObj.AddMember("key", headerLocation, m_activeContext.allocator);
 				subObj.AddMember("value", subArr, m_activeContext.allocator);
 
 				symbolInfos.PushBack(subObj, m_activeContext.allocator);
@@ -1075,13 +1078,12 @@ namespace SharedCacheCore {
 			m_symbolInfos.clear();
 			for (auto& symbolInfo : m_activeDeserContext.doc["symbolInfos"].GetArray())
 			{
-				std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> symbolInfoVec;
+				std::vector<Ref<Symbol>> symbolVec;
 				for (auto& symbolInfoPair : symbolInfo["value"].GetArray())
 				{
-					symbolInfoVec.push_back({symbolInfoPair[0].GetUint64(),
-						{(BNSymbolType)symbolInfoPair[1].GetUint(), symbolInfoPair[2].GetString()}});
+					symbolVec.push_back(new Symbol((BNSymbolType)symbolInfoPair[1].GetUint(), symbolInfoPair[2].GetString(), symbolInfoPair[0].GetUint64()));
 				}
-				m_symbolInfos[symbolInfo["key"].GetUint64()] = symbolInfoVec;
+				m_symbolInfos[symbolInfo["key"].GetUint64()] = symbolVec;
 			}
 			m_backingCaches.clear();
 			for (auto& bcV : m_activeDeserContext.doc["backingCaches"].GetArray())
@@ -1137,8 +1139,7 @@ namespace SharedCacheCore {
 		DSCViewState m_viewState = DSCViewStateUnloaded;
 		std::unordered_map<uint64_t, std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>>
 			m_exportInfos;
-		std::unordered_map<uint64_t, std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>>
-			m_symbolInfos;
+		std::unordered_map<uint64_t, std::vector<Ref<Symbol>>> m_symbolInfos;
 		// ---
 
 		// Serialized once by PerformInitialLoad and available after m_viewState == Loaded
@@ -1217,6 +1218,9 @@ namespace SharedCacheCore {
 			const std::string& currentText, size_t cursor, uint32_t endGuard);
 		std::vector<Ref<Symbol>> ParseExportTrie(
 			std::shared_ptr<MMappedFileAccessor> linkeditFile, SharedCacheMachOHeader header);
+		
+		void ProcessSymbols(std::shared_ptr<MMappedFileAccessor> file, const SharedCacheMachOHeader& header, uint64_t stringsOffset, size_t stringsSize, uint64_t nlistEntriesOffset, uint32_t nlistCount, uint32_t nlistStartIndex = 0);
+		void ApplySymbol(Ref<BinaryView> view, Ref<TypeLibrary> typeLib, Ref<Symbol> symbol);
 	};
 
 
