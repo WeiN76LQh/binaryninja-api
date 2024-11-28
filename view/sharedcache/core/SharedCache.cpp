@@ -517,7 +517,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 	{
 		dyld_cache_mapping_info mapping {};
 		BackingCache cache;
-		cache.isPrimary = true;
+		cache.cacheType = BackingCacheTypePrimary;
 		cache.path = path;
 
 		for (size_t i = 0; i < primaryCacheHeader.mappingCount; i++)
@@ -583,7 +583,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 											 // briefly.
 
 		BackingCache cache;
-		cache.isPrimary = true;
+		cache.cacheType = BackingCacheTypePrimary;
 		cache.path = path;
 
 		for (size_t i = 0; i < primaryCacheHeader.mappingCount; i++)
@@ -654,7 +654,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 
 			dyld_cache_mapping_info subCacheMapping {};
 			BackingCache subCache;
-			subCache.isPrimary = false;
+			subCache.cacheType = BackingCacheTypeSecondary;
 			subCache.path = subCachePath;
 
 			for (size_t j = 0; j < subCacheHeader.mappingCount; j++)
@@ -688,7 +688,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 		dyld_cache_mapping_info mapping {};	 // We're going to reuse this for all of the mappings. We only need it
 											 // briefly.
 		BackingCache cache;
-		cache.isPrimary = true;
+		cache.cacheType = BackingCacheTypePrimary;
 		cache.path = path;
 
 		for (size_t i = 0; i < primaryCacheHeader.mappingCount; i++)
@@ -740,7 +740,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 			subCacheFile->Read(&subCacheHeader, 0, headerSize);
 
 			BackingCache subCache;
-			subCache.isPrimary = false;
+			subCache.cacheType = BackingCacheTypeSecondary;
 			subCache.path = subCachePath;
 
 			dyld_cache_mapping_info subCacheMapping {};
@@ -808,7 +808,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 		dyld_cache_mapping_info mapping {};
 
 		BackingCache cache;
-		cache.isPrimary = true;
+		cache.cacheType = BackingCacheTypePrimary;
 		cache.path = path;
 
 		for (size_t i = 0; i < primaryCacheHeader.mappingCount; i++)
@@ -885,7 +885,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 			dyld_cache_mapping_info subCacheMapping {};
 
 			BackingCache subCache;
-			subCache.isPrimary = false;
+			subCache.cacheType = BackingCacheTypeSecondary;
 			subCache.path = subCachePath;
 
 			for (size_t j = 0; j < subCacheHeader.mappingCount; j++)
@@ -942,7 +942,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 			subCacheFile->Read(&subCacheHeader, 0, headerSize);
 
 			BackingCache subCache;
-			subCache.isPrimary = false;
+			subCache.cacheType = BackingCacheTypeSymbols;
 			subCache.path = subCachePath;
 
 			dyld_cache_mapping_info subCacheMapping {};
@@ -957,7 +957,9 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 			initialState.backingCaches.push_back(std::move(subCache));
 		}
 		catch (...)
-		{}
+		{
+			m_logger->LogWarn("Failed to load the symbols cache");
+		}
 		break;
 	}
 	}
@@ -3370,7 +3372,7 @@ extern "C"
 			for (size_t i = 0; i < viewCaches.size(); i++)
 			{
 				caches[i].path = BNAllocString(viewCaches[i].path.c_str());
-				caches[i].isPrimary = viewCaches[i].isPrimary;
+				caches[i].cacheType = viewCaches[i].cacheType;
 
 				BNDSCBackingCacheMapping* mappings;
 				mappings = new BNDSCBackingCacheMapping[viewCaches[i].mappings.size()];
@@ -3750,7 +3752,7 @@ void SharedCache::ModifiedState::Merge(SharedCache::ModifiedState&& newer)
 void BackingCache::Store(SerializationContext& context) const
 {
 	MSS(path);
-	MSS(isPrimary);
+	MSS_CAST(cacheType, uint32_t);
 	MSS(mappings);
 }
 
@@ -3758,7 +3760,7 @@ BackingCache BackingCache::Load(DeserializationContext& context)
 {
 	BackingCache cache;
 	cache.MSL(path);
-	cache.MSL(isPrimary);
+	cache.MSL_CAST(cacheType, uint32_t, BNBackingCacheType);
 	cache.MSL(mappings);
 	return cache;
 }

@@ -33,7 +33,7 @@ endif()
 set(HARD_FAIL_MODE OFF CACHE BOOL "Enable hard fail mode")
 set(SLIDEINFO_DEBUG_TAGS OFF CACHE BOOL "Enable debug tags in slideinfo")
 set(VIEW_NAME "DSCView" CACHE STRING "Name of the view")
-set(METADATA_VERSION 4 CACHE STRING "Version of the metadata")
+set(METADATA_VERSION 5 CACHE STRING "Version of the metadata")
 
 add_subdirectory(core)
 add_subdirectory(api)

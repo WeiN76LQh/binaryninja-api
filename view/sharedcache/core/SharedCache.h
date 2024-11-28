@@ -104,7 +104,7 @@ namespace SharedCacheCore {
 
 	struct BackingCache : public MetadataSerializable<BackingCache> {
 		std::string path;
-		bool isPrimary = false;
+		BNBackingCacheType cacheType = BackingCacheTypeSecondary;
 		std::vector<dyld_cache_mapping_info> mappings;
 
 		void Store(SerializationContext& context) const;
