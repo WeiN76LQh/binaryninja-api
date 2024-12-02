@@ -14,13 +14,6 @@
 #include "lowlevelilinstruction.h"
 #include "rapidjsonwrapper.h"
 
-enum {
-	N_STAB = 0xe0,
-	N_PEXT = 0x10,
-	N_TYPE = 0x0e,
-	N_EXT  = 0x01
-};
-
 using namespace BinaryNinja;
 using namespace std;
 
