@@ -161,6 +161,7 @@ namespace SharedCacheAPI {
 		}
 
 		std::vector<DSCSymbol> result;
+		result.reserve(count);
 		for (size_t i = 0; i < count; i++)
 		{
 			DSCSymbol sym;

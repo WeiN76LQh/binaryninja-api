@@ -86,9 +86,10 @@ struct DeserializationContext {
 template <typename Derived, typename LoadResult = Derived>
 class MetadataSerializable {
 public:
-	std::string AsString() const {
+	template <typename... Args>
+	std::string AsString(Args&&... args) const {
 		SerializationContext context;
-		Store(context);
+		Store(context, std::forward<Args>(args)...);
 
 		return context.buffer.GetString();
 	}
@@ -106,14 +107,15 @@ public:
 		return Derived::Load(context);
 	}
 
-	Ref<Metadata> AsMetadata() const {
-		return new Metadata(AsString());
+	template <typename... Args>
+	Ref<Metadata> AsMetadata(Args&&... args) const {
+		return new Metadata(AsString(std::forward<Args>(args)...));
 	}
 
 	template <typename... Args>
-	void Store(SerializationContext& context) const {
+	void Store(SerializationContext& context, Args&&... args) const {
 		context.writer.StartObject();
-		AsDerived().Store(context);
+		AsDerived().Store(context, std::forward<Args>(args)...);
 		context.writer.EndObject();
 	}
 
@@ -148,8 +150,8 @@ void Serialize(SerializationContext& context, const std::pair<First, Second>& va
 	context.writer.EndArray();
 }
 
-template <typename K, typename V>
-void Serialize(SerializationContext& context, const std::map<K, V>& value)
+template <typename K, typename V, typename L>
+void Serialize(SerializationContext& context, const std::map<K, V, L>& value)
 {
 	context.writer.StartArray();
 	for (auto& pair : value)
@@ -181,6 +183,15 @@ void Serialize(SerializationContext& context, const std::vector<T>& values)
 	context.writer.EndArray();
 }
 
+template <typename T>
+void Serialize(SerializationContext& context, const std::optional<T>& value)
+{
+	if (value.has_value())
+		Serialize(context, *value);
+	else
+		context.writer.Null();
+}
+
 SHAREDCACHE_FFI_API void Serialize(SerializationContext& context, const char*);
 SHAREDCACHE_FFI_API void Serialize(SerializationContext& context, bool b);
 SHAREDCACHE_FFI_API void Deserialize(DeserializationContext& context, std::string_view name, bool& b);
@@ -200,6 +211,7 @@ SHAREDCACHE_FFI_API void Serialize(SerializationContext& context, int32_t b);
 SHAREDCACHE_FFI_API void Deserialize(DeserializationContext& context, std::string_view name, int32_t& b);
 SHAREDCACHE_FFI_API void Serialize(SerializationContext& context, int64_t b);
 SHAREDCACHE_FFI_API void Deserialize(DeserializationContext& context, std::string_view name, int64_t& b);
+SHAREDCACHE_FFI_API void Serialize(SerializationContext& context, unsigned long b);
 SHAREDCACHE_FFI_API void Serialize(SerializationContext& context, std::string_view b);
 SHAREDCACHE_FFI_API void Serialize(SerializationContext& context, const std::pair<uint64_t, std::pair<uint64_t, uint64_t>>& value);
 SHAREDCACHE_FFI_API void Deserialize(DeserializationContext& context, std::string_view name, std::string& b);

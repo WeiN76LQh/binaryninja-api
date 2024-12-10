@@ -225,31 +225,34 @@ class MappingCollisionException : VMException {
 
 class VMReader;
 
+// Represents a range of addresses [start, end).
+// Note that `end` is not included within the range.
+struct AddressRange {
+    uint64_t start;
+    uint64_t end;
+
+    bool operator<(const AddressRange& b) const {
+        return start < b.start || (start == b.start && end < b.end);
+    }
+
+    friend bool operator<(const AddressRange& range, uint64_t address) {
+        return range.end <= address;
+    }
+
+    friend bool operator<(uint64_t address, const AddressRange& range) {
+        return address < range.start;
+    }
+};
+
+// A map keyed by address ranges that can be looked up via any
+// address within a range thanks to C++14's transparent comparators.
+template <typename Value>
+using AddressRangeMap = std::map<AddressRange, Value, std::less<>>;
 
 class VM {
-
-    // Represents a range of addresses [start, end).
-    // Note that `end` is not included within the range.
-    struct AddressRange {
-        size_t start;
-        size_t end;
-
-        bool operator<(const AddressRange& b) const {
-            return start < b.start || (start == b.start && end < b.end);
-        }
-
-        friend bool operator<(const AddressRange& range, size_t address) {
-            return range.end <= address;
-        }
-
-        friend bool operator<(size_t address, const AddressRange& range) {
-            return address < range.start;
-        }
-    };
-
     // A map keyed by address ranges that can be looked up via any
     // address within a range thanks to C++14's transparent comparators.
-    std::map<AddressRange, PageMapping, std::less<>> m_map;
+    AddressRangeMap<PageMapping> m_map;
     size_t m_pageSize;
     bool m_safe;
 

@@ -603,79 +603,21 @@ bool DSCView::Init()
 	Ref<Type> filesetEntryCommandType = Type::StructureType(filesetEntryCommandStruct);
 	DefineType(filesetEntryCommandTypeId, filesetEntryCommandName, filesetEntryCommandType);
 
-	std::vector<SharedCacheCore::MemoryRegion> regionsMappedIntoMemory;
-	if (auto meta = GetParentView()->QueryMetadata(SharedCacheCore::SharedCacheMetadataTag))
+	if (auto metadata = SharedCacheCore::SharedCacheMetadata::LoadFromView(GetParentView()))
 	{
-		std::string data = GetParentView()->GetStringMetadata(SharedCacheCore::SharedCacheMetadataTag);
-		std::stringstream ss;
-		ss.str(data);
-		rapidjson::Document result(rapidjson::kObjectType);
-
-		result.Parse(data.c_str());
-
-		if (result.HasMember("metadataVersion"))
-		{
-			if (result["metadataVersion"].GetInt() != METADATA_VERSION)
-			{
-				LogError("Shared cache metadata version mismatch: expected %d, got %d", METADATA_VERSION,
-					result["metadataVersion"].GetInt());
-				return false;
-			}
-		}
-		else
-		{
-			LogError("Shared cache metadata version not found");
-			return false;
-		}
-		for (auto& imgV : result["regionsMappedIntoMemory"].GetArray())
-		{
-			SharedCacheCore::MemoryRegion region;
-			region.LoadFromValue(imgV);
-			regionsMappedIntoMemory.push_back(region);
-		}
-
-		std::unordered_map<uint64_t, std::string> imageStartToInstallName;
-		// key "m_imageStarts"
-		for (auto& imgV : result["m_imageStarts"].GetArray())
-		{
-			std::string name = imgV.GetArray()[0].GetString();
-			uint64_t addr = imgV.GetArray()[1].GetUint64();
-			imageStartToInstallName[addr] = name;
-		}
-
-		std::vector<std::pair<uint64_t, std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>>> exportInfos;
-
-		for (const auto& obj1 : result["exportInfos"].GetArray())
-		{
-			std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> innerVec;
-			for (const auto& obj2 : obj1["value"].GetArray())
-			{
-				std::pair<BNSymbolType, std::string> innerPair = { (BNSymbolType)obj2["val1"].GetUint64(), obj2["val2"].GetString() };
-				innerVec.push_back({ obj2["key"].GetUint64(), innerPair });
-			}
-
-			exportInfos.push_back({obj1["key"].GetUint64(), innerVec});
-		}
-
 		BeginBulkModifySymbols();
-		for (const auto & [imageBaseAddr, exportList] : exportInfos)
+		for (const auto& [imageBaseAddr, exportMap] : metadata->ExportInfos())
 		{
-			std::vector<Ref<Symbol>> symbolsList;
-			for (const auto & [exportAddr, exportTypeAndName] : exportList)
-			{
-				symbolsList.push_back(new Symbol(exportTypeAndName.first, exportTypeAndName.second, exportAddr));
-			}
+			auto typelib = GetTypeLibrary(metadata->InstallNameForImageBaseAddress(imageBaseAddr));
 
-			auto typelib = GetTypeLibrary(imageStartToInstallName[imageBaseAddr]);
-
-			for (const auto& symbol : symbolsList)
+			for (const auto& [address, symbol] : *exportMap)
 			{
-				if (!IsValidOffset(symbol->GetAddress()))
+				if (!IsValidOffset(address))
 					continue;
+
 				if (typelib)
 				{
-					auto type = typelib->GetNamedObject(symbol->GetRawName());
-					if (type)
+					if (auto type = typelib->GetNamedObject(symbol->GetFullName()))
 					{
 						DefineAutoSymbolAndVariableOrFunction(GetDefaultPlatform(), symbol, type);
 						continue;
