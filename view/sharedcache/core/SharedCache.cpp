@@ -280,7 +280,9 @@ void SharedCache::PerformInitialLoad()
 	}
 
 	if (primaryCacheHeader.objcOptsOffset && primaryCacheHeader.objcOptsSize) {
-		MutableState().objcOptimizationDataRange = {primaryCacheHeader.objcOptsOffset, primaryCacheHeader.objcOptsSize};
+		uint64_t objcOptsOffset = primaryCacheHeader.objcOptsOffset;
+		uint64_t objcOptsSize = primaryCacheHeader.objcOptsSize;
+		MutableState().objcOptimizationDataRange = {objcOptsOffset, objcOptsSize};
 	}
 
 	switch (State().cacheFormat)
@@ -3208,28 +3210,36 @@ extern "C"
 	{
 		if (cache->object)
 		{
-			auto vm = cache->object->GetVMMap(true);
-			auto viewImageHeaders = cache->object->AllImageHeaders();
-			*count = viewImageHeaders.size();
-			BNDSCImage* images = (BNDSCImage*)malloc(sizeof(BNDSCImage) * viewImageHeaders.size());
-			size_t i = 0;
-			for (const auto& [baseAddress, header] : viewImageHeaders)
-			{
-				images[i].name = BNAllocString(header.installName.c_str());
-				images[i].headerAddress = baseAddress;
-				images[i].mappingCount = header.sections.size();
-				images[i].mappings = (BNDSCImageMemoryMapping*)malloc(sizeof(BNDSCImageMemoryMapping) * header.sections.size());
-				for (size_t j = 0; j < header.sections.size(); j++)
+			try {
+				auto vm = cache->object->GetVMMap(true);
+				auto viewImageHeaders = cache->object->AllImageHeaders();
+				*count = viewImageHeaders.size();
+				BNDSCImage* images = (BNDSCImage*)malloc(sizeof(BNDSCImage) * viewImageHeaders.size());
+				size_t i = 0;
+				for (const auto& [baseAddress, header] : viewImageHeaders)
 				{
-					images[i].mappings[j].rawViewOffset = header.sections[j].offset;
-					images[i].mappings[j].vmAddress = header.sections[j].addr;
-					images[i].mappings[j].size = header.sections[j].size;
-					images[i].mappings[j].name = BNAllocString(header.sectionNames[j].c_str());
-					images[i].mappings[j].filePath = BNAllocString(vm->MappingAtAddress(header.sections[j].addr).first.filePath.c_str());
+					images[i].name = BNAllocString(header.installName.c_str());
+					images[i].headerAddress = baseAddress;
+					images[i].mappingCount = header.sections.size();
+					images[i].mappings = (BNDSCImageMemoryMapping*)malloc(sizeof(BNDSCImageMemoryMapping) * header.sections.size());
+					for (size_t j = 0; j < header.sections.size(); j++)
+					{
+						images[i].mappings[j].rawViewOffset = header.sections[j].offset;
+						images[i].mappings[j].vmAddress = header.sections[j].addr;
+						images[i].mappings[j].size = header.sections[j].size;
+						images[i].mappings[j].name = BNAllocString(header.sectionNames[j].c_str());
+						images[i].mappings[j].filePath = BNAllocString(vm->MappingAtAddress(header.sections[j].addr).first.filePath.c_str());
+					}
+					i++;
 				}
-				i++;
+				return images;
 			}
-			return images;
+			catch (...)
+			{
+				LogError("SharedCache: Failed to load image listing. Likely caused by a ser/deserialization error or load failure");
+				*count = 0;
+				return nullptr;
+			}
 		}
 		*count = 0;
 		return nullptr;
