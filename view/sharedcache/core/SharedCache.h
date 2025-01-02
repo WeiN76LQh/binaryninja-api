@@ -603,7 +603,7 @@ namespace SharedCacheCore {
 		std::string ImageNameForAddress(uint64_t address);
 		std::vector<std::string> GetAvailableImages();
 
-		immer::vector<MemoryRegion> GetMappedRegions() const;
+		bool IsMemoryMapped(uint64_t address);
 
 		std::vector<std::pair<std::string, Ref<Symbol>>> LoadAllSymbolsAndWait();
 
