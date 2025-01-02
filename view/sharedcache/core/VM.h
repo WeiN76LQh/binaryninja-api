@@ -22,10 +22,30 @@ public:
 		cv_.notify_all();
 	}
 
-	void acquire() {
+    // Blocks for the specified number of seconds (or indefinitely if its 0) 
+    // or until the semaphore has a reference available. The timeout is to 
+    // prevent deadlocking if the caller is concerned about that. The caller 
+    // can determine if a ref was acquired by checking the return value. If a 
+    // ref was not acquired then a timeout occurred.
+	bool acquire(std::chrono::seconds timeout) {
 		std::unique_lock<std::mutex> lock(mutex_);
-		cv_.wait(lock, [this]() { return count_ > 0; });
-		--count_;
+		if (count_ > 0) {
+			--count_;
+			return true;
+		}
+		bool acquired = false;
+        if (timeout != std::chrono::seconds(0))
+        {
+            acquired = cv_.wait_for(lock, timeout, [this]() { return count_ > 0; });
+        }
+        else
+        {
+            cv_.wait(lock, [this]() { return count_ > 0; });
+            acquired = true;
+        }
+        if (acquired)
+		    --count_;
+        return acquired;
 	}
 
 	bool try_acquire() {
@@ -107,8 +127,8 @@ class MMAP {
 
 static uint64_t maxFPLimit;
 static std::mutex fileAccessorDequeMutex;
-static std::unordered_map<uint64_t, std::deque<std::shared_ptr<MMappedFileAccessor>>> fileAccessorReferenceHolder;
-static std::set<uint64_t> blockedSessionIDs;
+static std::unordered_map<uint64_t, std::deque<std::shared_ptr<MMappedFileAccessor>>> fileAccessorReferenceHolder; // access is protected by `fileAccessorDequeMutex`
+static std::set<uint64_t> blockedSessionIDs; // access is protected by `fileAccessorDequeMutex`
 static std::mutex fileAccessorsMutex;
 static std::unordered_map<std::string, std::shared_ptr<SelfAllocatingWeakPtr<MMappedFileAccessor>>> fileAccessors;
 static counting_semaphore fileAccessorSemaphore(0);
