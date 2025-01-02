@@ -3778,9 +3778,19 @@ extern "C"
 			{
 				images[i].name = BNAllocString(header.installName.c_str());
 				images[i].headerAddress = baseAddress;
-				images[i].mappingCount = header.sections.size();
-				images[i].mappings = (BNDSCImageMemoryMapping*)malloc(sizeof(BNDSCImageMemoryMapping) * header.sections.size());
-				for (size_t j = 0; j < header.sections.size(); j++)
+
+				std::vector<const char*> dependencies;
+				for (size_t j = 0; j < header.dylibs.size(); j++)
+				{
+					dependencies.push_back(header.dylibs[j].c_str());
+				}
+				images[i].dependenciesCount = dependencies.size();
+				images[i].dependencies = BNAllocStringList(dependencies.data(), dependencies.size());
+
+				const auto mappingCount = header.sections.size();
+				images[i].mappingCount = mappingCount;
+				images[i].mappings = (BNDSCImageMemoryMapping*)malloc(sizeof(BNDSCImageMemoryMapping) * mappingCount);
+				for (size_t j = 0; j < mappingCount; j++)
 				{
 					const auto sectionStart = header.sections[j].addr;
 					images[i].mappings[j].rawViewOffset = header.sections[j].offset;
@@ -3802,6 +3812,7 @@ extern "C"
 	{
 		for (size_t i = 0; i < count; i++)
 		{
+			BNFreeStringList(images[i].dependencies, images[i].dependenciesCount);
 			for (size_t j = 0; j < images[i].mappingCount; j++)
 			{
 				BNFreeString(images[i].mappings[j].name);

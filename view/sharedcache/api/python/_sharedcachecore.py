@@ -123,6 +123,8 @@ BNDSCBackingCacheMapping._fields_ = [
 BNDSCImage._fields_ = [
 		("_name", ctypes.c_char_p),
 		("headerAddress", ctypes.c_ulonglong),
+		("dependencies", ctypes.POINTER(ctypes.c_char_p)),
+		("dependenciesCount", ctypes.c_ulonglong),
 		("mappings", ctypes.POINTER(BNDSCImageMemoryMapping)),
 		("mappingCount", ctypes.c_ulonglong),
 	]

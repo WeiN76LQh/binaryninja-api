@@ -139,6 +139,11 @@ namespace SharedCacheAPI {
 			DSCImage img;
 			img.name = value[i].name;
 			img.headerAddress = value[i].headerAddress;
+			img.dependencies.reserve(value[i].dependenciesCount);
+			for (size_t j = 0; j < value[i].dependenciesCount; j++)
+			{
+				img.dependencies.push_back(value[i].dependencies[j]);
+			}
 			img.mappings.reserve(value[i].mappingCount);
 			for (size_t j = 0; j < value[i].mappingCount; j++)
 			{

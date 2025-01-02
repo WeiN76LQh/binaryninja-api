@@ -85,6 +85,8 @@ extern "C"
 	typedef struct BNDSCImage {
 		char* name;
 		uint64_t headerAddress;
+		char** dependencies;
+		size_t dependenciesCount;
 		BNDSCImageMemoryMapping* mappings;
 		size_t mappingCount;
 	} BNDSCImage;

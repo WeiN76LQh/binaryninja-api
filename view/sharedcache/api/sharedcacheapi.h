@@ -121,6 +121,7 @@ namespace SharedCacheAPI {
 	struct DSCImage {
 		std::string name;
 		uint64_t headerAddress;
+		std::vector<std::string> dependencies;
 		std::vector<DSCImageMemoryMapping> mappings;
 	};
 

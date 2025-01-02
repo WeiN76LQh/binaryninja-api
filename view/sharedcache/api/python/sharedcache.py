@@ -89,6 +89,7 @@ class DSCImageMemoryMapping:
 class DSCImage:
 	name: str
 	headerAddress: int
+	dependencies: list[str]
 	mappings: list[DSCImageMemoryMapping]
 
 	def __str__(self):
@@ -165,6 +166,10 @@ class SharedCache:
 
 		result = []
 		for i in range(count.value):
+			dependencies = []
+			for j in range(value[i].dependenciesCount):
+				dependencies.append(value[i].dependencies[j].decode('utf-8'))
+			
 			mappings = []
 			for j in range(value[i].mappingCount):
 				mapping = DSCImageMemoryMapping(
@@ -179,6 +184,7 @@ class SharedCache:
 			result.append(DSCImage(
 				value[i].name,
 				value[i].headerAddress,
+				dependencies,
 				mappings
 			))
 
