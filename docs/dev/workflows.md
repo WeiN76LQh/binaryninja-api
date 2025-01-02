@@ -16,6 +16,8 @@ By leveraging Workflows, you gain unparalleled control over the decompilation an
 
 ## Concepts
 
+![Workflow Concepts Diagram](../img/workflow-concepts-diagram.png "Workflow Concepts"){ width="800" }
+
 ### Workflow
 
 A **Workflow** in Binary Ninja defines the set of analyses to perform on a binary, including their dependencies and execution order. Workflows are represented as Directed Acyclic Graphs (DAGs), where each node corresponds to an **Activity** (an individual analysis or action). We have built an API around modifying and extending this structure, enabling you to tailor the decompilation and analysis process to your specific needs.
@@ -81,9 +83,9 @@ As always, it's possible to interact with these settings programmatically using 
 # Function settings scope
 Settings().get_string("analysis.workflows.functionWorkflow", current_function)
 'core.function.metaAnalysis'
-Settings().set_string("analysis.workflows.functionWorkflow", 'core.function.defaultAnalysis', current_function)
+Settings().set_string("analysis.workflows.functionWorkflow", 'core.function.baseAnalysis', current_function)
 Settings().get_string("analysis.workflows.functionWorkflow", current_function)
-'core.function.defaultAnalysis'
+'core.function.baseAnalysis'
 
 # BinaryView settings scope
 Settings().get_string("analysis.workflows.functionWorkflow", bv)
@@ -96,15 +98,15 @@ Settings().get_string("analysis.workflows.moduleWorkflow", bv)
 
 Binary Ninja provides a set of foundational workflows that serve as the basis for both module-level and function-level analysis. These workflows are designed to meet standard analysis needs while also serving as a starting point for customization.
 
-**Immutable Core Workflows**
+**Immutable Base Workflows**
 
-These workflows are immutable and represent the core analysis functionality in Binary Ninja. They provide a reliable baseline for analysis and cannot be altered directly:
+These workflows are immutable and represent the base analysis functionality in Binary Ninja. They provide a reliable baseline for analysis and cannot be altered directly:
 
-- **Default Module Analysis** (`core.module.defaultAnalysis`): Defines the core analysis tasks for module-level analysis on a `BinaryView` object. This workflow ensures consistent and thorough analysis of the entire binary.
-- **Default Function Analysis** (`core.function.defaultAnalysis`): Defines the core analysis tasks for function-level analysis. It provides a stable and reliable framework for disassembling and analyzing individual functions.
+- **Base Module Analysis** (`core.module.baseAnalysis`): Defines the base analysis tasks for module-level analysis on a `BinaryView` object. This workflow ensures consistent and thorough analysis of the entire binary.
+- **Base Function Analysis** (`core.function.baseAnalysis`): Defines the base analysis tasks for function-level analysis. It provides a stable and reliable framework for disassembling and analyzing individual functions.
 
 **Mutable Meta Workflows**
-These workflows are clones of the default core workflows but are mutable, allowing for advanced customization and extensibility:
+These workflows are clones of the default base workflows but are mutable, allowing for advanced customization and extensibility:
 
 - **Meta Module Analysis** (`core.module.metaAnalysis`): A mutable version of the default module analysis workflow. It can be customized to add or remove analysis stages, modify dependencies, or integrate new analyses.
 - **Meta Function Analysis** (`core.function.metaAnalysis`): A mutable version of the default function analysis workflow. It can be customized to extend or modify the analysis process for individual functions.
@@ -112,7 +114,7 @@ These workflows are clones of the default core workflows but are mutable, allowi
 These foundational workflows are designed to be cloned and customized to create new workflows tailored to specific needs. By leveraging these base workflows, you can build upon existing analyses and extend the capabilities of Binary Ninja.
 
 !!! note
-	The workflow settings default to the meta workflows to facilitate seamless integration and customization by installed plugins or scripts. This approach ensures that multiple plugins can extend or modify the analysis pipeline without conflicting with the core workflows. The term "meta" reflects the workflow's role as a flexible and composable foundation, enabling collaborative customization while preserving the integrity of the default analyses.
+	The workflow settings default to the meta workflows to facilitate seamless integration and customization by installed plugins or scripts. This approach ensures that multiple plugins can extend or modify the analysis pipeline without conflicting with the base workflows. The term "meta" reflects the workflow's role as a flexible and composable foundation, enabling collaborative customization while preserving the integrity of the default analyses.
 
 !!! note
 	Binary Ninja's analysis is structured through the Workflow system, providing immediate extensibility for interposing custom analysis steps. While most Activities within the Workflow represent specific analysis tasks, some serve purely to maintain the pipeline's functionality. These non-analysis Activities are transitional and will be phased out as we refine and modernize the underlying infrastructure.
@@ -142,20 +144,20 @@ You can query the list of all registered workflows or filter them by type using 
 ```python
 # List all Module and Function workflows
 list(Workflow)
-[<Workflow: core.function.defaultAnalysis>,
+[<Workflow: core.function.baseAnalysis>,
 <Workflow: core.function.dsc>,
 <Workflow: core.function.metaAnalysis>,
 <Workflow: core.function.objectiveC>,
-<Workflow: core.module.defaultAnalysis>,
+<Workflow: core.module.baseAnalysis>,
 <Workflow: core.module.metaAnalysis>]
 
 # List all module workflows from the Settings API
 Settings().query_property_string_list("analysis.workflows.moduleWorkflow", "enum")
-['core.module.defaultAnalysis', 'core.module.metaAnalysis']
+['core.module.baseAnalysis', 'core.module.metaAnalysis']
 
 # List all function workflows from the Settings API
 >>> Settings().query_property_string_list("analysis.workflows.functionWorkflow", "enum")
-['core.function.defaultAnalysis', 'core.function.dsc', 'core.function.metaAnalysis', 'core.function.objectiveC']
+['core.function.baseAnalysis', 'core.function.dsc', 'core.function.metaAnalysis', 'core.function.objectiveC']
 ```
 
 Once you've queried the available workflows, you can create your own by cloning and modifying an existing workflow. Below are some simple examples that demonstrate how to modify module-level analysis.
@@ -172,7 +174,7 @@ workflow = Workflow("core.module.metaAnalysis").clone()
 workflow.show_topology()
 
 # Get the root activity of the workflow
-root = workflow.get_activity("core.module.defaultAnalysis")
+root = workflow.get_activity("core.module.baseAnalysis")
 
 # Clear all activities in the workflow
 workflow.clear()
@@ -196,7 +198,7 @@ This example demonstrates how to create a custom workflow that performs only the
 stringsWorkflowOnly = Workflow("core.module.metaAnalysis").clone("stringsAnalysisOnly")
 
 # Retrieve relevant activities for strings analysis
-root = stringsWorkflowOnly.get_activity("core.module.defaultAnalysis")
+root = stringsWorkflowOnly.get_activity("core.module.baseAnalysis")
 sa1 = stringsWorkflowOnly.get_activity("core.module.queueRegionsForStringsAnalysis")
 sa2 = stringsWorkflowOnly.get_activity("core.module.stringsAnalysis")
 
@@ -519,7 +521,7 @@ The **Workflow Machine** is the core engine that manages and executes workflows.
 There is an API to interact directly with the Workflow Machine, allowing you to issue commands, query state, and control activity eligibility.
 
 !!! note
-	This API is only available in **Commercial** and above product editions.
+	This API is only available in **Commercial** and above product editions. However, the Workflow Machine API is not required for the general use case of authoring or using workflows.
 
 ### WorkflowMachine CLI Commands
 

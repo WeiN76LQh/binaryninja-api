@@ -249,6 +249,7 @@ class BINARYNINJAUIAPI LinearView : public QAbstractScrollArea, public View, pub
 	bool cacheNextLines();
 	void updateCache();
 	void updateBounds();
+	void updateHighlight();
 	void refreshAtCurrentLocation(bool cursorFixup = false);
 	bool navigateToAddress(uint64_t addr, bool center, bool updateHighlight, bool navByRef = false);
 	bool navigateToLine(
@@ -458,6 +459,12 @@ public:
 	virtual void OnTagRemoved(BinaryNinja::BinaryView* view, const BinaryNinja::TagReference& tagRef) override;
 	virtual void OnTypeDefined(BinaryNinja::BinaryView* view, const BinaryNinja::QualifiedName& name, BinaryNinja::Type* type) override;
 	virtual void OnTypeUndefined(BinaryNinja::BinaryView* view, const BinaryNinja::QualifiedName& name, BinaryNinja::Type* type) override;
+	virtual void OnSegmentAdded(BinaryNinja::BinaryView* data, BinaryNinja::Segment* segment) override;
+	virtual void OnSegmentUpdated(BinaryNinja::BinaryView* data, BinaryNinja::Segment* segment) override;
+	virtual void OnSegmentRemoved(BinaryNinja::BinaryView* data, BinaryNinja::Segment* segment) override;
+	virtual void OnSectionAdded(BinaryNinja::BinaryView* data, BinaryNinja::Section* section) override;
+	virtual void OnSectionUpdated(BinaryNinja::BinaryView* data, BinaryNinja::Section* section) override;
+	virtual void OnSectionRemoved(BinaryNinja::BinaryView* data, BinaryNinja::Section* section) override;
 	virtual void MarkUpdatesForRegion(uint64_t start, uint64_t end);
 	virtual void MarkUpdatesForFunction(BinaryNinja::Function* func);
 	virtual void MarkUpdatesForType(BinaryNinja::BinaryView* view, const BinaryNinja::QualifiedName& name, BinaryNinja::Type* type);

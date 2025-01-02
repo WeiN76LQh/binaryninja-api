@@ -58,7 +58,7 @@ The following files and folders may be created in the user folder but are not cr
 - `snippets/`: Used to store snippets created using the official Snippet plugin
 - `themes/`: For user themes or user-modified versions of official themes (see [Creating Themes](../dev/themes.md))
 - `types/platform`: This folder can contain additional user [platform types](types/platformtypes.md)
-- `typelib`: This folder can contain additional user [Type Libraries](../dev/annotation.md#type-libraries)
+- `typelib`: This folder can contain additional user [Type Libraries](../dev/typelibraries.md)
 - `community-themes/`: Can also be used to store themes, particularly so you can clone the [community theme collection](https://github.com/vector35/community-themes) directly into your user folder
 
 ### QSettings Locations

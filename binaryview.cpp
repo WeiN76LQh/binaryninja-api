@@ -1750,7 +1750,7 @@ std::vector<Ref<Relocation>> BinaryView::GetRelocationsAt(uint64_t addr) const
 	result.reserve(count);
 	for (size_t i = 0; i < count; i++)
 	{
-		result.push_back(new Relocation(relocations[i]));
+		result.push_back(new Relocation(BNNewRelocationReference(relocations[i])));
 	}
 	BNFreeRelocationList(relocations, count);
 	return result;

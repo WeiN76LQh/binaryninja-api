@@ -10,12 +10,13 @@ crate-type = ["lib", "cdylib"]
 binaryninja = { path = "../../rust", features = ["rayon"] }
 # Used to link with for tests.
 binaryninjacore-sys = { path = "../../rust/binaryninjacore-sys", optional = true }
-warp = { git = "https://github.com/Vector35/warp/", rev = "bae7379" }
+warp = { git = "https://github.com/Vector35/warp/", rev = "0ee5a6f" }
 log = "0.4"
 arboard = "3.4"
 rayon = "1.10"
 dashmap = "6.1"
 walkdir = "2.5"
+rfd = "0.15"
 # For sigem
 env_logger = "0.11.5"
 clap = { version = "4.5.16", features = ["derive"] }

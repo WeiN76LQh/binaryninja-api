@@ -255,7 +255,8 @@ class Workflow(metaclass=_WorkflowMetaclass):
 
 	:Example:
 
-	.. code-block:: python
+.. code-block:: python
+
 		# Define the custom activity configuration
 		configuration = json.dumps({
 			"name": "analysis.plugins.xorStringDecoder",

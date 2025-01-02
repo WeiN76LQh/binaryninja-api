@@ -24,6 +24,7 @@
 	#define NOMINMAX
 #endif
 	#include <windows.h>
+	#define FMT_UNICODE 0
 #endif
 #include <cstddef>
 #include <string>
@@ -243,9 +244,9 @@ namespace BinaryNinja {
 #endif
 
 	  public:
-		Ref<T>() : m_obj(nullptr) {}
+		Ref() : m_obj(nullptr) {}
 
-		Ref<T>(T* obj) : m_obj(obj)
+		Ref(T* obj) : m_obj(obj)
 		{
 			if (m_obj)
 			{
@@ -256,7 +257,7 @@ namespace BinaryNinja {
 			}
 		}
 
-		Ref<T>(const Ref<T>& obj) : m_obj(obj.m_obj)
+		Ref(const Ref<T>& obj) : m_obj(obj.m_obj)
 		{
 			if (m_obj)
 			{
@@ -267,7 +268,7 @@ namespace BinaryNinja {
 			}
 		}
 
-		Ref<T>(Ref<T>&& other) : m_obj(other.m_obj)
+		Ref(Ref<T>&& other) : m_obj(other.m_obj)
 		{
 			other.m_obj = 0;
 #ifdef BN_REF_COUNT_DEBUG
@@ -275,7 +276,7 @@ namespace BinaryNinja {
 #endif
 		}
 
-		~Ref<T>()
+		~Ref()
 		{
 			if (m_obj)
 			{
@@ -369,8 +370,8 @@ namespace BinaryNinja {
 		T* m_obj;
 
 	public:
-		CallbackRef<T>(void* obj) : m_obj((T*)obj) { m_obj->AddRefForCallback(); }
-		~CallbackRef<T>() { m_obj->ReleaseForCallback(); }
+		CallbackRef(void* obj) : m_obj((T*)obj) { m_obj->AddRefForCallback(); }
+		~CallbackRef() { m_obj->ReleaseForCallback(); }
 		operator T*() const { return m_obj; }
 		T* operator->() const { return m_obj; }
 		T& operator*() const { return *m_obj; }
@@ -6914,6 +6915,11 @@ namespace BinaryNinja {
 		MemoryMap(BNBinaryView* view): m_object(view) {}
 		~MemoryMap() = default;
 
+		void SetLogicalMemoryMapEnabled(bool enabled)
+		{
+			BNSetLogicalMemoryMapEnabled(m_object, enabled);
+		}
+
 		bool AddBinaryMemoryRegion(const std::string& name, uint64_t start, Ref<BinaryView> source, uint32_t flags = 0)
 		{
 			return BNAddBinaryMemoryRegion(m_object, name.c_str(), start, source->GetObject(), flags);
@@ -7926,7 +7932,7 @@ namespace BinaryNinja {
 		static BNFlagConditionForSemanticClass* GetFlagConditionsForSemanticFlagGroupCallback(
 		    void* ctxt, uint32_t semGroup, size_t* count);
 		static void FreeFlagConditionsForSemanticFlagGroupCallback(
-		    void* ctxt, BNFlagConditionForSemanticClass* conditions);
+		    void* ctxt, BNFlagConditionForSemanticClass* conditions, size_t count);
 		static uint32_t* GetFlagsWrittenByFlagWriteTypeCallback(void* ctxt, uint32_t writeType, size_t* count);
 		static uint32_t GetSemanticClassForFlagWriteTypeCallback(void* ctxt, uint32_t writeType);
 		static size_t GetFlagWriteLowLevelILCallback(void* ctxt, BNLowLevelILOperation op, size_t size,
@@ -7935,7 +7941,7 @@ namespace BinaryNinja {
 		static size_t GetFlagConditionLowLevelILCallback(
 		    void* ctxt, BNLowLevelILFlagCondition cond, uint32_t semClass, BNLowLevelILFunction* il);
 		static size_t GetSemanticFlagGroupLowLevelILCallback(void* ctxt, uint32_t semGroup, BNLowLevelILFunction* il);
-		static void FreeRegisterListCallback(void* ctxt, uint32_t* regs);
+		static void FreeRegisterListCallback(void* ctxt, uint32_t* regs, size_t len);
 		static void GetRegisterInfoCallback(void* ctxt, uint32_t reg, BNRegisterInfo* result);
 		static uint32_t GetStackPointerRegisterCallback(void* ctxt);
 		static uint32_t GetLinkRegisterCallback(void* ctxt);
@@ -9942,15 +9948,6 @@ namespace BinaryNinja {
 
 	  public:
 		/*!
-
-			\code{.cpp}
-		    MyClass::MyActionMethod(Ref<AnalysisContext> ac);
-		    ...
-		 	// Create a clone of the default workflow named "core.function.myWorkflowName"
-		    Ref<Workflow> wf = BinaryNinja::Workflow::Instance("core.function.defaultAnalysis")->Clone("core.function.myWorkflowName");
-		 	wf->RegisterActivity(new BinaryNinja::Activity("core.function.myWorkflowName.resolveMethodCalls", &MyClass::MyActionMethod));
-		 	\endcode
-
 			\param configuration a JSON representation of the activity configuration
 			\param action Workflow action, a function taking a Ref<AnalysisContext> as an argument.
 		*/
@@ -9979,15 +9976,13 @@ namespace BinaryNinja {
 		bool ClearOverride(const std::string& activity);
 	};
 
-	/*! A Binary Ninja Workflow is an abstraction of a computational binary analysis pipeline and it provides the extensibility
-		mechanism needed for tailored binary analysis and decompilation. More specifically, a Workflow is a repository of activities along with a
-		unique strategy to execute them. Binary Ninja provides two Workflows named ``core.module.defaultAnalysis`` and ``core.function.defaultAnalysis``
-		which expose the core analysis.
+	/*! Workflows are represented as Directed Acyclic Graphs (DAGs), where each node corresponds to an Activity (an individual analysis or action).
+		Workflows are used to tailor the analysis process for :class:`BinaryView` or :class:`Function` objects, providing granular control over
+		analysis tasks at module or function levels.
 
-		A Workflow starts in the unregistered state from either creating a new empty Workflow, or cloning an existing Workflow. While unregistered
-		it's possible to add and remove activities, as well as change the execution strategy. In order to use the Workflow on a binary it must be
-		registered. Once registered the Workflow is immutable and available for use.
-
+		A Workflow starts in an unregistered state, either by creating a new empty Workflow or by cloning an existing one. While unregistered, it
+		is possible to add and remove Activity objects, as well as modify the execution strategy. To apply a Workflow to a binary, it must be
+		registered. Once registered, the Workflow becomes immutable and is available for use.
 	 	\ingroup workflow
 	*/
 	class Workflow : public CoreRefCountObject<BNWorkflow, BNNewWorkflowReference, BNFreeWorkflow>
@@ -15032,7 +15027,7 @@ namespace BinaryNinja {
 		static uint32_t* GetCalleeSavedRegistersCallback(void* ctxt, size_t* count);
 		static uint32_t* GetIntegerArgumentRegistersCallback(void* ctxt, size_t* count);
 		static uint32_t* GetFloatArgumentRegistersCallback(void* ctxt, size_t* count);
-		static void FreeRegisterListCallback(void* ctxt, uint32_t* regs);
+		static void FreeRegisterListCallback(void* ctxt, uint32_t* regs, size_t len);
 
 		static bool AreArgumentRegistersSharedIndexCallback(void* ctxt);
 		static bool AreArgumentRegistersUsedForVarArgsCallback(void* ctxt);
@@ -19989,7 +19984,7 @@ struct fmt::formatter<T, char, std::enable_if_t<std::is_enum_v<T>, void>>
 	{
 		auto it = ctx.begin(), end = ctx.end();
 		if (it != end && (*it == 's' || *it == 'S' || *it == 'd' || *it == 'x')) presentation = *it++;
-		if (it != end && *it != '}') detail::throw_format_error("invalid format");
+		if (it != end && *it != '}') report_error("invalid format");
 		return it;
 	}
 };

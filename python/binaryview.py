@@ -44,7 +44,8 @@ from . import _binaryninjacore as core
 from . import decorators
 from .enums import (
     AnalysisState, SymbolType, Endianness, ModificationStatus, StringType, SegmentFlag, SectionSemantics, FindFlag,
-    TypeClass, BinaryViewEventType, FunctionGraphType, TagReferenceType, TagTypeType, RegisterValueType, DisassemblyOption
+    TypeClass, BinaryViewEventType, FunctionGraphType, TagReferenceType, TagTypeType, RegisterValueType, DisassemblyOption,
+	RelocationType
 )
 from .exceptions import RelocationWriteException, ILException, ExternalLinkException
 
@@ -1741,6 +1742,101 @@ class Tag:
 		core.BNTagSetData(self.handle, value)
 
 
+@dataclass
+class RelocationInfo:
+	type: RelocationType
+	pc_relative: bool
+	base_relative: bool
+	base: int
+	size: int
+	truncate_size: int
+	native_type: int
+	addend: int
+	has_sign: bool
+	implicit_addend: bool
+	external: bool
+	symbol_index: int
+	section_index: int
+	address: int
+	target: int
+	data_relocation: bool
+
+	def __init__(self, info: core.BNRelocationInfo):
+		self.type = RelocationType(info.type)
+		self.pc_relative = info.pcRelative
+		self.base_relative = info.baseRelative
+		self.base = info.base
+		self.size = info.size
+		self.truncate_size = info.truncateSize
+		self.native_type = info.nativeType
+		self.addend = info.addend
+		self.has_sign = info.hasSign
+		self.implicit_addend = info.implicitAddend
+		self.external = info.external
+		self.symbol_index = info.symbolIndex
+		self.section_index = info.sectionIndex
+		self.address = info.address
+		self.target = info.target
+		self.data_relocation = info.dataRelocation
+
+
+class Relocation:
+	def __init__(self, handle: core.BNRelocationHandle):
+		self.handle = handle
+
+	def __del__(self):
+		if core is not None:
+			core.BNFreeRelocation(self.handle)
+
+	def __repr__(self):
+		if self.symbol is None:
+			return f"<Relocation: {self.target:#x}>"
+		try:
+			return f"<Relocation: \"{self.symbol.full_name}\" @ {self.target:#x}>"
+		except UnicodeDecodeError:
+			return f"<Relocation: \"{self.symbol.raw_bytes}\" @ {self.target:#x}>"
+
+	def __eq__(self, other):
+		if not isinstance(other, self.__class__):
+			return NotImplemented
+		return ctypes.addressof(self.handle.contents) == ctypes.addressof(other.handle.contents)
+
+	def __ne__(self, other):
+		if not isinstance(other, self.__class__):
+			return NotImplemented
+		return not (self == other)
+
+	def __hash__(self):
+		return hash(ctypes.addressof(self.handle.contents))
+
+	@property
+	def info(self) -> RelocationInfo:
+		return RelocationInfo(core.BNRelocationGetInfo(self.handle))
+
+	@property
+	def arch(self) -> Optional['architecture.Architecture']:
+		"""The architecture associated with the :py:class:`Relocation` (read/write)"""
+		core_arch = core.BNRelocationGetArchitecture(self.handle)
+		return architecture.CoreArchitecture._from_cache(handle=core_arch)
+
+	@property
+	def target(self) -> int:
+		"""Where the reloc needs to point to"""
+		return core.BNRelocationGetTarget(self.handle)
+
+	@property
+	def reloc(self) -> int:
+		"""The actual pointer that needs to be relocated"""
+		return core.BNRelocationGetReloc(self.handle)
+
+	@property
+	def symbol(self) -> Optional['_types.CoreSymbol']:
+		core_symbol = core.BNRelocationGetSymbol(self.handle)
+		if core_symbol is None:
+			return None
+		return _types.CoreSymbol(core_symbol)
+
+
 class _BinaryViewAssociatedDataStore(associateddatastore._AssociatedDataStore):
 	_defaults = {}
 
@@ -2189,32 +2285,49 @@ class MemoryMap:
 		"""Formatted string of the base memory map, consisting of unresolved auto and user segments (read-only)."""
 		return self.format_description(self.description(base=True))
 
+	def set_logical_memory_map_enabled(self, enabled: bool) -> None:
+		"""
+		Enable or disable the logical memory map.
+
+		When enabled, the memory map will present a simplified, logical view that merges and abstracts virtual memory
+		regions based on criteria such as contiguity and flag consistency. This view is designed to provide a higher-level
+		representation for user analysis, hiding underlying mapping details.
+
+		When disabled, the memory map will revert to displaying the virtual view, which corresponds directly to the individual
+		segments mapped from the raw file without any merging or abstraction.
+
+		:param enabled: True to enable the logical view, False to revert to the virtual view.
+		"""
+		core.BNSetLogicalMemoryMapEnabled(self.handle, enabled)
+
 	def add_memory_region(self, name: str, start: int, source: Union['os.PathLike', str, bytes, bytearray, 'BinaryView', 'databuffer.DataBuffer', 'fileaccessor.FileAccessor'], flags: SegmentFlag = 0) -> bool:
 		"""
-		Adds a memory region into the memory map. There are three types of memory regions that can be added:
-		- BinaryMemoryRegion(*** Unimplemented ***): Creates a memory region from a loadable binary format and provides persistence across sessions.
-		- DataMemoryRegion: Creates a memory region from a flat file or bytes and provide persistence across sessions.
-		- RemoteMemoryRegion: Creates a memory region from a proxy callback interface. This region is ephemeral and not saved across sessions.
+		Adds a memory region to the memory map. Depending on the source parameter, the memory region is created as one of the following types:
 
-		The type of memory region added depends on the source parameter:
-		- `os.PathLike`, `str`, : Treats the source as a file path which is read and loaded into memory as a DataMemoryRegion.
-		- `bytes`, `bytearray`: Directly loads these byte formats into memory as a DataMemoryRegion.
-		- `databuffer.DataBuffer`: Directly loads a data buffer into memory as a DataMemoryRegion.
-		- `fileaccessor.FileAccessor`: Utilizes a file accessor to establish a RemoteMemoryRegion, managing data fetched from a remote source.
+		- **BinaryMemoryRegion** (***Unimplemented***): Represents a memory region loaded from a binary format, providing persistence across sessions.
+		- **DataMemoryRegion**: Represents a memory region loaded from flat files or raw bytes, providing persistence across sessions.
+		- **RemoteMemoryRegion**: Represents a memory region managed via a proxy callback interface. This region is ephemeral and not persisted across sessions.
+
+		The type of memory region created is determined by the `source` parameter:
+		- `os.PathLike` or `str`: Treated as a file path to be loaded into memory as a `DataMemoryRegion`.
+		- `bytes` or `bytearray`: Directly loaded into memory as a `DataMemoryRegion`.
+		- `databuffer.DataBuffer`: Loaded as a `DataMemoryRegion`.
+		- `fileaccessor.FileAccessor`: Creates a `RemoteMemoryRegion` that fetches data via a remote source.
+		- `BinaryView`: (Not yet implemented) Intended for future exploration.
+
+		.. note:: If no flags are specified and the new memory region overlaps with one or more existing regions, the overlapping portions of the new region will inherit the flags of the respective underlying regions.
 
 		Parameters:
-			name (str): A unique name of the memory region.
-			start (int): The start address in memory where the region will be loaded.
+			name (str): A unique name for the memory region.
+			start (int): The starting address in memory for the region.
 			source (Union[os.PathLike, str, bytes, bytearray, BinaryView, databuffer.DataBuffer, fileaccessor.FileAccessor]): The source from which the memory is loaded.
+			flags (SegmentFlag, optional): Flags to apply to the memory region. Defaults to 0 (no flags).
 
 		Returns:
-			bool: True if the memory region was successfully added, False otherwise.
+			bool: `True` if the memory region was successfully added, `False` otherwise.
 
 		Raises:
-			NotImplementedError: If the source type is not supported.
-
-		Notes:
-			If parts of the new memory region do not overlap with existing segments, new segments will be automatically created for each non-overlapping area, each with the SegmentFlag.SegmentReadable flag set.
+			NotImplementedError: If the specified `source` type is unsupported.
 		"""
 		if isinstance(source, os.PathLike):
 			source = str(source)
@@ -3435,6 +3548,21 @@ class BinaryView:
 	@max_function_size_for_analysis.setter
 	def max_function_size_for_analysis(self, size: int) -> None:
 		core.BNSetMaxFunctionSizeForAnalysis(self.handle, size)
+
+	def relocations_at(self, addr: int) -> List[Relocation]:
+		"""List of relocations for a given address"""
+		count = ctypes.c_ulonglong()
+		relocs = core.BNGetRelocationsAt(self.handle, addr, count)
+		assert relocs is not None, "core.BNGetRelocationRanges returned None"
+		result = []
+		try:
+			for i in range(0, count.value):
+				reloc_handle = core.BNNewRelocationReference(relocs[i])
+				assert reloc_handle is not None, "core.BNNewRelocationReference is not None"
+				result.append(Relocation(reloc_handle))
+			return result
+		finally:
+			core.BNFreeRelocationList(relocs, count)
 
 	@property
 	def relocation_ranges(self) -> List[Tuple[int, int]]:
@@ -9812,6 +9940,11 @@ to a the type "tagRECT" found in the typelibrary "winX64common"
 
 	@property
 	def memory_map(self):
+		"""
+		``memory_map`` returns the MemoryMap object for the current BinaryView. The `MemoryMap` object is a proxy object
+		that provides a high-level view of the memory map, allowing you to query and manipulate memory regions. This proxy
+		ensures that the memory map always reflects the latest state of the core `MemoryMap` object in the underlying `BinaryView`.
+		"""
 		return MemoryMap(handle=self.handle)
 
 	def stringify_unicode_data(

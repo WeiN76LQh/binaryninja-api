@@ -193,7 +193,7 @@ class FunctionViewType:
 		if isinstance(view_type, FunctionViewType):
 			self.view_type = view_type.view_type
 			self.name = view_type.name
-		if isinstance(view_type, FunctionGraphType):
+		elif isinstance(view_type, FunctionGraphType):
 			self.view_type = view_type
 			self.name = None
 		else:

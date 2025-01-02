@@ -1,5 +1,3 @@
-use log::LevelFilter;
-use warp::signature::function::constraints::FunctionConstraint;
 use crate::cache::{
     register_cache_destructor, ViewID, FUNCTION_CACHE, GUID_CACHE, MATCHED_FUNCTION_CACHE,
 };
@@ -15,8 +13,11 @@ use binaryninja::logger::Logger;
 use binaryninja::rc::Ref;
 use binaryninja::tags::TagType;
 use binaryninja::ObjectDestructor;
+use log::LevelFilter;
+use warp::signature::function::constraints::FunctionConstraint;
 use warp::signature::function::Function as WarpFunction;
 
+mod add;
 mod copy;
 mod create;
 mod find;
@@ -243,6 +244,12 @@ pub extern "C" fn CorePluginInit() -> bool {
         "WARP\\Generate Signature File",
         "Generates a signature file containing all binary view functions",
         create::CreateSignatureFile {},
+    );
+
+    binaryninja::command::register_for_function(
+        "WARP\\Add Function Signature to File",
+        "Stores the signature for the function in the signature file",
+        add::AddFunctionSignature {},
     );
 
     true

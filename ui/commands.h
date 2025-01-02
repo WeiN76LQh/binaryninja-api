@@ -66,6 +66,11 @@ bool IsDefaultArgumentOrParameterName(const std::string& name);
 std::optional<std::string> GetVariableNameFromExpr(BinaryNinja::Function* func,
 	const BinaryNinja::HighLevelILInstruction& instr);
 
+// Return a function type for a given type. The input type can be a function type itself, or a pointer to a function
+// type, or a NTR to a pointer to a function type. This is used when the user set the type of function using a
+// typedef-ed type
+TypeRef GetFunctionType(BinaryViewRef data, TypeRef type);
+
 /*!
 	@}
 */

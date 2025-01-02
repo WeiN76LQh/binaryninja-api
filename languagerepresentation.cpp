@@ -387,8 +387,13 @@ BNDisassemblyTextLine* LanguageRepresentationFunctionType::GetFunctionTypeTokens
 }
 
 
-void LanguageRepresentationFunctionType::FreeLinesCallback(void*, BNDisassemblyTextLine* lines, size_t)
+void LanguageRepresentationFunctionType::FreeLinesCallback(void*, BNDisassemblyTextLine* lines, size_t count)
 {
+	for (size_t i = 0; i < count; i++)
+	{
+		InstructionTextToken::FreeInstructionTextTokenList(lines[i].tokens, lines[i].count);
+		Tag::FreeTagList(lines[i].tags, lines[i].tagCount);
+	}
 	delete[] lines;
 }
 

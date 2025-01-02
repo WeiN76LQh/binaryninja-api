@@ -3011,7 +3011,7 @@ public:
 				uint32_t inst2 = *(uint32_t*)(cur->relocationDataCache);
 				Instruction instruction;
 				memset(&instruction, 0, sizeof(instruction));
-				if (mips_decompose(&inst2, sizeof(uint32_t), &instruction, MIPS_32, cur->address, arch->GetEndianness(), DECOMPOSE_FLAGS_PSEUDO_OP))
+				if (mips_decompose(&inst2, sizeof(uint32_t), &instruction, arch->GetAddressSize() == 8 ? MIPS_64 : MIPS_32, cur->address, arch->GetEndianness(), DECOMPOSE_FLAGS_PSEUDO_OP))
 					break;
 
 				int32_t immediate = swap(inst2) & 0xffff;
@@ -3115,8 +3115,9 @@ public:
 			case R_MIPS_HI16:
 				result[i].dataRelocation = false;
 				result[i].pcRelative = false;
-				// MIPS_HI16 relocations can have multiple MIPS_LO16 relocations following them
-				for (size_t j = i + 1; j < result.size(); j++)
+				// MIPS_HI16 relocations usually come before multiple MIPS_LO16 relocations. But, this is not always
+				// the case. Some binaries have MIPS_HI16 relocations after an associated MIPS_LO16 relocation.
+				for (size_t j = 0; j < result.size(); j++)
 				{
 					if (result[j].nativeType == R_MIPS_LO16 && result[j].symbolIndex == result[i].symbolIndex)
 					{
@@ -3128,6 +3129,7 @@ public:
 						break;
 					}
 				}
+
 				break;
 			case R_MIPS_LO16:
 				result[i].pcRelative = false;
