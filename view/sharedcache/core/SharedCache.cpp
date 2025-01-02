@@ -3899,9 +3899,9 @@ void Deserialize(DeserializationContext& context, std::string_view name, immer::
 	{
 		dyld_cache_mapping_info mapping;
 		auto s2 = s.GetArray();
-		mapping.address = s2[0].GetUint();
-		mapping.size = s2[1].GetUint();
-		mapping.fileOffset = s2[2].GetUint();
+		mapping.address = s2[0].GetUint64();
+		mapping.size = s2[1].GetUint64();
+		mapping.fileOffset = s2[2].GetUint64();
 		mapping.maxProt = s2[3].GetUint();
 		mapping.initProt = s2[4].GetUint();
 		transient.push_back(mapping);
