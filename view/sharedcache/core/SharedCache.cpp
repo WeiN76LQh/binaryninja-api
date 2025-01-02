@@ -934,6 +934,7 @@ void SharedCache::PerformInitialLoad()
 	}
 	MutableState().headers = std::move(headers).persistent();
 	MutableState().images = std::move(images).persistent();
+	MutableState().imageStarts = std::move(stateImageStarts).persistent();
 
 	m_logger->LogInfo("Loaded %d Mach-O headers", State()->headers.size());
 
