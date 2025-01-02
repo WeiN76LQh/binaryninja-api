@@ -27,6 +27,17 @@ namespace SharedCacheAPI {
 		return BNDSCViewLoadImageWithInstallName(m_object, str, skipObjC);
 	}
 
+	bool SharedCache::LoadImagesWithInstallNames(std::vector<std::string_view> installNames, bool skipObjC)
+	{
+		std::vector<const char*> installNamesPtrs;
+		for (auto& installName : installNames)
+		{
+			installNamesPtrs.push_back(installName.data());
+		}
+		char** strs = BNAllocStringList(installNamesPtrs.data(), installNamesPtrs.size());
+		return BNDSCViewLoadImagesWithInstallNames(m_object, strs, installNamesPtrs.size(), true, skipObjC);
+	}
+
 	bool SharedCache::LoadSectionAtAddress(uint64_t addr)
 	{
 		return BNDSCViewLoadSectionAtAddress(m_object, addr);

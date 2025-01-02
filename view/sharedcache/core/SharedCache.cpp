@@ -37,7 +37,6 @@
 
 #include "immer/flex_vector.hpp"
 #include "immer/vector_transient.hpp"
-#include "view/sharedcache/api/sharedcachecore.h"
 
 using namespace BinaryNinja;
 using namespace SharedCacheCore;
@@ -91,10 +90,31 @@ struct SharedCache::ViewSpecificState {
 
 	std::atomic<BNDSCViewLoadProgress> progress;
 
-	std::mutex stateMutex;
+	// Must be held when accessing `memoryRegionMutexes`.
+	std::mutex memoryRegionMutexesMutex;
+	// Locks for modifying/loading of `MemoryRegion`s not part of an image. So 
+	// in the `stubIslandRegions`, `dyldDataRegions` and `nonImageRegions` 
+	// vectors.
+	// Access to this map requires `memoryRegionMutexesMutex` to be held.
+	std::unordered_map<uint64_t, std::mutex> memoryRegionMutexes;
 
-	std::mutex memoryRegionLoadingMutexesMutex;
-	std::unordered_map<uint64_t, std::mutex> memoryRegionLoadingMutexes;
+	// Must be held when accessing `imageMutexes`.
+	std::mutex imageMutexesMutex;
+	// Locks for modifying/loading of `CacheImage`s in the `images` vector and 
+	// their `MemoryRegion`s.
+	// Access to this map requires `imageMutexesMutex` to be held.
+	std::unordered_map<uint64_t, std::mutex> imageMutexes;
+
+	// When adding new sections, they are written to the end of the view. This 
+	// is done by asking the view what its current end is and then writing to 
+	// that location. This is racey so a lock is required to ensure only 1 
+	// thread is writing to the end of a view at a time.
+	std::mutex viewEndBufferWriterMutex;
+
+	// Used by `SaveToDSCView` to prevent concurrent serialization and writing 
+	// of metadata to the binary view so that only the most up-to-date state 
+	// is written.
+	std::mutex saveMetadataMutex;
 
 #if __has_feature(__cpp_lib_atomic_shared_ptr)
        std::shared_ptr<struct SharedCache::State> GetCachedState() const {
@@ -119,6 +139,40 @@ private:
 #endif
 };
 
+SharedCache::StateLockUpdateScope::StateLockUpdateScope(SharedCache *cache) : cache(cache), metadataLock(cache->m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex), locked(true)
+{
+	cache->DeserializeFromRawView(true);
+	cache->WillMutateState();
+}
+
+SharedCache::StateLockUpdateScope::~StateLockUpdateScope()
+{
+	Unlock();
+}
+
+void SharedCache::StateLockUpdateScope::Lock()
+{
+	if (locked)
+		return;
+	
+	metadataLock.lock();
+	locked = true;
+	
+	cache->DeserializeFromRawView(true);
+	cache->WillMutateState();
+}
+
+void SharedCache::StateLockUpdateScope::Unlock()
+{
+	if (!locked)
+		return;
+	
+	if (updateCachedState)
+		cache->UpdateCachedState();
+
+	metadataLock.unlock();
+	locked = false;
+}
 
 std::shared_ptr<SharedCache::ViewSpecificState> ViewSpecificStateForId(uint64_t viewIdentifier, bool insertIfNeeded = true) {
 	static std::mutex viewSpecificStateMutex;
@@ -240,7 +294,8 @@ uint64_t readValidULEB128(DataBuffer& buffer, size_t& cursor)
 uint64_t SharedCache::FastGetBackingCacheCount(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView)
 {
 	std::shared_ptr<MMappedFileAccessor> baseFile;
-	try {
+	try
+	{
 		baseFile = MMappedFileAccessor::Open(dscView, dscView->GetFile()->GetSessionId(), dscView->GetFile()->GetOriginalFilename())->lock();
 	}
 	catch (...){
@@ -300,6 +355,9 @@ uint64_t SharedCache::FastGetBackingCacheCount(BinaryNinja::Ref<BinaryNinja::Bin
 }
 
 
+// Requires `m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex` 
+// and this function mutates state without updating cached state, it is up to 
+// the caller to do that.
 void SharedCache::PerformInitialLoad()
 {
 	m_logger->LogInfo("Performing initial load of Shared Cache");
@@ -347,11 +405,11 @@ void SharedCache::PerformInitialLoad()
 		MutableState().objcOptimizationDataRange = {primaryCacheHeader.objcOptsOffset, primaryCacheHeader.objcOptsSize};
 	}
 
-	// Don't store directly into `State().imageStarts` so that the order is preserved. That way 
+	// Don't store directly into `State()->imageStarts` so that the order is preserved. That way 
 	// `imageIndex` can be assigned to a `CacheImage` in `m_images`.
 	std::vector<std::pair<std::string, uint64_t>> imageStarts;
 
-	switch (State().cacheFormat)
+	switch (State()->cacheFormat)
 	{
 	case RegularCacheFormat:
 	{
@@ -367,7 +425,7 @@ void SharedCache::PerformInitialLoad()
 			mappings.push_back(mapping);
 		}
 		cache.mappings = std::move(mappings).persistent();
-		MutableState().backingCaches = State().backingCaches.push_back(std::move(cache));
+		MutableState().backingCaches = State()->backingCaches.push_back(std::move(cache));
 
 		dyld_cache_image_info img {};
 
@@ -389,7 +447,7 @@ void SharedCache::PerformInitialLoad()
 			}
 			baseFile.reset(); // No longer needed, we're about to remap this file into VM space so we can load these.
 			uint64_t i = 0;
-			auto stubIslandRegions = State().stubIslandRegions.transient();
+			auto stubIslandRegions = State()->stubIslandRegions.transient();
 			for (auto address : addresses)
 			{
 				i++;
@@ -434,7 +492,7 @@ void SharedCache::PerformInitialLoad()
 			mappings.push_back(mapping);
 		}
 		cache.mappings = std::move(mappings).persistent();
-		MutableState().backingCaches = State().backingCaches.push_back(std::move(cache));
+		MutableState().backingCaches = State()->backingCaches.push_back(std::move(cache));
 
 		dyld_cache_image_info img {};
 
@@ -520,10 +578,10 @@ void SharedCache::PerformInitialLoad()
 				stubIslandRegion.size = size;
 				stubIslandRegion.prettyName = subCacheFilename + "::_stubs";
 				stubIslandRegion.flags = (BNSegmentFlag)(BNSegmentFlag::SegmentReadable | BNSegmentFlag::SegmentExecutable);
-				MutableState().stubIslandRegions = State().stubIslandRegions.push_back(std::move(stubIslandRegion));
+				MutableState().stubIslandRegions = State()->stubIslandRegions.push_back(std::move(stubIslandRegion));
 			}
 
-			MutableState().backingCaches = State().backingCaches.push_back(std::move(subCache));
+			MutableState().backingCaches = State()->backingCaches.push_back(std::move(subCache));
 		}
 		break;
 	}
@@ -542,7 +600,7 @@ void SharedCache::PerformInitialLoad()
 			mappings.push_back(mapping);
 		}
 		cache.mappings = std::move(mappings).persistent();
-		MutableState().backingCaches = State().backingCaches.push_back(std::move(cache));
+		MutableState().backingCaches = State()->backingCaches.push_back(std::move(cache));
 
 		dyld_cache_image_info img {};
 
@@ -599,7 +657,7 @@ void SharedCache::PerformInitialLoad()
 				mappings.push_back(subCacheMapping);
 			}
 			subCache.mappings = std::move(mappings).persistent();
-			MutableState().backingCaches = State().backingCaches.push_back(std::move(subCache));
+			MutableState().backingCaches = State()->backingCaches.push_back(std::move(subCache));
 
 			if (subCacheHeader.mappingCount == 1 && subCacheHeader.imagesCountOld == 0 && subCacheHeader.imagesCount == 0
 				&& subCacheHeader.imagesTextOffset == 0)
@@ -612,7 +670,7 @@ void SharedCache::PerformInitialLoad()
 				stubIslandRegion.size = size;
 				stubIslandRegion.prettyName = subCacheFilename + "::_stubs";
 				stubIslandRegion.flags = (BNSegmentFlag)(BNSegmentFlag::SegmentReadable | BNSegmentFlag::SegmentExecutable);
-				MutableState().stubIslandRegions = State().stubIslandRegions.push_back(std::move(stubIslandRegion));
+				MutableState().stubIslandRegions = State()->stubIslandRegions.push_back(std::move(stubIslandRegion));
 			}
 		}
 
@@ -643,7 +701,7 @@ void SharedCache::PerformInitialLoad()
 		}
 		subCache.mappings = std::move(mappings).persistent();
 
-		MutableState().backingCaches = State().backingCaches.push_back(std::move(subCache));
+		MutableState().backingCaches = State()->backingCaches.push_back(std::move(subCache));
 		break;
 	}
 	case iOS16CacheFormat:
@@ -661,7 +719,7 @@ void SharedCache::PerformInitialLoad()
 			mappings.push_back(mapping);
 		}
 		cache.mappings = std::move(mappings).persistent();
-		MutableState().backingCaches = State().backingCaches.push_back(std::move(cache));
+		MutableState().backingCaches = State()->backingCaches.push_back(std::move(cache));
 
 		dyld_cache_image_info img {};
 
@@ -748,12 +806,12 @@ void SharedCache::PerformInitialLoad()
 					dyldDataRegion.size = size;
 					dyldDataRegion.prettyName = subCacheFilename + "::_data" + std::to_string(j);
 					dyldDataRegion.flags = (BNSegmentFlag)(BNSegmentFlag::SegmentReadable);
-					MutableState().dyldDataRegions = State().dyldDataRegions.push_back(std::move(dyldDataRegion));
+					MutableState().dyldDataRegions = State()->dyldDataRegions.push_back(std::move(dyldDataRegion));
 				}
 			}
 			subCache.mappings = std::move(mappings).persistent();
 
-			MutableState().backingCaches = State().backingCaches.push_back(std::move(subCache));
+			MutableState().backingCaches = State()->backingCaches.push_back(std::move(subCache));
 
 			if (subCacheHeader.mappingCount == 1 && subCacheHeader.imagesCountOld == 0 && subCacheHeader.imagesCount == 0
 				&& subCacheHeader.imagesTextOffset == 0)
@@ -766,7 +824,7 @@ void SharedCache::PerformInitialLoad()
 				stubIslandRegion.size = size;
 				stubIslandRegion.prettyName = subCacheFilename + "::_stubs";
 				stubIslandRegion.flags = (BNSegmentFlag)(BNSegmentFlag::SegmentReadable | BNSegmentFlag::SegmentExecutable);
-				MutableState().stubIslandRegions = State().stubIslandRegions.push_back(std::move(stubIslandRegion));
+				MutableState().stubIslandRegions = State()->stubIslandRegions.push_back(std::move(stubIslandRegion));
 			}
 		}
 
@@ -797,7 +855,7 @@ void SharedCache::PerformInitialLoad()
 				mappings.push_back(subCacheMapping);
 			}
 			subCache.mappings = std::move(mappings).persistent();
-			MutableState().backingCaches = State().backingCaches.push_back(std::move(subCache));
+			MutableState().backingCaches = State()->backingCaches.push_back(std::move(subCache));
 		}
 		catch (...)
 		{
@@ -819,9 +877,9 @@ void SharedCache::PerformInitialLoad()
 		return;
 	}
 
-	auto headers = State().headers.transient();
-	auto images = State().images.transient();
-	auto stateImageStarts = State().imageStarts.transient();
+	auto headers = State()->headers.transient();
+	auto images = State()->images.transient();
+	auto stateImageStarts = State()->imageStarts.transient();
 	for (uint32_t imageIndex = 0; imageIndex < imageStarts.size(); imageIndex++)
 	{
 		const auto& start = imageStarts[imageIndex];
@@ -877,10 +935,10 @@ void SharedCache::PerformInitialLoad()
 	MutableState().headers = std::move(headers).persistent();
 	MutableState().images = std::move(images).persistent();
 
-	m_logger->LogInfo("Loaded %d Mach-O headers", State().headers.size());
+	m_logger->LogInfo("Loaded %d Mach-O headers", State()->headers.size());
 
-	auto nonImageRegions = State().nonImageRegions.transient();
-	for (const auto& cache : State().backingCaches)
+	auto nonImageRegions = State()->nonImageRegions.transient();
+	for (const auto& cache : State()->backingCaches)
 	{
 		size_t i = 0;
 		for (const auto& mapping : cache.mappings)
@@ -897,11 +955,11 @@ void SharedCache::PerformInitialLoad()
 	MutableState().nonImageRegions = std::move(nonImageRegions).persistent();
 
 	// Iterate through each Mach-O header
-	if (!State().dyldDataRegions.empty())
+	if (!State()->dyldDataRegions.empty())
 	{
 		// Removal / insertion is not ergonomic with `immer::vector` so use std::vector for this instead.
-		std::vector<MemoryRegion> dyldDataRegions(State().dyldDataRegions.begin(), State().dyldDataRegions.end());
-		for (const auto& [headerKey, header] : State().headers)
+		std::vector<MemoryRegion> dyldDataRegions(State()->dyldDataRegions.begin(), State()->dyldDataRegions.end());
+		for (const auto& [headerKey, header] : State()->headers)
 		{
 			// Iterate through each segment of the header
 			for (const auto& segment : header.segments)
@@ -962,11 +1020,11 @@ void SharedCache::PerformInitialLoad()
 	}
 
 	// Iterate through each Mach-O header
-	if (!State().nonImageRegions.empty())
+	if (!State()->nonImageRegions.empty())
 	{
 		// Removal / insertion is not ergonomic with `immer::vector` so use std::vector for this instead.
-		std::vector<MemoryRegion> nonImageRegions(State().nonImageRegions.begin(), State().nonImageRegions.end());
-		for (const auto& [headerKey, header] : State().headers)
+		std::vector<MemoryRegion> nonImageRegions(State()->nonImageRegions.begin(), State()->nonImageRegions.end());
+		for (const auto& [headerKey, header] : State()->headers)
 		{
 			// Iterate through each segment of the header
 			for (const auto& segment : header.segments)
@@ -1025,7 +1083,6 @@ void SharedCache::PerformInitialLoad()
 		// TODO(bdash): Ideally this would move out of nonImageRegions.
 		MutableState().nonImageRegions = immer::vector<MemoryRegion>(nonImageRegions.begin(), nonImageRegions.end());
 	}
-	SaveToDSCView();
 
 	m_logger->LogDebug("Finished initial load of Shared Cache");
 
@@ -1038,7 +1095,8 @@ std::shared_ptr<VM> SharedCache::GetVMMap(bool mapPages)
 
 	if (mapPages)
 	{
-		for (const auto& cache : State().backingCaches)
+		const auto backingCaches = State()->backingCaches;
+		for (const auto& cache : backingCaches)
 		{
 			for (const auto& mapping : cache.mappings)
 			{
@@ -1054,33 +1112,50 @@ std::shared_ptr<VM> SharedCache::GetVMMap(bool mapPages)
 }
 
 
-void SharedCache::DeserializeFromRawView()
+// This does not require holding 
+// `m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex` but `true` 
+// should be passed for `stateLockIsHeld` if it is held, as this function will need to acquire it 
+// if it isn't already held.
+void SharedCache::DeserializeFromRawView(bool stateLockIsHeld)
 {
+	std::unique_lock<std::mutex> lock;
+	if (!stateLockIsHeld)
+		lock = std::unique_lock<std::mutex>(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
+
+	if (auto cachedState = m_viewSpecificState->GetCachedState())
+	{
+		SetState(std::move(cachedState));
+		m_stateIsShared = true;
+		m_metadataValid = true;
+		return;
+	}
+	
+	// No cached state so either try to load the state from the metadata 
+	// stored in the view or initialize new state as this is the first time 
+	// this view for this DSC has been loaded.
+	WillMutateState();
+
 	if (m_dscView->QueryMetadata(SharedCacheMetadataTag))
 	{
-		if (auto cachedState = m_viewSpecificState->GetCachedState())
+		LoadFromString(m_dscView->GetStringMetadata(SharedCacheMetadataTag));
+
+		if (m_metadataValid)
 		{
-			m_state = std::move(cachedState);
-			m_stateIsShared = true;
-			m_metadataValid = true;
+			UpdateCachedState();
 		}
 		else
 		{
-			LoadFromString(m_dscView->GetStringMetadata(SharedCacheMetadataTag));
-		}
-		if (!m_metadataValid)
-		{
 			m_logger->LogError("Failed to deserialize Shared Cache metadata");
-			WillMutateState();
+
 			MutableState().viewState = DSCViewStateUnloaded;
 		}
 	}
 	else
-	{
+	{		
 		m_metadataValid = true;
-		WillMutateState();
 		MutableState().viewState = DSCViewStateUnloaded;
 		MutableState().images = immer::vector<CacheImage>();
+		UpdateCachedState();
 	}
 }
 
@@ -1093,18 +1168,20 @@ std::string to_hex_string(uint64_t value)
 }
 
 
+// Requires the lock for `file` to be held when being called. No other locks 
+// are taken or required.
 void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAccessor> file)
 {
 	if (file->SlideInfoWasApplied())
 		return;
 
-	WillMutateState();
 	std::vector<std::pair<uint64_t, uint64_t>> rewrites;
 
 	dyld_cache_header baseHeader;
 	file->Read(&baseHeader, 0, sizeof(dyld_cache_header));
 	uint64_t base = UINT64_MAX;
-	for (const auto& backingCache : State().backingCaches)
+	auto backingCaches = State()->backingCaches;
+	for (const auto& backingCache : backingCaches)
 	{
 		for (const auto& mapping : backingCache.mappings)
 		{
@@ -1450,23 +1527,59 @@ SharedCache::SharedCache(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView) : m_
 	sharedCacheReferences++;
 	INIT_SHAREDCACHE_API_OBJECT()
 	m_logger = LogRegistry::GetLogger("SharedCache", dscView->GetFile()->GetSessionId());
-	DeserializeFromRawView();
+	DeserializeFromRawView(false);
 	if (!m_metadataValid)
 		return;
 
-	if (State().viewState != DSCViewStateUnloaded) {
+	if (State()->viewState != DSCViewStateUnloaded) {
+		// This is racey and can cause another thread to set the progress to 
+		// finished when another thread is still performing the initial load.
 		m_viewSpecificState->progress = LoadProgressFinished;
 		return;
 	}
 
-	std::unique_lock lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
-	try {
-		PerformInitialLoad();
-	}
-	catch (...)
 	{
-		m_logger->LogError("Failed to perform initial load of Shared Cache");
+		// This needs to be dropped before calling `SaveToDSCView` and 
+		// `LoadImageWithInstallName` so scope it to mostly just the 
+		// initial load
+		StateLockUpdateScope stateLock(this);
+
+		// Now the state lock has been taken check and make sure another thread 
+		// didn't perform the initial load whilst this thread was waiting to 
+		// acquire the lock.
+		if (State()->viewState != DSCViewStateUnloaded)
+		{
+			// Nothing was changed so don't update the cached state
+			stateLock.updateCachedState = false;
+			return;
+		}
+
+		try
+		{
+			PerformInitialLoad();
+		}
+		catch (...)
+		{
+			m_logger->LogError("Failed to perform initial load of Shared Cache");
+		}
+
+		// At this point consider the state to be loaded. Although 
+		// `libsystem_c.dylib` maybe loaded below, it requires dropping the state 
+		// lock which means that if `viewState` hasn't been updated from 
+		// `DSCViewStateUnloaded`, another thread could come in and perform the 
+		// initial load. The alternative is to have a view state indicating the 
+		// initial load is underway but then other threads could observe this 
+		// partial load state and then should they wait until everything is 
+		// completely loaded or not wait? Ultimately loading `libsystem_c.dylib` 
+		// isn't really crucial to the loading of the shared cache state, so the 
+		// simplest solution is to just indicate here that the initial load has 
+		// been completed.
+		MutableState().viewState = DSCViewStateLoaded;
 	}
+
+	// `PerformInitialLoad` no longer saves the metadata to the view because it 
+	// is done here, shortly after where it would be done in `PerformInitialLoad`.
+	SaveToDSCView();
 
 	auto settings = m_dscView->GetLoadSettings(VIEW_NAME);
 	bool autoLoadLibsystem = true;
@@ -1476,20 +1589,17 @@ SharedCache::SharedCache(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView) : m_
 	}
 	if (autoLoadLibsystem)
 	{
-		for (const auto& [_, header] : State().headers)
+		auto headers = State()->headers;
+		for (const auto& [_, header] : headers)
 		{
 			if (header.installName.find("libsystem_c.dylib") != std::string::npos)
 			{
-				lock.unlock();
 				m_logger->LogInfo("Loading core libsystem_c.dylib library");
 				LoadImageWithInstallName(header.installName, false);
 				break;
 			}
 		}
 	}
-
-	MutableState().viewState = DSCViewStateLoaded;
-	SaveToDSCView();
 }
 
 SharedCache::~SharedCache() {
@@ -1511,7 +1621,8 @@ SharedCache* SharedCache::GetFromDSCView(BinaryNinja::Ref<BinaryNinja::BinaryVie
 
 std::optional<uint64_t> SharedCache::GetImageStart(std::string installName)
 {
-	for (const auto& [name, start] : State().imageStarts)
+	auto imageStarts = State()->imageStarts;
+	for (const auto& [name, start] : imageStarts)
 	{
 		if (name == installName)
 		{
@@ -1524,14 +1635,15 @@ std::optional<uint64_t> SharedCache::GetImageStart(std::string installName)
 const SharedCacheMachOHeader* SharedCache::HeaderForAddress(uint64_t address)
 {
 	// It is very common for `HeaderForAddress` to be called with an address corresponding to a header.
-	if (auto it = State().headers.find(address)) {
+	auto headers = State()->headers;
+	if (auto it = headers.find(address)) {
 		return it;
 	}
 
 	// We _could_ mark each page with the image start? :grimacing emoji:
 	// But that'd require mapping pages :grimacing emoji: :grimacing emoji:
 	// There's not really any other hacks that could make this faster, that I can think of...
-	for (const auto& [start, header] : State().headers)
+	for (const auto& [start, header] : headers)
 	{
 		for (const auto& segment : header.segments)
 		{
@@ -1547,21 +1659,22 @@ const SharedCacheMachOHeader* SharedCache::HeaderForAddress(uint64_t address)
 
 std::string SharedCache::NameForAddress(uint64_t address)
 {
-	for (const auto& stubIsland : State().stubIslandRegions)
+	auto state = State();
+	for (const auto& stubIsland : state->stubIslandRegions)
 	{
 		if (stubIsland.start <= address && stubIsland.start + stubIsland.size > address)
 		{
 			return stubIsland.prettyName;
 		}
 	}
-	for (const auto& dyldData : State().dyldDataRegions)
+	for (const auto& dyldData : state->dyldDataRegions)
 	{
 		if (dyldData.start <= address && dyldData.start + dyldData.size > address)
 		{
 			return dyldData.prettyName;
 		}
 	}
-	for (const auto& nonImageRegion : State().nonImageRegions)
+	for (const auto& nonImageRegion : state->nonImageRegions)
 	{
 		if (nonImageRegion.start <= address && nonImageRegion.start + nonImageRegion.size > address)
 		{
@@ -1595,7 +1708,8 @@ std::string SharedCache::ImageNameForAddress(uint64_t address)
 
 bool SharedCache::LoadImageContainingAddress(uint64_t address, bool skipObjC)
 {
-	for (const auto& [start, header] : State().headers)
+	auto headers = State()->headers;
+	for (const auto& [start, header] : headers)
 	{
 		for (const auto& segment : header.segments)
 		{
@@ -1609,11 +1723,172 @@ bool SharedCache::LoadImageContainingAddress(uint64_t address, bool skipObjC)
 	return false;
 }
 
+// No locks are required to call the function but it will acquire a lock to the 
+// `m_viewSpecificState->viewEndBufferWriterMutex` to prevent simultaneous 
+// writes to the same location.
+uint64_t SharedCache::WriteBufferToViewEnd(DataBuffer& buff)
+{
+	std::unique_lock<std::mutex> lock(m_viewSpecificState->viewEndBufferWriterMutex);
+	
+	const auto rawViewEnd = m_dscView->GetParentView()->GetParentView()->GetEnd();
+	
+	m_dscView->GetParentView()->GetParentView()->WriteBuffer(rawViewEnd, buff);
+	m_dscView->GetParentView()->WriteBuffer(rawViewEnd, buff);
+
+	return rawViewEnd;
+}
+
+// This is for loading a memory region that is not found within an image in 
+// the `State()->images` vector. The use of this function prevents repetitive 
+// coding in `SharedCache::LoadSectionAtAddress`. No locks should be held on 
+// calling it and it will acquire 
+// `m_viewSpecificState->memoryRegionMutexesMutex` and a lock in 
+// `m_viewSpecificState->memoryRegionMutexes`. Additionally it will 
+// likely acquire 
+// `m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex`.
+bool SharedCache::LoadNonImageSectionAtAddress(uint64_t regionStart, MemoryRegionType regionType, size_t regionIndexInVector)
+{
+	// The region appears not to be loaded. Acquire the loading lock, re-check 
+	// that it hasn't been loaded and if it still hasn't then actually load it.
+	std::unique_lock<std::mutex> memoryRegionLoadingLockslock(m_viewSpecificState->memoryRegionMutexesMutex);
+	auto& memoryRegionLoadingMutex = m_viewSpecificState->memoryRegionMutexes[regionStart];
+	// Now the specific memory region's loading mutex has been retrieved, this one can be dropped
+	memoryRegionLoadingLockslock.unlock();
+	// Hold this lock until loading of the region is done
+	std::unique_lock<std::mutex> memoryRegionLoadingLock(memoryRegionLoadingMutex);
+
+	// Check the latest state to see if the memory region has been loaded while acquiring the lock. 
+	// Deserialize from raw view because another thread doing another API call may have updated the 
+	// cached state. There's no need to hold `viewOperationsThatInfluenceMetadataMutex` because the 
+	// following code only cares about modifying a single memory region which the lock for has 
+	// already been acquired. When the region is actually updated in the state below a lock for 
+	// `viewOperationsThatInfluenceMetadataMutex` will be required and there will have to be another 
+	// call to `DeserializeFromRawView` to ensure the latest state is being updated with the changes 
+	// to this region.
+	DeserializeFromRawView(false);
+
+	// Hold a reference to the vector so that `region` does not end up referencing invalid memory if 
+	// the vector goes away.
+	immer::vector<MemoryRegion> regions;
+	switch (regionType)
+	{
+		case MemoryRegionType::StubIsland:
+		{
+			regions = State()->stubIslandRegions;
+			break;
+		}
+		case MemoryRegionType::DyldData:
+		{
+			regions = State()->dyldDataRegions;
+			break;
+		}
+		case MemoryRegionType::NonImageRegion:
+		{
+			regions = State()->nonImageRegions;
+			break;
+		}
+	}
+
+	// Check that the memory region was not loaded whilst grabbing the region loading lock.
+	const MemoryRegion& region = regions[regionIndexInVector];
+	if (region.loaded)
+	{
+		// The memory region was loaded whilst grabbing the region loading lock. No work left to do
+		return true;
+	}
+
+	// Still not loaded, so load it below
+	const char* regionTypeName;
+	BNSectionSemantics semantics;
+	switch (regionType)
+	{
+		case MemoryRegionType::StubIsland:
+		{
+			regionTypeName = "stub island";
+			semantics = ReadOnlyCodeSectionSemantics;
+			break;
+		}
+		case MemoryRegionType::DyldData:
+		{
+			regionTypeName = "dyld data";
+			semantics = ReadOnlyDataSectionSemantics;
+			break;
+		}
+		case MemoryRegionType::NonImageRegion:
+		{
+			regionTypeName = "non-image region";
+			semantics = region.flags & SegmentDenyExecute ? ReadOnlyDataSectionSemantics : ReadOnlyCodeSectionSemantics;
+			break;
+		}
+	}
+
+	auto vm = GetVMMap();
+	if (!vm)
+	{
+		m_logger->LogError("Failed to map VM pages for Shared Cache when loading %s %s", regionTypeName, region.prettyName.c_str());
+		return false;
+	}
+
+	m_logger->LogInfo("Loading %s %s", regionTypeName, region.prettyName.c_str());
+
+	// Only lock the file for the call to `ParseAndApplySlideInfoForFile`
+	ParseAndApplySlideInfoForFile(vm->MappingAtAddress(region.start).first.fileAccessor->lock());
+
+	auto reader = VMReader(vm);
+	auto buff = reader.ReadBuffer(region.start, region.size);
+	auto rawViewEnd = WriteBufferToViewEnd(buff);
+
+	m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, region.size, rawViewEnd, region.size, region.flags);
+	m_dscView->AddUserSegment(region.start, region.size, rawViewEnd, region.size, region.flags);
+	m_dscView->AddUserSection(region.prettyName, region.start, region.size, semantics);
+	m_dscView->WriteBuffer(region.start, buff);
+
+	{
+		StateLockUpdateScope lock(this);
+
+		MemoryRegion newRegion(region);
+		newRegion.loaded = true;
+		newRegion.rawViewOffsetIfLoaded = rawViewEnd;
+		MutableState().regionsMappedIntoMemory = MutableState().regionsMappedIntoMemory.push_back(newRegion);
+		switch (regionType)
+		{
+			case MemoryRegionType::StubIsland:
+			{
+				MutableState().stubIslandRegions = MutableState().stubIslandRegions.set(regionIndexInVector, std::move(newRegion));
+				break;
+			}
+			case MemoryRegionType::DyldData:
+			{
+				MutableState().dyldDataRegions = MutableState().dyldDataRegions.set(regionIndexInVector, std::move(newRegion));
+				break;
+			}
+			case MemoryRegionType::NonImageRegion:
+			{
+				MutableState().nonImageRegions = MutableState().nonImageRegions.set(regionIndexInVector, std::move(newRegion));
+				break;
+			}
+		}
+	}
+	
+	SaveToDSCView();
+
+	m_dscView->AddAnalysisOption("linearsweep");
+	m_dscView->UpdateAnalysis();
+
+	return true;
+}
+
 bool SharedCache::LoadSectionAtAddress(uint64_t address)
 {
-	const MemoryRegion* targetSegment = nullptr;
+	size_t targetImageIndex;
+	size_t targetSegmentIndex;
+	bool targetImageFound = false;
 
-	for (auto imageIt = State().images.begin(); imageIt != State().images.end(); ++imageIt)
+	// Grab a reference to a snapshot of the current state
+	auto state = State();
+
+	auto images = state->images;
+	for (auto imageIt = images.begin(); imageIt != images.end(); ++imageIt)
 	{
 		auto& image = *imageIt;
 		for (auto regionIt = image.regions.begin(); regionIt != image.regions.end(); ++regionIt)
@@ -1621,265 +1896,59 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 			auto& region = *regionIt;
 			if (region.start <= address && region.start + region.size > address)
 			{
-				targetSegment = &region;
+				targetImageIndex = imageIt.index();
+				targetSegmentIndex = regionIt.index();
+				targetImageFound = true;
 				break;
 			}
 		}
-		if (targetSegment)
+		if (targetImageFound)
 			break;
 	}
-	if (!targetSegment)
+	if (!targetImageFound)
 	{
-		for (auto it = State().stubIslandRegions.begin(); it != State().stubIslandRegions.end(); ++it)
+		auto stubIslandRegions = state->stubIslandRegions;
+		for (auto it = stubIslandRegions.begin(); it != stubIslandRegions.end(); ++it)
 		{
 			auto stubIsland = &*it;
 			if (stubIsland->start <= address && stubIsland->start + stubIsland->size > address)
 			{
 				if (stubIsland->loaded)
-				{
 					return true;
-				}
-
-				// The region appears not to be loaded. Acquire the loading lock, re-check 
-				// that it hasn't been loaded and if it still hasn't then actually load it.
-				std::unique_lock<std::mutex> memoryRegionLoadingLockslock(m_viewSpecificState->memoryRegionLoadingMutexesMutex);
-				auto& memoryRegionLoadingMutex = m_viewSpecificState->memoryRegionLoadingMutexes[stubIsland->start];
-				// Now the specific memory region's loading mutex has been retrieved, this one can be dropped
-				memoryRegionLoadingLockslock.unlock();
-				// Hold this lock until loading of the region is done
-				std::unique_lock<std::mutex> memoryRegionLoadingLock(memoryRegionLoadingMutex);
-
-				// Check the latest state to see if the memory region has been loaded while acquiring the lock
-				{
-					std::unique_lock<std::mutex> viewStateCacheLock(m_viewSpecificState->stateMutex);
-					
-					for (auto& cacheStubIsland : m_viewSpecificState->GetCachedState()->stubIslandRegions)
-					{
-						if (cacheStubIsland.start <= address && cacheStubIsland.start + cacheStubIsland.size > address)
-						{
-							if (cacheStubIsland.loaded)
-							{
-								return true;
-							}
-							stubIsland = &cacheStubIsland;
-							break;
-						}
-					}
-				}
-
-				// Still not loaded, so load it below
-				std::unique_lock<std::mutex> lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
-				DeserializeFromRawView();
-				WillMutateState();
-
-				auto vm = GetVMMap();
-				if (!vm)
-				{
-					m_logger->LogError("Failed to map VM pages for Shared Cache.");
-					return false;
-				}
-
-				m_logger->LogInfo("Loading stub island %s @ 0x%llx", stubIsland->prettyName.c_str(), stubIsland->start);
-				auto targetFile = vm->MappingAtAddress(stubIsland->start).first.fileAccessor->lock();
-				ParseAndApplySlideInfoForFile(targetFile);
-				auto reader = VMReader(vm);
-				auto buff = reader.ReadBuffer(stubIsland->start, stubIsland->size);
-				auto rawViewEnd = m_dscView->GetParentView()->GetEnd();
-
-				auto name = stubIsland->prettyName;
-				m_dscView->GetParentView()->GetParentView()->WriteBuffer(
-					m_dscView->GetParentView()->GetParentView()->GetEnd(), buff);
-				m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, stubIsland->size, rawViewEnd, stubIsland->size,
-					SegmentReadable | SegmentExecutable);
-				m_dscView->AddUserSegment(stubIsland->start, stubIsland->size, rawViewEnd, stubIsland->size,
-					SegmentReadable | SegmentExecutable);
-				m_dscView->AddUserSection(name, stubIsland->start, stubIsland->size, ReadOnlyCodeSectionSemantics);
-				m_dscView->WriteBuffer(stubIsland->start, buff);
-
-				MemoryRegion newStubIsland(*stubIsland);
-				newStubIsland.loaded = true;
-				newStubIsland.rawViewOffsetIfLoaded = rawViewEnd;
-				MutableState().regionsMappedIntoMemory = State().regionsMappedIntoMemory.push_back(newStubIsland);
-				MutableState().stubIslandRegions = State().stubIslandRegions.set(it.index(), std::move(newStubIsland));
-
-				SaveToDSCView();
-
-				m_dscView->AddAnalysisOption("linearsweep");
-				m_dscView->UpdateAnalysis();
-
-				return true;
+				
+				return LoadNonImageSectionAtAddress(stubIsland->start, MemoryRegionType::StubIsland, it.index());
 			}
 		}
 
-		for (auto it = State().dyldDataRegions.begin(); it != State().dyldDataRegions.end(); ++it)
+		auto dyldDataRegions = state->dyldDataRegions;
+		for (auto it = dyldDataRegions.begin(); it != dyldDataRegions.end(); ++it)
 		{
 			auto dyldData = &*it;
 			if (dyldData->start <= address && dyldData->start + dyldData->size > address)
 			{
 				if (dyldData->loaded)
-				{
 					return true;
-				}
-
-				// The region appears not to be loaded. Acquire the loading lock, re-check 
-				// that it hasn't been loaded and if it still hasn't then actually load it.
-				std::unique_lock<std::mutex> memoryRegionLoadingLockslock(m_viewSpecificState->memoryRegionLoadingMutexesMutex);
-				auto& memoryRegionLoadingMutex = m_viewSpecificState->memoryRegionLoadingMutexes[dyldData->start];
-				// Now the specific memory region's loading mutex has been retrieved, this one can be dropped
-				memoryRegionLoadingLockslock.unlock();
-				// Hold this lock until loading of the region is done
-				std::unique_lock<std::mutex> memoryRegionLoadingLock(memoryRegionLoadingMutex);
-
-				// Check the latest state to see if the memory region has been loaded while acquiring the lock
-				{
-					std::unique_lock<std::mutex> viewStateCacheLock(m_viewSpecificState->stateMutex);
-					
-					for (auto& cacheDyldData : m_viewSpecificState->GetCachedState()->dyldDataRegions)
-					{
-						if (cacheDyldData.start <= address && cacheDyldData.start + cacheDyldData.size > address)
-						{
-							if (cacheDyldData.loaded)
-							{
-								return true;
-							}
-							dyldData = &cacheDyldData;
-							break;
-						}
-					}
-				}
-
-				// Still not loaded, so load it below
-				std::unique_lock<std::mutex> lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
-				DeserializeFromRawView();
-				WillMutateState();
-
-				auto vm = GetVMMap();
-				if (!vm)
-				{
-					m_logger->LogError("Failed to map VM pages for Shared Cache.");
-					return false;
-				}
-
-				m_logger->LogInfo("Loading dyld data %s", dyldData->prettyName.c_str());
-				auto targetFile = vm->MappingAtAddress(dyldData->start).first.fileAccessor->lock();
-				ParseAndApplySlideInfoForFile(targetFile);
-				auto reader = VMReader(vm);
-				auto buff = reader.ReadBuffer(dyldData->start, dyldData->size);
-				auto rawViewEnd = m_dscView->GetParentView()->GetEnd();
-
-				auto name = dyldData->prettyName;
-				m_dscView->GetParentView()->GetParentView()->WriteBuffer(
-					m_dscView->GetParentView()->GetParentView()->GetEnd(), buff);
-				m_dscView->GetParentView()->WriteBuffer(rawViewEnd, buff);
-				m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, dyldData->size, rawViewEnd, dyldData->size,
-					SegmentReadable);
-				m_dscView->AddUserSegment(dyldData->start, dyldData->size, rawViewEnd, dyldData->size, SegmentReadable);
-				m_dscView->AddUserSection(name, dyldData->start, dyldData->size, ReadOnlyDataSectionSemantics);
-				m_dscView->WriteBuffer(dyldData->start, buff);
-
-				MemoryRegion newDyldData(*dyldData);
-				newDyldData.loaded = true;
-				newDyldData.rawViewOffsetIfLoaded = rawViewEnd;
-				MutableState().regionsMappedIntoMemory = State().regionsMappedIntoMemory.push_back(newDyldData);
-				MutableState().dyldDataRegions = State().dyldDataRegions.set(it.index(), std::move(newDyldData));
-
-				SaveToDSCView();
-
-				m_dscView->AddAnalysisOption("linearsweep");
-				m_dscView->UpdateAnalysis();
-
-				return true;
+				
+				return LoadNonImageSectionAtAddress(dyldData->start, MemoryRegionType::DyldData, it.index());
 			}
 		}
 
-		for (auto it = State().nonImageRegions.begin(); it != State().nonImageRegions.end(); ++it)
+		auto nonImageRegions = state->nonImageRegions;
+		for (auto it = nonImageRegions.begin(); it != nonImageRegions.end(); ++it)
 		{
 			auto region = &*it;
 			if (region->start <= address && region->start + region->size > address)
 			{
 				if (region->loaded)
-				{
 					return true;
-				}
-
-				// The region appears not to be loaded. Acquire the loading lock, re-check 
-				// that it hasn't been loaded and if it still hasn't then actually load it.
-				std::unique_lock<std::mutex> memoryRegionLoadingLockslock(m_viewSpecificState->memoryRegionLoadingMutexesMutex);
-				auto& memoryRegionLoadingMutex = m_viewSpecificState->memoryRegionLoadingMutexes[region->start];
-				// Now the specific memory region's loading mutex has been retrieved, this one can be dropped
-				memoryRegionLoadingLockslock.unlock();
-				// Hold this lock until loading of the region is done
-				std::unique_lock<std::mutex> memoryRegionLoadingLock(memoryRegionLoadingMutex);
-
-				// Check the latest state to see if the memory region has been loaded while acquiring the lock
-				{
-					auto viewSpecificState = m_viewSpecificState;
-					std::unique_lock<std::mutex> viewStateCacheLock(viewSpecificState->stateMutex);
-					
-					for (auto& cacheRegion : viewSpecificState->GetCachedState()->nonImageRegions)
-					{
-						if (cacheRegion.start <= address && cacheRegion.start + cacheRegion.size > address)
-						{
-							if (cacheRegion.loaded)
-							{
-								return true;
-							}
-							region = &cacheRegion;
-							break;
-						}
-					}
-				}
-
-				// Still not loaded, so load it below
-				std::unique_lock<std::mutex> lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
-				DeserializeFromRawView();
-				WillMutateState();
-
-				auto vm = GetVMMap();
-				if (!vm)
-				{
-					m_logger->LogError("Failed to map VM pages for Shared Cache.");
-					return false;
-				}
-
-				m_logger->LogInfo("Loading non-image region %s", region->prettyName.c_str());
-				auto targetFile = vm->MappingAtAddress(region->start).first.fileAccessor->lock();
-				ParseAndApplySlideInfoForFile(targetFile);
-				auto reader = VMReader(vm);
-				auto buff = reader.ReadBuffer(region->start, region->size);
-				auto rawViewEnd = m_dscView->GetParentView()->GetEnd();
-
-				auto name = region->prettyName;
-				m_dscView->GetParentView()->GetParentView()->WriteBuffer(
-					m_dscView->GetParentView()->GetParentView()->GetEnd(), buff);
-				m_dscView->GetParentView()->WriteBuffer(rawViewEnd, buff);
-				m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, region->size, rawViewEnd, region->size, region->flags);
-				m_dscView->AddUserSegment(region->start, region->size, rawViewEnd, region->size, region->flags);
-				m_dscView->AddUserSection(name, region->start, region->size, region->flags & SegmentDenyExecute ? ReadOnlyDataSectionSemantics : ReadOnlyCodeSectionSemantics);
-				m_dscView->WriteBuffer(region->start, buff);
-
-				MemoryRegion newRegion(*region);
-				newRegion.loaded = true;
-				newRegion.rawViewOffsetIfLoaded = rawViewEnd;
-				MutableState().regionsMappedIntoMemory = State().regionsMappedIntoMemory.push_back(newRegion);
-				MutableState().nonImageRegions = State().nonImageRegions.set(it.index(), std::move(newRegion));
-
-				SaveToDSCView();
-
-				m_dscView->AddAnalysisOption("linearsweep");
-				m_dscView->UpdateAnalysis();
-
-				return true;
+				
+				return LoadNonImageSectionAtAddress(region->start, MemoryRegionType::NonImageRegion, it.index());
 			}
 		}
 
 		m_logger->LogError("Failed to find a segment containing address 0x%llx", address);
 		return false;
 	}
-
-	std::unique_lock lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
-	DeserializeFromRawView();
-	WillMutateState();
 
 	auto vm = GetVMMap();
 	if (!vm)
@@ -1888,77 +1957,112 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 		return false;
 	}
 
-	SharedCacheMachOHeader targetHeader;
-	decltype(State().images.begin()) targetImageIt;
-	decltype(CacheImage().regions.begin()) targetSegmentIt;
-	targetSegment = nullptr;
+	// Taking a reference to the vector here will ensure that any images and 
+	// their `regions` vectors stay alive for the duration this reference exists.
+	images = State()->images;
+	auto& tmpRegion = images[targetImageIndex].regions[targetSegmentIndex];
+	if (tmpRegion.loaded)
+		return true;
 
-	for (auto imageIt = State().images.begin(); imageIt != State().images.end(); ++imageIt)
+	// The region appears not to be loaded. Acquire the loading lock, re-check 
+	// that it hasn't been loaded and if it still hasn't then actually load it.
+	std::unique_lock<std::mutex> imageLoadingLockslock(m_viewSpecificState->imageMutexesMutex);
+	// Hold this lock until loading of the image region is done
+	std::unique_lock<std::mutex> imageLoadingLock(m_viewSpecificState->imageMutexes[tmpRegion.start]);
+	// Now the specific image's loading mutex has been retrieved, this one can be dropped
+	imageLoadingLockslock.unlock();
+
+	// Check the latest state to see if the image region has been loaded while acquiring the lock. 
+	// Deserialize from raw view because another thread doing another API call may have updated the 
+	// cached state. There's no need to hold `viewOperationsThatInfluenceMetadataMutex` because the 
+	// following code only cares about modifying a single image region which the lock for has 
+	// already been acquired. When the region is actually updated in the state below a lock for 
+	// `viewOperationsThatInfluenceMetadataMutex` will be required and there will have to be another 
+	// call to `DeserializeFromRawView` to ensure the latest state is being updated with the changes 
+	// to this region.
+	DeserializeFromRawView(false);
+	state = State();
+
+	auto updatedImages = state->images;
+	auto& image = updatedImages[targetImageIndex];
+	auto& region = image.regions[targetSegmentIndex];
+	if (region.loaded)
 	{
-		for (auto regionIt = imageIt->regions.begin(); regionIt != imageIt->regions.end(); ++regionIt)
-		{
-			if (regionIt->start <= address && regionIt->start + regionIt->size > address)
-			{
-				targetHeader = State().headers[imageIt->headerLocation];
-				targetImageIt = imageIt;
-				targetSegmentIt = regionIt;
-				targetSegment = &*regionIt;
-				break;
-			}
-		}
-		if (targetSegment)
-			break;
+		// The image region was loaded whilst grabbing the image 
+		// loading lock. No work left to do
+		return true;
 	}
 
-	auto id = m_dscView->BeginUndoActions();
-	auto rawViewEnd = m_dscView->GetParentView()->GetEnd();
+	auto targetHeader = state->headers[image.headerLocation];
+
+	// References to the previous version of `State()->images` (assuming it has been updated) 
+	// and its data are no longer needed. Grab a persistent reference (for the remainder of 
+	// this function) to the newest version of the images vector whose data is being 
+	// referenced via raw pointers.
+	images = updatedImages;
+
+	// TODO(WeiN76LQh): this is a problematic API
+	//auto id = m_dscView->BeginUndoActions();
 	auto reader = VMReader(vm);
 
 	m_logger->LogDebug("Partial loading image %s", targetHeader.installName.c_str());
 
-	auto targetFile = vm->MappingAtAddress(targetSegment->start).first.fileAccessor->lock();
-	ParseAndApplySlideInfoForFile(targetFile);
-	auto buff = reader.ReadBuffer(targetSegment->start, targetSegment->size);
-	m_dscView->GetParentView()->GetParentView()->WriteBuffer(
-		m_dscView->GetParentView()->GetParentView()->GetEnd(), buff);
-	m_dscView->GetParentView()->WriteBuffer(rawViewEnd, buff);
+	// Only lock the file for the call to `ParseAndApplySlideInfoForFile`
+	ParseAndApplySlideInfoForFile(vm->MappingAtAddress(region.start).first.fileAccessor->lock());
+
+	auto buff = reader.ReadBuffer(region.start, region.size);
+	auto rawViewEnd = WriteBufferToViewEnd(buff);
+
 	m_dscView->GetParentView()->AddAutoSegment(
-		rawViewEnd, targetSegment->size, rawViewEnd, targetSegment->size, SegmentReadable);
+		rawViewEnd, region.size, rawViewEnd, region.size, SegmentReadable);
 	m_dscView->AddUserSegment(
-		targetSegment->start, targetSegment->size, rawViewEnd, targetSegment->size, targetSegment->flags);
-	m_dscView->WriteBuffer(targetSegment->start, buff);
+		region.start, region.size, rawViewEnd, region.size, region.flags);
+	m_dscView->WriteBuffer(region.start, buff);
 
-	MemoryRegion newTargetSegment(*targetSegment);
-	newTargetSegment.loaded = true;
-	newTargetSegment.rawViewOffsetIfLoaded = rawViewEnd;
-	MutableState().regionsMappedIntoMemory = State().regionsMappedIntoMemory.push_back(newTargetSegment);
+	{
+		StateLockUpdateScope lock(this);
 
-	auto images = State().images;
-	auto regions = images[targetImageIt.index()].regions;
-	CacheImage newTargetImage(*targetImageIt);
-	newTargetImage.regions = regions.set(targetSegmentIt.index(), std::move(newTargetSegment));
-	MutableState().images = images.set(targetImageIt.index(), std::move(newTargetImage));
+		MemoryRegion newTargetSegment(region);
+		newTargetSegment.loaded = true;
+		newTargetSegment.rawViewOffsetIfLoaded = rawViewEnd;
+		MutableState().regionsMappedIntoMemory = State()->regionsMappedIntoMemory.push_back(newTargetSegment);
+
+		images = State()->images;
+		auto regions = images[targetImageIndex].regions;
+		CacheImage newTargetImage(image);
+		newTargetImage.regions = regions.set(targetSegmentIndex, std::move(newTargetSegment));
+		MutableState().images = images.set(targetImageIndex, std::move(newTargetImage));
+
+		if (!region.headerInitialized)
+		{
+			// Take a reference to the memory region here to keep things alive 
+			// so that the updated `targetSegment` reference does not end up 
+			// referencing freed memory.
+			auto imageRegions = newTargetImage.regions;
+			auto& region = imageRegions[targetSegmentIndex];
+
+			// Don't hold the metadata lock when calling `InitializeHeader`
+			lock.Unlock();
+			SharedCache::InitializeHeader(m_dscView, vm.get(), targetHeader, {&region});
+			lock.Lock();
+
+			MemoryRegion newTargetSegment(region);
+			newTargetSegment.headerInitialized = true;
+			auto images = State()->images;
+			auto& image = images[targetImageIndex];
+			auto regions = image.regions;
+			CacheImage newTargetImage(image);
+			newTargetImage.regions = regions.set(targetSegmentIndex, std::move(newTargetSegment));
+			MutableState().images = images.set(targetImageIndex, std::move(newTargetImage));
+		}
+	}
 
 	SaveToDSCView();
-
-	if (!targetSegment->headerInitialized)
-	{
-		targetSegment = &State().images[targetImageIt.index()].regions[targetSegmentIt.index()];
-		SharedCache::InitializeHeader(m_dscView, vm.get(), targetHeader, {targetSegment});
-
-		MemoryRegion newTargetSegment(*targetSegment);
-		newTargetSegment.headerInitialized = true;
-		auto images = State().images;
-		auto regions = images[targetImageIt.index()].regions;
-		CacheImage newTargetImage(*targetImageIt);
-		newTargetImage.regions = regions.set(targetSegmentIt.index(), std::move(newTargetSegment));
-		MutableState().images = images.set(targetImageIt.index(), std::move(newTargetImage));
-	}
 
 	m_dscView->AddAnalysisOption("linearsweep");
 	m_dscView->UpdateAnalysis();
 
-	m_dscView->CommitUndoActions(id);
+	//m_dscView->CommitUndoActions(id);
 
 	return true;
 }
@@ -2038,125 +2142,202 @@ void SharedCache::ProcessAllObjCSections()
 	}
 }
 
-bool SharedCache::LoadImageWithInstallName(std::string_view installName, bool skipObjC)
+// Do not hold the `viewOperationsThatInfluenceMetadataMutex` when calling 
+// this function as this function setups other threads which will acquire it 
+// during various points of loading the specified images.
+bool SharedCache::LoadImagesWithInstallNames(std::vector<std::string_view> installNames, bool skipObjC)
 {
 	auto settings = m_dscView->GetLoadSettings(VIEW_NAME);
+	bool allowLoadingLinkedit = false;
+	if (settings && settings->Contains("loader.dsc.allowLoadingLinkeditSegments"))
+		allowLoadingLinkedit = settings->Get<bool>("loader.dsc.allowLoadingLinkeditSegments", m_dscView);
 
-	std::unique_lock lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
-
-	DeserializeFromRawView();
-	WillMutateState();
-
-	m_logger->LogInfo("Loading image %s", installName.data());
-
+	// TODO(WeiN76LQh): this is a problematic API
+	//auto id = m_dscView->BeginUndoActions();
+	
 	auto vm = GetVMMap();
-	const CacheImage* targetImage = nullptr;
-	decltype(State().images.begin()) targetImageIt;
 
-	for (auto it = State().images.begin(); it != State().images.end(); ++it)
-	{
-		if (it->installName == installName)
+	std::mutex sharedCacheImageHeadersMutex;
+	std::vector<std::optional<SharedCacheMachOHeader>> sharedCacheImageHeaders;
+
+	size_t workersFinished = 0;
+	std::mutex workersFinishedMutex;
+	const size_t numberOfWorkersToWaitFor = installNames.size();
+	std::condition_variable cvForWorkers;
+
+	auto workerCompletion = [&]() {
 		{
-			targetImage = &*it;
-			targetImageIt = it;
-			break;
+			std::unique_lock<std::mutex> lock(workersFinishedMutex);
+			++workersFinished;
 		}
-	}
+		cvForWorkers.notify_all();
+	};
 
-	auto it = State().headers.find(targetImage->headerLocation);
-	if (!it)
+	for (auto installName : installNames)
 	{
-		return false;
+		WorkerPriorityEnqueue([&, installName]() {
+			bool imageFound = false;
+			std::unique_lock<std::mutex> targetImageLock;
+			uint32_t targetImageIndex;
+			uint64_t targetImageHeaderLocation;
+			immer::vector<MemoryRegion> targetImageRegions;
+
+			auto images = State()->images;
+			for (auto it = images.begin(); it != images.end(); ++it)
+			{
+				if (it->installName == installName)
+				{
+					// Grab these values now as they never change
+					targetImageIndex = it->index;
+					targetImageHeaderLocation = it->headerLocation;
+					imageFound = true;
+
+					// Get the lock for the image so that nothing else can be 
+					// modifying this image whilst this thread loads it
+					std::unique_lock<std::mutex> imageLockslock(m_viewSpecificState->imageMutexesMutex);
+					auto& imageMutex = m_viewSpecificState->imageMutexes[targetImageIndex];
+					imageLockslock.unlock();
+					targetImageLock = std::unique_lock<std::mutex>(imageMutex);
+
+					// Get the latest state of the regions
+					targetImageRegions = images[targetImageIndex].regions;
+					break;
+				}
+			}
+			if (!imageFound)
+			{
+				m_logger->LogError("Cannot find image with name %s", installName.data());
+				workerCompletion();
+				return;
+			}
+
+			m_logger->LogInfo("Loading image %s", installName.data());
+
+			if (State()->viewState != DSCViewStateLoadedWithImages)
+			{
+				StateLockUpdateScope lock(this);
+				MutableState().viewState = DSCViewStateLoadedWithImages;
+			}
+
+			{
+				auto it = State()->headers.find(targetImageHeaderLocation);
+				if (!it)
+				{
+					m_logger->LogError("Cannot find header for image %s", installName.data());
+					workerCompletion();
+					return;
+				}
+				auto typeLib = TypeLibraryForImage(it->installName);
+			}
+
+			auto reader = VMReader(vm);
+			reader.Seek(targetImageHeaderLocation);
+
+			std::vector<size_t> regionsToLoad;
+
+			auto newTargetImageRegions = targetImageRegions.transient();
+			std::vector<MemoryRegion> newRegionsMappedIntoMemory;
+			for (auto it = targetImageRegions.begin(); it != targetImageRegions.end(); ++it)
+			{
+				auto& region = *it;
+
+				if ((region.prettyName.find("__LINKEDIT") != std::string::npos) && !allowLoadingLinkedit)
+					continue;
+
+				if (region.loaded)
+				{
+					m_logger->LogDebug("Skipping region %s as it is already loaded.", region.prettyName.c_str());
+					continue;
+				}
+
+				auto buff = reader.ReadBuffer(region.start, region.size);
+				auto rawViewEnd = WriteBufferToViewEnd(buff);
+
+				MemoryRegion newRegion(region);
+				newRegion.loaded = true;
+				newRegion.rawViewOffsetIfLoaded = rawViewEnd;
+				newRegionsMappedIntoMemory.push_back(newRegion);
+				newTargetImageRegions.set(it.index(), std::move(newRegion));
+				regionsToLoad.push_back(it.index());
+
+				// Only lock the file for the call to `ParseAndApplySlideInfoForFile`
+				ParseAndApplySlideInfoForFile(vm->MappingAtAddress(region.start).first.fileAccessor->lock());
+
+				m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, region.size, rawViewEnd, region.size, region.flags);
+				m_dscView->AddUserSegment(region.start, region.size, rawViewEnd, region.size, region.flags);
+				m_dscView->WriteBuffer(region.start, buff);
+			}
+
+			if (regionsToLoad.empty())
+			{
+				m_logger->LogWarn("No regions to load for image %s", installName.data());
+				workerCompletion();
+				return;
+			}
+
+			{
+				StateLockUpdateScope lock(this);
+
+				auto regionsMappedIntoMemoryUpdated = MutableState().regionsMappedIntoMemory.transient();
+				for (auto regionMappedIntoMemory : newRegionsMappedIntoMemory)
+				{
+					regionsMappedIntoMemoryUpdated.push_back(regionMappedIntoMemory);
+				}
+				MutableState().regionsMappedIntoMemory = std::move(regionsMappedIntoMemoryUpdated).persistent();
+
+				auto images = State()->images;
+				CacheImage newTargetImage(images[targetImageIndex]);
+				// newTargetImageRegions is intentionally not moved here as it is used again below. 
+				newTargetImage.regions = newTargetImageRegions.persistent();
+				MutableState().images = images.set(targetImageIndex, std::move(newTargetImage));
+			}
+
+			std::vector<const MemoryRegion*> regions;
+			for (size_t idx : regionsToLoad)
+			{
+				regions.push_back(&newTargetImageRegions[idx]);
+			}
+
+			auto h = SharedCache::LoadHeaderForAddress(vm, targetImageHeaderLocation, installName);
+			if (!h.has_value())
+			{
+				m_logger->LogError("Cannot load header for image %s", installName.data());
+				workerCompletion();
+				return;
+			}
+
+			SharedCache::InitializeHeader(m_dscView, vm.get(), *h, regions);
+			{
+				std::unique_lock<std::mutex> lock(sharedCacheImageHeadersMutex);
+				sharedCacheImageHeaders.push_back(h);
+			}
+
+			{
+				for (size_t idx : regionsToLoad) {
+					MemoryRegion newTargetSegment(newTargetImageRegions[idx]);
+					newTargetSegment.headerInitialized = true;
+					newTargetImageRegions.set(idx, std::move(newTargetSegment));
+				}
+				
+				StateLockUpdateScope lock(this);
+
+				auto images = State()->images;
+				CacheImage newTargetImage(images[targetImageIndex]);
+				newTargetImage.regions = std::move(newTargetImageRegions).persistent();
+				MutableState().images = images.set(targetImageIndex, std::move(newTargetImage));
+			}
+
+			workerCompletion();
+		}, "DSC Image Loader");
 	}
-	const auto& header = *it;
 
-	auto id = m_dscView->BeginUndoActions();
-	MutableState().viewState = DSCViewStateLoadedWithImages;
-
-	auto reader = VMReader(vm);
-	reader.Seek(targetImage->headerLocation);
-
-	std::vector<size_t> regionsToLoad;
-
-	auto newTargetImageRegions = targetImage->regions.transient();
-	auto newRegionsMappedIntoMemory = State().regionsMappedIntoMemory.transient();
-	for (auto it = targetImage->regions.begin(); it != targetImage->regions.end(); ++it)
+	// Wait until all background workers have finished
 	{
-		auto& region = *it;
-		bool allowLoadingLinkedit = false;
-		if (settings && settings->Contains("loader.dsc.allowLoadingLinkeditSegments"))
-			allowLoadingLinkedit = settings->Get<bool>("loader.dsc.allowLoadingLinkeditSegments", m_dscView);
-		if ((region.prettyName.find("__LINKEDIT") != std::string::npos) && !allowLoadingLinkedit)
-			continue;
-
-		if (region.loaded)
-		{
-			m_logger->LogDebug("Skipping region %s as it is already loaded.", region.prettyName.c_str());
-			continue;
-		}
-
-		auto targetFile = vm->MappingAtAddress(region.start).first.fileAccessor->lock();
-		ParseAndApplySlideInfoForFile(targetFile);
-
-		auto rawViewEnd = m_dscView->GetParentView()->GetEnd();
-
-		auto buff = reader.ReadBuffer(region.start, region.size);
-		m_dscView->GetParentView()->GetParentView()->WriteBuffer(rawViewEnd, buff);
-		m_dscView->GetParentView()->WriteBuffer(rawViewEnd, buff);
-
-		MemoryRegion newRegion(region);
-		newRegion.loaded = true;
-		newRegion.rawViewOffsetIfLoaded = rawViewEnd;
-		newRegionsMappedIntoMemory.push_back(newRegion);
-		newTargetImageRegions.set(it.index(), std::move(newRegion));
-		regionsToLoad.push_back(it.index());
-
-		m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, region.size, rawViewEnd, region.size, region.flags);
-		m_dscView->AddUserSegment(region.start, region.size, rawViewEnd, region.size, region.flags);
-		m_dscView->WriteBuffer(region.start, buff);
+		std::unique_lock<std::mutex> lock(workersFinishedMutex);
+		cvForWorkers.wait(lock, [&]() { return workersFinished == numberOfWorkersToWaitFor; });
 	}
-
-	if (regionsToLoad.empty())
-	{
-		m_logger->LogWarn("No regions to load for image %s", installName.data());
-		return false;
-	}
-
-	MutableState().regionsMappedIntoMemory = std::move(newRegionsMappedIntoMemory).persistent();
-	auto images = State().images;
-	CacheImage newTargetImage(*targetImage);
-	// newTargetImageRegions is intentionally not moved here as it is used again below. 
-	newTargetImage.regions = newTargetImageRegions.persistent();
-	MutableState().images = images.set(targetImageIt.index(), std::move(newTargetImage));
-
-	auto typeLib = TypeLibraryForImage(header.installName);
 
 	SaveToDSCView();
-
-	auto h = SharedCache::LoadHeaderForAddress(vm, targetImage->headerLocation, installName);
-	if (!h.has_value())
-	{
-		return false;
-	}
-
-	std::vector<const MemoryRegion*> regions;
-	for (size_t idx : regionsToLoad) {
-		regions.push_back(&newTargetImageRegions[idx]);
-	}
-
-	SharedCache::InitializeHeader(m_dscView, vm.get(), *h, regions);
-
-	{
-		for (size_t idx : regionsToLoad) {
-			MemoryRegion newTargetSegment(newTargetImageRegions[idx]);
-			newTargetSegment.headerInitialized = true;
-			newTargetImageRegions.set(idx, std::move(newTargetSegment));
-		}
-		auto images = State().images;
-		CacheImage newTargetImage(*targetImage);
-		newTargetImage.regions = std::move(newTargetImageRegions).persistent();
-		MutableState().images = images.set(targetImageIt.index(), std::move(newTargetImage));
-	}
 
 	if (!skipObjC)
 	{
@@ -2164,15 +2345,27 @@ bool SharedCache::LoadImageWithInstallName(std::string_view installName, bool sk
 		bool processObjCMetadata;
 		GetObjCSettings(m_dscView, &processCFStrings, &processObjCMetadata);
 
-		ProcessObjCSectionsForImageWithName(h->identifierPrefix, vm, std::make_shared<DSCObjC::DSCObjCProcessor>(m_dscView, this, false), processCFStrings, processObjCMetadata, m_logger);
+		for (auto h : sharedCacheImageHeaders)
+		{
+			ProcessObjCSectionsForImageWithName(h->identifierPrefix, vm, std::make_shared<DSCObjC::DSCObjCProcessor>(m_dscView, this, false), processCFStrings, processObjCMetadata, m_logger);
+		}
 	}
 
 	m_dscView->AddAnalysisOption("linearsweep");
 	m_dscView->UpdateAnalysis();
 
-	m_dscView->CommitUndoActions(id);
+	//m_dscView->CommitUndoActions(id);
 
 	return true;
+}
+
+// Do not hold the `viewOperationsThatInfluenceMetadataMutex` when calling 
+// this function as it will try to acquire it at some point.
+bool SharedCache::LoadImageWithInstallName(std::string_view installName, bool skipObjC)
+{
+	std::vector<std::string_view> installNames;
+	installNames.push_back(installName);
+	return LoadImagesWithInstallNames(installNames, skipObjC);
 }
 
 struct TransientSharedCacheMachOHeader
@@ -2672,8 +2865,6 @@ std::optional<SharedCacheMachOHeader> SharedCache::LoadHeaderForAddress(std::sha
 
 void SharedCache::ProcessSymbols(std::shared_ptr<MMappedFileAccessor> file, const SharedCacheMachOHeader& header, uint64_t stringsOffset, size_t stringsSize, uint64_t nlistEntriesOffset, uint32_t nlistCount, uint32_t nlistStartIndex)
 {
-	WillMutateState();
-
 	auto addressSize = m_dscView->GetAddressSize();
 	auto strings = file->ReadBuffer(stringsOffset, stringsSize);
 
@@ -2748,7 +2939,23 @@ void SharedCache::ProcessSymbols(std::shared_ptr<MMappedFileAccessor> file, cons
 
 		symbolInfos.push_back(new Symbol(symbolType, symbolName, symbolAddress, GlobalBinding));
 	}
-	MutableState().symbolInfos = State().symbolInfos.set(header.textBase, std::make_shared<immer::vector<Ref<Symbol>>>(std::move(std::move(symbolInfos).persistent())));
+
+	StateLockUpdateScope lock(this);
+
+	auto state = State();
+	if (auto it = state->symbolInfos.find(header.textBase); it != nullptr)
+	{
+		auto currentSymbolInfos = (*it)->transient();
+		for (auto symbolInfo : symbolInfos)
+		{
+			currentSymbolInfos.push_back(symbolInfo);
+		}
+		MutableState().symbolInfos = state->symbolInfos.set(header.textBase, std::make_shared<immer::vector<Ref<Symbol>>>(std::move(std::move(currentSymbolInfos).persistent())));
+	}
+	else
+	{
+		MutableState().symbolInfos = state->symbolInfos.set(header.textBase, std::make_shared<immer::vector<Ref<Symbol>>>(std::move(std::move(symbolInfos).persistent())));
+	}
 }
 
 void SharedCache::ApplySymbol(Ref<BinaryView> view, Ref<TypeLibrary> typeLib, Ref<Symbol> symbol)
@@ -2796,11 +3003,14 @@ void SharedCache::ApplySymbol(Ref<BinaryView> view, Ref<TypeLibrary> typeLib, Re
 		view->DefineAutoSymbol(symbol);
 }
 
+// Do not call whilst holding the `viewOperationsThatInfluenceMetadataMutex`, 
+// this function calls other functions that may take it. The lock 
+// (`imageMutexes`) for the image that has the specified header should be held 
+// to prevent duplicate effort initializing the same header multiple times 
+// under racey conditions.
 void SharedCache::InitializeHeader(
 	Ref<BinaryView> view, VM* vm, SharedCacheMachOHeader header, const std::vector<const MemoryRegion*> regionsToLoad)
 {
-	WillMutateState();
-
 	Ref<Settings> settings = view->GetLoadSettings(VIEW_NAME);
 	bool applyFunctionStarts = true;
 	if (settings && settings->Contains("loader.dsc.processFunctionStarts"))
@@ -3100,7 +3310,8 @@ void SharedCache::InitializeHeader(
 	}
 
 	int64_t imageIndex = -1;
-	for (auto& cacheImage : State().images)
+	auto cacheImages = State()->images;
+	for (auto& cacheImage : cacheImages)
 	{
 		if (cacheImage.headerLocation == header.textBase)
 		{
@@ -3111,7 +3322,8 @@ void SharedCache::InitializeHeader(
 	if (imageIndex > -1)
 	{
 		auto addressSize = m_dscView->GetAddressSize();
-		for (auto backingCache : State().backingCaches)
+		auto backingCaches = State()->backingCaches;
+		for (auto backingCache : backingCaches)
 		{
 			if (backingCache.cacheType != BackingCacheTypeSymbols)
 				continue;
@@ -3165,7 +3377,8 @@ void SharedCache::InitializeHeader(
 	}
 
 	view->BeginBulkModifySymbols();
-	for (auto symbol : *MutableState().symbolInfos[header.textBase])
+	auto symbols = State()->symbolInfos[header.textBase];
+	for (auto symbol : *symbols)
 	{
 		ApplySymbol(view, typeLib, symbol);
 	}
@@ -3203,8 +3416,6 @@ struct ExportNode
 void SharedCache::ReadExportNode(std::vector<Ref<Symbol>>& symbolList, SharedCacheMachOHeader& header, DataBuffer& buffer, uint64_t textBase,
 	const std::string& currentText, size_t cursor, uint32_t endGuard)
 {
-	WillMutateState();
-
 	if (cursor > endGuard)
 		throw ReadException();
 
@@ -3273,11 +3484,9 @@ std::vector<Ref<Symbol>> SharedCache::ParseExportTrie(std::shared_ptr<MMappedFil
 	std::vector<Ref<Symbol>> symbols;
 	try
 	{
-		auto reader = linkeditFile;
-
 		std::vector<ExportNode> nodes;
 
-		DataBuffer buffer = reader->ReadBuffer(header.exportTrie.dataoff, header.exportTrie.datasize);
+		DataBuffer buffer = linkeditFile->ReadBuffer(header.exportTrie.dataoff, header.exportTrie.datasize);
 		ReadExportNode(symbols, header, buffer, header.textBase, "", 0, header.exportTrie.datasize);
 	}
 	catch (std::exception& e)
@@ -3287,10 +3496,15 @@ std::vector<Ref<Symbol>> SharedCache::ParseExportTrie(std::shared_ptr<MMappedFil
 	return symbols;
 }
 
-
+// Do not call whilst holding the `viewOperationsThatInfluenceMetadataMutex`, 
+// this function will lock it if it requires it.
+// TODO(WeiN76LQh): this function can do duplicate work as multiple threads 
+// can observe a header without export infos
 std::shared_ptr<immer::map<uint64_t, Ref<Symbol>>> SharedCache::GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList)
 {
-	if (auto it = State().exportInfos.find(header.textBase))
+	// This keeps `it` below alive until it is returned
+	auto exportInfos = State()->exportInfos;
+	if (auto it = exportInfos.find(header.textBase))
 	{
 		if (didModifyExportList)
 			*didModifyExportList = false;
@@ -3307,15 +3521,21 @@ std::shared_ptr<immer::map<uint64_t, Ref<Symbol>>> SharedCache::GetExportListFor
 		}
 
 		auto exportList = SharedCache::ParseExportTrie(linkeditFile, header);
+		linkeditFile.reset(); // no longer need the reference
+
 		auto exportMapping = immer::map_transient<uint64_t, Ref<Symbol>>();
 		for (const auto& sym : exportList)
 		{
 			exportMapping.set(sym->GetAddress(), sym);
 		}
-		MutableState().exportInfos = State().exportInfos.set(header.textBase, std::make_shared<immer::map<uint64_t, Ref<Symbol>>>(std::move(std::move(exportMapping).persistent())));
+
+		StateLockUpdateScope stateLock(this);
+		MutableState().exportInfos = State()->exportInfos.set(header.textBase, std::make_shared<immer::map<uint64_t, Ref<Symbol>>>(std::move(std::move(exportMapping).persistent())));
+		stateLock.Unlock();
+		
 		if (didModifyExportList)
 			*didModifyExportList = true;
-		return MutableState().exportInfos[header.textBase];
+		return State()->exportInfos[header.textBase];
 	}
 }
 
@@ -3323,7 +3543,8 @@ std::shared_ptr<immer::map<uint64_t, Ref<Symbol>>> SharedCache::GetExportListFor
 std::vector<std::string> SharedCache::GetAvailableImages()
 {
 	std::vector<std::string> installNames;
-	for (const auto& header : State().headers)
+	auto headers = State()->headers;
+	for (const auto& header : headers)
 	{
 		installNames.push_back(header.second.installName);
 	}
@@ -3331,28 +3552,42 @@ std::vector<std::string> SharedCache::GetAvailableImages()
 }
 
 
+// Do not call whilst holding the `viewOperationsThatInfluenceMetadataMutex`, 
+// this function calls other functions that may take it.
 std::vector<std::pair<std::string, Ref<Symbol>>> SharedCache::LoadAllSymbolsAndWait()
 {
-	WillMutateState();
+	// Make sure we have the latest state
+	DeserializeFromRawView(false);
 
-	std::unique_lock<std::mutex> initialLoadBlock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
+	std::vector<std::pair<std::string, Ref<Symbol>>> symbols;
+
+	// Initial load should be guaranteed to be completed by now because it is 
+	// done in the `SharedCache` constructor. If the view state is not loaded 
+	// then initial load failed.
+	if (State()->viewState == DSCViewStateUnloaded)
+	{
+		// Failed to perform initial load. Return an empty vector
+		return symbols;
+	}
 
 	bool doSave = false;
-	std::vector<std::pair<std::string, Ref<Symbol>>> symbols;
-	for (const auto& img : State().images)
+	auto images = State()->images;
+	for (const auto& img : images)
 	{
 		auto header = HeaderForAddress(img.headerLocation);
+		bool modifiedExportList = false;
 		auto exportList = GetExportListForHeader(*header, [&]() {
-			try {
-				auto mapping = MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
-				return mapping;
+			try
+			{
+				return MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
 			}
 			catch (...)
 			{
 				m_logger->LogWarn("Serious Error: Failed to open export trie %s for %s", header->exportTriePath.c_str(), header->installName.c_str());
 				return std::shared_ptr<MMappedFileAccessor>(nullptr);
 			}
-		}, &doSave);
+		}, &modifiedExportList);
+		doSave = doSave || modifiedExportList;
 		if (!exportList)
 			continue;
 		for (const auto& [_, symbol] : *exportList)
@@ -3382,7 +3617,8 @@ std::string SharedCache::SerializedImageHeaderForAddress(uint64_t address)
 
 std::string SharedCache::SerializedImageHeaderForName(std::string name)
 {
-	if (auto it = State().imageStarts.find(name))
+	auto imageStarts = State()->imageStarts;
+	if (auto it = imageStarts.find(name))
 	{
 		if (auto header = HeaderForAddress(*it))
 		{
@@ -3411,11 +3647,11 @@ Ref<TypeLibrary> SharedCache::TypeLibraryForImage(const std::string& installName
 	return typeLib;
 }
 
+// Do not call whilst holding the `viewOperationsThatInfluenceMetadataMutex`, 
+// this function calls other functions that may take it.
 void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 	uint64_t symbolLocation, uint64_t targetLocation, bool triggerReanalysis)
 {
-	WillMutateState();
-
 	std::string prefix = "";
 	if (symbolLocation != targetLocation)
 		prefix = "j_";
@@ -3426,19 +3662,22 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 	}
 	if (auto loadedSymbol = m_dscView->GetSymbolByAddress(symbolLocation))
 	{
-		auto id = m_dscView->BeginUndoActions();
-		if (m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation))
+		bool isTargetLocationAFunction = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation);
+		// TODO(WeiN76LQh): this is a problematic API
+		//auto id = m_dscView->BeginUndoActions();
+		if (isTargetLocationAFunction)
 			m_dscView->DefineUserSymbol(new Symbol(FunctionSymbol, prefix + loadedSymbol->GetFullName(), targetLocation));
 		else
 			m_dscView->DefineUserSymbol(new Symbol(loadedSymbol->GetType(), prefix + loadedSymbol->GetFullName(), targetLocation));
-		m_dscView->ForgetUndoActions(id);
+		//m_dscView->ForgetUndoActions(id);
 	}
 	auto header = HeaderForAddress(symbolLocation);
 	if (header)
 	{
 		auto typeLib = TypeLibraryForImage(header->installName);
 		auto exportList = GetExportListForHeader(*header, [&]() {
-			try {
+			try
+			{
 				return MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
 			}
 			catch (...)
@@ -3456,7 +3695,8 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 
 				auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation);
 				
-				auto id = m_dscView->BeginUndoActions();
+				// TODO(WeiN76LQh): this is a problematic API
+				//auto id = m_dscView->BeginUndoActions();
 				m_dscView->DefineUserSymbol(
 					new Symbol(func ? FunctionSymbol : symbol->GetType(), prefix + symbol->GetFullName(), targetLocation));
 
@@ -3470,7 +3710,7 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 							m_dscView->DefineUserDataVariable(targetLocation, type);
 					}
 				}
-				m_dscView->ForgetUndoActions(id);
+				//m_dscView->ForgetUndoActions(id);
 
 				if (triggerReanalysis)
 				{
@@ -3482,34 +3722,51 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 	}
 }
 
+void SharedCache::UpdateCachedState()
+{
+	// By moving our state to the cache we can avoid creating a copy in the case
+	// that no further mutations are made to `this`. If we're not done being mutated,
+	// the data will be copied on the first mutation.
+	auto currentState = State();
+	auto cachedState = std::make_shared<struct State>(std::move(*currentState));
+	SetState(cachedState);
+	m_stateIsShared = true;
 
+	m_viewSpecificState->SetCachedState(std::move(cachedState));
+}
+
+// Do not hold `m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex` 
+// as this function will handle acquiring and dropping the lock (this is to 
+// reduce the time its held for). No other locks are required or held by this 
+// function. This function does not update cached state as that is always done 
+// before dropping the state lock after state has been mutated. The purpose of 
+// this function is purely to serialize the most up-to-date state and write it 
+// to the metadata storage for the binary view.
 bool SharedCache::SaveToDSCView()
 {
 	if (m_dscView)
 	{
+		// Acquire the lock for saving to ensure no races occur here that 
+		// result in newer state being overwritten with older state. The call
+		// to `AsMetadata` will handle taking the state lock and ensuring the 
+		// state being saved is the most up-to-date at the time its acquired.
+		std::unique_lock<std::mutex> saveLock(m_viewSpecificState->saveMetadataMutex);
+
+		// Serialize the state and write to the binary view's metadata storage
 		auto data = AsMetadata();
 		m_dscView->StoreMetadata(SharedCacheMetadataTag, data);
 		m_dscView->GetParentView()->GetParentView()->StoreMetadata(SharedCacheMetadataTag, data);
-
-		// By moving our state the to cache we can avoid creating a copy in the case
-		// that no further mutations are made to `this`. If we're not done being mutated,
-		// the data will be copied on the first mutation.
-		auto cachedState = std::make_shared<struct State>(std::move(*m_state));
-		m_state = cachedState;
-		m_stateIsShared = true;
-
-		m_viewSpecificState->SetCachedState(std::move(cachedState));
-		m_metadataValid = true;
 
 		return true;
 	}
 	return false;
 }
 
-immer::vector<MemoryRegion> SharedCache::GetMappedRegions() const
+immer::vector<MemoryRegion> SharedCache::GetMappedRegions()
 {
-	std::unique_lock<std::mutex> lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
-	return State().regionsMappedIntoMemory;
+	// Make sure we have the latest state
+	DeserializeFromRawView(false);
+	return State()->regionsMappedIntoMemory;
 }
 
 bool SharedCache::IsMemoryMapped(uint64_t address)
@@ -3560,6 +3817,27 @@ extern "C"
 			return cache->object->LoadImageWithInstallName(imageName, skipObjC);
 
 		return false;
+	}
+
+	bool BNDSCViewLoadImagesWithInstallNames(BNSharedCache* cache, char** names, size_t namesCount, bool freeNames, bool skipObjC)
+	{
+		std::vector<std::string_view> imageNames(namesCount);
+		for (size_t i = 0; i < namesCount; i++)
+		{
+			imageNames[i] = names[i];
+		}
+
+		bool result = false;
+
+		if (cache->object)
+			result = cache->object->LoadImagesWithInstallNames(imageNames, skipObjC);
+
+		if (freeNames)
+		{
+			BNFreeStringList(names, namesCount);
+		}
+
+		return result;
 	}
 
 	bool BNDSCViewLoadSectionAtAddress(BNSharedCache* cache, uint64_t addr)
@@ -3920,16 +4198,39 @@ void Deserialize(DeserializationContext& context, std::string_view name, immer::
 
 void SharedCache::Store(SerializationContext& context) const
 {
+	// Take the state lock to ensure no mutations are currently occurring 
+	// before getting a copy of the state
+	std::unique_lock<std::mutex> stateLock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
+
+	// Get an up-to-date copy of the state so its consistent for the duration 
+	// of this function. Other threads could be modifying as this thread 
+	// executes.
+	struct State state;
+	if (auto cachedState = m_viewSpecificState->GetCachedState())
+	{
+		state = *cachedState;
+	}
+	else
+	{
+		state = *State();
+	}
+
+	// Drop the state lock as its no longer needed. Doing this helps reduce 
+	// lock contention because serializing the state below can be a slow 
+	// operation (100s of milliseconds, sometimes multiple seconds 
+	// depending on how much of the DSC has been loaded).
+	stateLock.unlock();
+
 	Serialize(context, "metadataVersion", METADATA_VERSION);
 
-    Serialize(context, "m_viewState", State().viewState);
-    Serialize(context, "m_cacheFormat", State().cacheFormat);
-    Serialize(context, "m_imageStarts", State().imageStarts);
-    Serialize(context, "m_baseFilePath", State().baseFilePath);
+    Serialize(context, "m_viewState", state.viewState);
+    Serialize(context, "m_cacheFormat", state.cacheFormat);
+    Serialize(context, "m_imageStarts", state.imageStarts);
+    Serialize(context, "m_baseFilePath", state.baseFilePath);
 
 	Serialize(context, "headers");
 	context.writer.StartArray();
-	for (auto& [k, v] : State().headers)
+	for (auto& [k, v] : state.headers)
 	{
 		context.writer.StartObject();
 		v.Store(context);
@@ -3939,7 +4240,7 @@ void SharedCache::Store(SerializationContext& context) const
 
 	Serialize(context, "exportInfos");
 	context.writer.StartArray();
-	for (const auto& [headerLocation, symbolMap] : State().exportInfos)
+	for (const auto& [headerLocation, symbolMap] : state.exportInfos)
 	{
 		context.writer.StartObject();
 		Serialize(context, "key", headerLocation);
@@ -3960,7 +4261,7 @@ void SharedCache::Store(SerializationContext& context) const
 
 	Serialize(context, "symbolInfos");
 	context.writer.StartArray();
-	for (const auto& [headerLocation, symbols] : State().symbolInfos)
+	for (const auto& [headerLocation, symbols] : state.symbolInfos)
 	{
 	        context.writer.StartObject();
 	        Serialize(context, "key", headerLocation);
@@ -3979,12 +4280,12 @@ void SharedCache::Store(SerializationContext& context) const
 	}
 	context.writer.EndArray();
 
-	Serialize(context, "backingCaches", State().backingCaches);
-	Serialize(context, "stubIslands", State().stubIslandRegions);
-	Serialize(context, "images", State().images);
-	Serialize(context, "regionsMappedIntoMemory", State().regionsMappedIntoMemory);
-	Serialize(context, "dyldDataSections", State().dyldDataRegions);
-	Serialize(context, "nonImageRegions", State().nonImageRegions);
+	Serialize(context, "backingCaches", state.backingCaches);
+	Serialize(context, "stubIslands", state.stubIslandRegions);
+	Serialize(context, "images", state.images);
+	Serialize(context, "regionsMappedIntoMemory", state.regionsMappedIntoMemory);
+	Serialize(context, "dyldDataSections", state.dyldDataRegions);
+	Serialize(context, "nonImageRegions", state.nonImageRegions);
 }
 
 void SharedCache::Load(DeserializationContext& context)
@@ -4004,12 +4305,12 @@ void SharedCache::Load(DeserializationContext& context)
 	}
 
 	m_stateIsShared = false;
-	m_state = std::make_shared<struct SharedCache::State>();
+	SetState(std::make_shared<struct SharedCache::State>());
 
 	MutableState().viewState = static_cast<DSCViewState>(context.load<uint8_t>("m_viewState"));
 	MutableState().cacheFormat = static_cast<SharedCacheFormat>(context.load<uint8_t>("m_cacheFormat"));
 
-	auto headers = State().headers.transient();
+	auto headers = MutableState().headers.transient();
 	for (auto& startAndHeader : context.doc["headers"].GetArray())
 	{
 		SharedCacheMachOHeader header;
@@ -4021,7 +4322,7 @@ void SharedCache::Load(DeserializationContext& context)
 	Deserialize(context, "m_imageStarts", MutableState().imageStarts);
 	Deserialize(context, "m_baseFilePath", MutableState().baseFilePath);
 
-	auto exportInfos = State().exportInfos.transient();
+	auto exportInfos = MutableState().exportInfos.transient();
 	for (const auto& obj1 : context.doc["exportInfos"].GetArray())
 	{
 		immer::map_transient<uint64_t, Ref<Symbol>> innerMap;
@@ -4033,7 +4334,7 @@ void SharedCache::Load(DeserializationContext& context)
 	}
 	MutableState().exportInfos = std::move(exportInfos).persistent();
 
-	auto symbolInfos = State().symbolInfos.transient();
+	auto symbolInfos = MutableState().symbolInfos.transient();
 	for (auto& symbolInfo : context.doc["symbolInfos"].GetArray())
 	{
 		immer::vector_transient<Ref<Symbol>> symbolsVec;
@@ -4048,7 +4349,7 @@ void SharedCache::Load(DeserializationContext& context)
 	}
 	MutableState().symbolInfos = std::move(symbolInfos).persistent();
 
-	auto backingCaches = State().backingCaches.transient();
+	auto backingCaches = MutableState().backingCaches.transient();
 	for (auto& bcV : context.doc["backingCaches"].GetArray())
 	{
 		BackingCache bc;
@@ -4057,7 +4358,7 @@ void SharedCache::Load(DeserializationContext& context)
 	}
 	MutableState().backingCaches = std::move(backingCaches).persistent();
 
-	auto images = State().images.transient();
+	auto images = MutableState().images.transient();
 	for (auto& imgV : context.doc["images"].GetArray())
 	{
 		CacheImage img;
@@ -4066,7 +4367,7 @@ void SharedCache::Load(DeserializationContext& context)
 	}
 	MutableState().images = std::move(images).persistent();
 
-	auto regionsMappedIntoMemory = State().regionsMappedIntoMemory.transient();
+	auto regionsMappedIntoMemory = MutableState().regionsMappedIntoMemory.transient();
 	for (auto& rV : context.doc["regionsMappedIntoMemory"].GetArray())
 	{
 		MemoryRegion r;
@@ -4075,7 +4376,7 @@ void SharedCache::Load(DeserializationContext& context)
 	}
 	MutableState().regionsMappedIntoMemory = std::move(regionsMappedIntoMemory).persistent();
 
-	auto stubIslandRegions = State().stubIslandRegions.transient();
+	auto stubIslandRegions = MutableState().stubIslandRegions.transient();
 	for (auto& siV : context.doc["stubIslands"].GetArray())
 	{
 		MemoryRegion si;
@@ -4084,7 +4385,7 @@ void SharedCache::Load(DeserializationContext& context)
 	}
 	MutableState().stubIslandRegions = std::move(stubIslandRegions).persistent();
 
-	auto dyldDataRegions = State().dyldDataRegions.transient();
+	auto dyldDataRegions = MutableState().dyldDataRegions.transient();
 	for (auto& siV : context.doc["dyldDataSections"].GetArray())
 	{
 		MemoryRegion si;
@@ -4093,7 +4394,7 @@ void SharedCache::Load(DeserializationContext& context)
 	}
 	MutableState().dyldDataRegions = std::move(dyldDataRegions).persistent();
 
-	auto nonImageRegions = State().nonImageRegions.transient();
+	auto nonImageRegions = MutableState().nonImageRegions.transient();
 	for (auto& siV : context.doc["nonImageRegions"].GetArray())
 	{
 		MemoryRegion si;
@@ -4115,13 +4416,14 @@ __attribute__((always_inline)) void SharedCache::AssertMutable() const
 
 void SharedCache::WillMutateState()
 {
-	if (!m_state)
+	auto currentState = State();
+	if (!currentState)
 	{
-		m_state = std::make_shared<struct State>();
+		SetState(std::make_shared<struct State>());
 	}
 	else if (m_stateIsShared)
 	{
-		m_state = std::make_shared<struct State>(*m_state);
+		SetState(std::make_shared<struct State>(*currentState));
 	}
 	m_stateIsShared = false;
 }
@@ -4129,22 +4431,22 @@ void SharedCache::WillMutateState()
 
 const immer::vector<BackingCache>& SharedCache::BackingCaches() const
 {
-	return State().backingCaches;
+	return State()->backingCaches;
 }
 
 DSCViewState SharedCache::ViewState() const
 {
-	return State().viewState;
+	return State()->viewState;
 }
 
 const immer::map<std::string, uint64_t>& SharedCache::AllImageStarts() const
 {
-	return State().imageStarts;
+	return State()->imageStarts;
 }
 
 const immer::map<uint64_t, SharedCacheMachOHeader>& SharedCache::AllImageHeaders() const
 {
-	return State().headers;
+	return State()->headers;
 }
 
 void BackingCache::Store(SerializationContext& context) const
@@ -4161,11 +4463,12 @@ void BackingCache::Load(DeserializationContext& context)
 }
 
 size_t SharedCache::GetBaseAddress() const {
-	if (State().backingCaches.empty()) {
+	auto backingCaches = State()->backingCaches;
+	if (backingCaches.empty()) {
 		return 0;
 	}
 
-	const BackingCache& primaryCache = State().backingCaches[0];
+	const BackingCache& primaryCache = backingCaches[0];
 	if (primaryCache.cacheType != BackingCacheTypePrimary) {
 		abort();
 		return 0;
@@ -4180,13 +4483,14 @@ size_t SharedCache::GetBaseAddress() const {
 
 // Intentionally takes a copy to avoid modifying the cursor position in the original reader.
 std::optional<ObjCOptimizationHeader> SharedCache::GetObjCOptimizationHeader(VMReader reader) const {
-	if (!State().objcOptimizationDataRange) {
+	auto objcOptimizationDataRange = State()->objcOptimizationDataRange;
+	if (!objcOptimizationDataRange) {
 		return {};
 	}
 
 	ObjCOptimizationHeader header{};
 	// Ignoring `objcOptsSize` in favor of `sizeof(ObjCOptimizationHeader)` matches dyld's behavior.
-	reader.Read(&header, GetBaseAddress() + State().objcOptimizationDataRange->first, sizeof(ObjCOptimizationHeader));
+	reader.Read(&header, GetBaseAddress() + objcOptimizationDataRange->first, sizeof(ObjCOptimizationHeader));
 
 	return header;
 }

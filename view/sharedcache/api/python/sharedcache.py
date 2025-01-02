@@ -119,6 +119,11 @@ class SharedCache:
 	def load_image_with_install_name(self, installName, skipObjC = False):
 		return sccore.BNDSCViewLoadImageWithInstallName(self.handle, installName, skipObjC)
 
+	def load_images_with_install_names(self, installNames, skipObjC = False):
+		installNamesArrayType = ctypes.c_char_p * len(installNames)
+		installNamesCArray = installNamesArrayType(*[s.encode('utf-8') for s in installNames])
+		return sccore.BNDSCViewLoadImagesWithInstallNames(self.handle, installNamesCArray, len(installNames), False, skipObjC)
+
 	def load_section_at_address(self, addr):
 		return sccore.BNDSCViewLoadSectionAtAddress(self.handle, addr)
 

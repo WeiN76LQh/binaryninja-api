@@ -557,6 +557,9 @@ namespace SharedCacheCore {
 		Ref<Logger> m_logger;
 		/* VIEW STATE BEGIN -- SERIALIZE ALL OF THIS AND STORE IT IN RAW VIEW */
 
+		// This lock is so that calls to `State()` will acquire a `shared_ptr` in a thread-safe 
+		// way. `mutable` is used here so that `State()` can be `const`
+		mutable std::mutex m_stateLock;
 		// Updated as the view is loaded further, more images are added, etc
 		// NOTE: Access via `State()` or `MutableState()` below.
 		// `WillMutateState()` must be called before the first access to `MutableState()`.
@@ -575,7 +578,51 @@ namespace SharedCacheCore {
 
 	private:
 		void PerformInitialLoad();
-		void DeserializeFromRawView();
+		void DeserializeFromRawView(bool stateLockIsHeld);
+
+		enum class MemoryRegionType
+		{
+			StubIsland,
+			DyldData,
+			NonImageRegion
+		};
+
+		// This class is for creating a consistent experience whenever state is being mutated. To 
+		// keep data consistent across threads and across APIs calls across seperate threads, 
+		// everytime the state/metadata is updated the following steps need to occur:
+		// 1. Acquire `m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex`
+		// 2. Call `DeserializeFromRawView` to ensure the state for the current instance of 
+		//    `SharedCache` is the most up to date instance of it across all instances of 
+		//    `SharedCache`.
+		// 3. Call `WillMutateState` to ensure `MutableState` can be called to mutate this 
+		//    instance of `SharedCache`'s state.
+		// 4. Do any state mutations
+		// 5. Call `UpdateCachedState` to ensure state mutations are accessible to all instances 
+		//    of `SharedCache`.
+		// 6. Drop `m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex`
+		// In most cases scoping a stack instance of this class appropriately should be enough to 
+		// ensure coherent state mutation occurs. However this class also provides the ability to 
+		// temporarily drop the lock, which requires executing steps 5 and 6, and also 
+		// re-acquiring the lock, which requires executing steps 1-3.
+		// NOTE: this class is not thread safe and is meant to purely be used as a local stack 
+		// variable within a confined scope that needs to synchronize metadata updates.
+		class StateLockUpdateScope
+		{
+			std::unique_lock<std::mutex> metadataLock;
+			SharedCache *cache;
+
+			bool locked;
+
+		public:
+			// When `Unlock` is called or an instance of this class is 
+			// destroyed this determines if `UpdateCachedState` is called.
+			bool updateCachedState = true;
+
+			StateLockUpdateScope(SharedCache *cache);
+			~StateLockUpdateScope();
+			void Lock();
+			void Unlock();
+		};
 
 	public:
 		std::shared_ptr<VM> GetVMMap(bool mapPages = true);
@@ -583,11 +630,15 @@ namespace SharedCacheCore {
 		static SharedCache* GetFromDSCView(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView);
 		static uint64_t FastGetBackingCacheCount(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView);
 		bool SaveToDSCView();
+		void UpdateCachedState();
 
 		void ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAccessor> file);
 		std::optional<uint64_t> GetImageStart(std::string installName);
 		const SharedCacheMachOHeader* HeaderForAddress(uint64_t);
+		uint64_t WriteBufferToViewEnd(BinaryNinja::DataBuffer& buff);
+		bool LoadImagesWithInstallNames(std::vector<std::string_view> installNames, bool skipObjC);
 		bool LoadImageWithInstallName(std::string_view installName, bool skipObjC);
+		bool LoadNonImageSectionAtAddress(uint64_t regionStart, MemoryRegionType regionType, size_t regionIndexInVector);
 		bool LoadSectionAtAddress(uint64_t address);
 		bool LoadImageContainingAddress(uint64_t address, bool skipObjC);
 		void ProcessObjCSectionsForImageWithInstallName(std::string_view installName);
@@ -596,7 +647,7 @@ namespace SharedCacheCore {
 		std::string ImageNameForAddress(uint64_t address);
 		std::vector<std::string> GetAvailableImages();
 
-		immer::vector<MemoryRegion> GetMappedRegions() const;
+		immer::vector<MemoryRegion> GetMappedRegions();
 		bool IsMemoryMapped(uint64_t address);
 
 		std::vector<std::pair<std::string, Ref<Symbol>>> LoadAllSymbolsAndWait();
@@ -637,14 +688,79 @@ private:
 
 		Ref<TypeLibrary> TypeLibraryForImage(const std::string& installName);
 
-		const State& State() const { return *m_state; }
-		struct State& MutableState() { AssertMutable(); return *m_state; }
+		// A read only copy of state that is not guaranteed to be up-to-date. This is for 
+		// performance to avoid having to take a lock just to observe the current state. To 
+		// guarantee the latest state is being observed 
+		// `m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex` must be held and 
+		// `DeserializeFromRawView` needs to be called. Until the lock is dropped, state cannot be 
+		// mutated and therefore `State()` will always return the most up-to-date state. Often 
+		// this is not required as there are various other locks to synchronize access to parts of 
+		// the state data. For instance a lock in the map 
+		// `m_viewSpecificState->imageMutexes` is held whenever an image is being loaded to 
+		// prevent the need for holding 
+		// `m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex`. When that lock is 
+		// held, as long as `DeserializeFromRawView` has been called since, the state for the 
+		// image is guaranteed to be up-to-date.
+		// Note that when none of the aforementioned locks are being held, raw pointers to data 
+		// within the `State` struct referenced by `m_state` may not be safe as re-assignment of 
+		// `m_state` may cause the previous `State` allocation to be deallocated if nothing else 
+		// is holding a `shared_ptr` to the same `State` struct. For instance doing:
+		// `auto imageAtIndex0 = &State()->images[0];`
+		// is not safe because `State()->images` could be mutated by another thread and therefore 
+		// `State()->images` would point to a new vector, potentially causing the old images vector 
+		// to be deallocated if there are no longer any other references to it. The safer way to 
+		// do this is to first assign the images vector to a local variable:
+		// `auto images = State()->images;` which will maintain a reference of the current images 
+		// vector as long as the variable `images` remains in scope. Now
+		// `auto imageAtIndex0 = &images[0];` can be safely created if needs be.
+		std::shared_ptr<const struct SharedCache::State> State() const {
+			std::unique_lock<std::mutex> lock(m_stateLock);
+			return m_state;
+		}
+
+		// `m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex` must be held when 
+		// mutating state to ensure concurrent state mutations are not made at the same time as 
+		// this can result in changes from one thread being overwritten by changes from another 
+		// because they are not observing each others changes. Additionally in most cases, 
+		// `DeserializeFromRawView` should be called after taking the lock but before mutating 
+		// state to ensure that the most up-to-date state is being mutated. Otherwise, when doing 
+		// something like updating an array, the array is updated by copying and modifying (due to 
+		// how `immer:vector`s work) and the copy thats made may not be the latest version of the 
+		// array. The array thats then stored in the state will contain the updated element that 
+		// was just mutated but other elements that were updated on other threads may be 
+		// overwritten by older versions. In most cases creating an instance of 
+		// `StateLockUpdateScope`, within the scope where mutations occur using `MutableState`, is 
+		// the easiest and most effective solution to ensuring the most up-to-date state is 
+		// synchronously updated across all threads operating on the view the state is for.
+		// Note: this function does not take `m_stateLock` because `SetState` should only be 
+		// called whilst holding `m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex`, 
+		// which is the same requirement for this function. As a result `m_state` cannot be 
+		// assigned concurrently whilst mutating state. However it is on the caller not to rely on 
+		// this state persisting. That is also why it doesn't return a `shared_ptr` as that would 
+		// add unnecessary overhead and potentially encourage holding on to a reference to this 
+		// state outside of the scope it should be used in.
+		struct State& MutableState() {
+			AssertMutable();
+			return *m_state;
+		}
+
+		// `m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex` must be held when 
+		// calling this function to ensure concurrent state mutations are not made at the same 
+		// time as this can result in changes from one thread being overwritten by changes from 
+		// another.
+		// Note: its unlikely that this function should be being called anywhere new.
+		void SetState(std::shared_ptr<struct SharedCache::State> newState) {
+			std::unique_lock<std::mutex> lock(m_stateLock);
+			m_state = newState;
+		}
 
 		void AssertMutable() const;
 
-		// Ensures that the state is uniquely owned, copying it if it is not.
-		// Must be called before first access to `MutableState()` after the state
-		// is loaded from the cache. Can safely be called multiple times.
+		// Ensures that the state is uniquely owned, copying it if it is not. Must be called 
+		// before first access to `MutableState()` after the state is loaded from the cache. Can 
+		// safely be called multiple times.
+		// Like `MutableState`, `m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex` 
+		// must be held. Use `StateLockUpdateScope` where possible rather than doing this manually.
 		void WillMutateState();
 	};
 

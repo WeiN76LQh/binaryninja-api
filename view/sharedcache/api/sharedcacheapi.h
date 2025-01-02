@@ -259,6 +259,7 @@ namespace SharedCacheAPI {
 		static uint64_t FastGetBackingCacheCount(Ref<BinaryView> view);
 
 		bool LoadImageWithInstallName(std::string_view installName, bool skipObjC = false);
+		bool LoadImagesWithInstallNames(std::vector<std::string_view> installNames, bool skipObjC = false);
 		bool LoadSectionAtAddress(uint64_t addr);
 		bool LoadImageContainingAddress(uint64_t addr, bool skipObjC = false);
 		std::vector<std::string> GetAvailableImages();

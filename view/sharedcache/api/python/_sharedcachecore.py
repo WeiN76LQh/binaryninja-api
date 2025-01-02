@@ -566,6 +566,31 @@ def BNDSCViewLoadImageWithInstallName(
 
 
 # -------------------------------------------------------
+# _BNDSCViewLoadImagesWithInstallNames
+
+_BNDSCViewLoadImagesWithInstallNames = core.BNDSCViewLoadImagesWithInstallNames
+_BNDSCViewLoadImagesWithInstallNames.restype = ctypes.c_bool
+_BNDSCViewLoadImagesWithInstallNames.argtypes = [
+		ctypes.POINTER(BNSharedCache),
+		ctypes.POINTER(ctypes.c_char_p),
+		ctypes.c_ulonglong,
+		ctypes.c_bool,
+		ctypes.c_bool,
+	]
+
+
+# noinspection PyPep8Naming
+def BNDSCViewLoadImagesWithInstallNames(
+		cache: ctypes.POINTER(BNSharedCache), 
+		names: ctypes.POINTER(ctypes.c_char_p), 
+		namesCount: int, 
+		freeNames: bool, 
+		skipObjC: bool
+		) -> bool:
+	return _BNDSCViewLoadImagesWithInstallNames(cache, names, namesCount, freeNames, skipObjC)
+
+
+# -------------------------------------------------------
 # _BNDSCViewLoadSectionAtAddress
 
 _BNDSCViewLoadSectionAtAddress = core.BNDSCViewLoadSectionAtAddress
