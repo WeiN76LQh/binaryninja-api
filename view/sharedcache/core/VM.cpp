@@ -52,13 +52,36 @@
 
 void VMShutdown()
 {
-	std::unique_lock<std::mutex> lock2(fileAccessorsMutex);
-	std::unique_lock<std::mutex> lock(fileAccessorDequeMutex);
-
 	// This will trigger the deallocation logic for these.
 	// It is background threaded to avoid a deadlock on exit.
-	fileAccessorReferenceHolder.clear();
-	fileAccessors.clear();
+
+	// Do not grab both locks at the same time otherwise a deadlock will occur 
+	// due to `fileAccessorReferenceHolder.clear()` triggering 
+	// `SelfAllocatingWeakPtr<MMappedFileAccessor>` deallocation routines that 
+	// need to acquire `fileAccessorsMutex`.
+	{
+		// Some additional complexity with this lock is that dropping all these references likely 
+		// will cause the final reference to a DSC binary view to be dropped. In doing so 
+		// `~DSCView` will call `MMappedFileAccessor::CloseAll` which requires the same lock. This 
+		// occurs on the same thread, resulting in it trying to acquire a lock it already has. 
+		// This solution copies all the deques from `fileAccessorReferenceHolder`, therefore 
+		// keeping all the references alive temporarily. Then `fileAccessorReferenceHolder` can be 
+		// cleared and the `fileAccessorDequeMutex` lock can be dropped. When exiting this scope 
+		// the desctructor for `accessorDequesToDrop` will drop all the `MMappedFileAccessor` 
+		// references whilst holding no locks.
+		std::unique_lock<std::mutex> lock(fileAccessorDequeMutex);
+		std::vector<std::deque<std::shared_ptr<MMappedFileAccessor>>> accessorDequesToDrop;
+		for (auto& [_, fileAccessorDeque] : fileAccessorReferenceHolder)
+		{
+			accessorDequesToDrop.push_back(fileAccessorDeque);
+		}
+		fileAccessorReferenceHolder.clear();
+		lock.unlock();
+	}
+	{
+		std::unique_lock<std::mutex> lock(fileAccessorsMutex);
+		fileAccessors.clear();
+	}
 }
 
 
@@ -205,61 +228,141 @@ void MMAP::Unmap()
 
 std::shared_ptr<SelfAllocatingWeakPtr<MMappedFileAccessor>> MMappedFileAccessor::Open(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, const uint64_t sessionID, const std::string &path, std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine)
 {
-	std::scoped_lock<std::mutex> lock(fileAccessorsMutex);
-	if (fileAccessors.count(path) == 0)
-	{
-		auto fileAcccessor = std::shared_ptr<SelfAllocatingWeakPtr<MMappedFileAccessor>>(new SelfAllocatingWeakPtr<MMappedFileAccessor>(
-			// Allocator logic for the SelfAllocatingWeakPtr
-			[path=path, sessionID=sessionID, dscView](){
-				std::unique_lock<std::mutex> _lock(fileAccessorDequeMutex);
+	std::unique_lock<std::mutex> lock(fileAccessorsMutex);
+	if (auto it = fileAccessors.find(path); it != fileAccessors.end()) {
+		return it->second;
+	}
 
-				// Iterate through held references and start removing them until we can get a file pointer
-				// FIXME: This could clear all currently used file pointers and still not get one. FIX!
-				// 		We should probably use a condition variable here to wait for a file pointer to be released!!!
+	auto fileAccessor = std::shared_ptr<SelfAllocatingWeakPtr<MMappedFileAccessor>>(new SelfAllocatingWeakPtr<MMappedFileAccessor>(
+		// Allocator logic for the SelfAllocatingWeakPtr. This has been written to respect 
+		// `maxFPLimit` as much as possible. However if, for whatever reason, a deadlock occurs, 
+		// requiring more than `maxFPLimit` of files to be opened to continue past, there is a 
+		// timeout added to do this. It should almost never occur in real world conditions (I 
+		// believe) but a timeout safe guard has been added to choose to exceed `maxFPLimit` 
+		// temporarily to avoid a permanent deadlock. The absolute worst case is Binary Ninja 
+		// throws a bunch of errors because it tried to open a file and couldn't due to actually 
+		// hitting the OS enforced open file limit.
+		[path=path, sessionID=sessionID, dscView](){
+			// This lock needs to be held for the entire duration of this function, in part to 
+			// synchronize access to `fileAccessorReferenceHolder` and `blockedSessionIDs`, but 
+			// also to ensure that, if a thread needs to drop a file accessor reference to get a 
+			// `fileAccessorSemaphore` ref, then there's actually a reference to drop and its the 
+			// one to acquire it after triggering for it to get dropped. This is due to 2 
+			// complexities here:
+			// 1. If thread 1 tries to acquire a ref on `fileAccessorSemaphore` with `try_acquire` 
+			//    and fails then it needs to drop a strong reference to a file accessor by 
+			//    removing an entry from one of the values in `fileAccessorReferenceHolder`. 
+			//    Without synchronizing this function its possible that thread 2 could come in 
+			//    after thread 1 drops an entry but before it can block in 
+			//    `fileAccessorSemaphore.acquire`, potentially sniping away the reference it has 
+			//    just freed up by thread 2 reaching `try_acquire` first. Its then possible that 
+			//    nothing else causes a reference to be dropped because 
+			//    `fileAccessorReferenceHolder` keeps file accessors alive until this function 
+			//    drops one. That would then lead a thread to deadlock in 
+			//    `fileAccessorSemaphore.acquire`. So a lock must be held the entire time that a 
+			//    ref is trying to be acquired on `fileAccessorSemaphore` to prevent sniping.
+			// 2. In a very contrived scenario where `fileAccessorSemaphore` has a count of 1 (as 
+			//    in there's only 1 reference to give out) then its possible that, thread 1 could 
+			//    take that only reference but before it reaches the end of the function and adds 
+			//    the newly created `accessor` to `fileAccessorReferenceHolder`. Thread 2 comes 
+			//    in, observes there's no reference, tries to drop one from 
+			//    `fileAccessorReferenceHolder` but there aren't any currently and then deadlocks 
+			//    in `fileAccessorSemaphore.acquire`.
+			std::unique_lock<std::mutex> lock(fileAccessorDequeMutex);
+
+			bool refAcquired = fileAccessorSemaphore.try_acquire();
+			if (!refAcquired)
+			{
+				// The permitted allowance of open files has been used up. Drop a reference to one 
+				// and wait for it to close its file. Assume there's always at least one reference 
+				// to drop but if not then the code below can handle the situation.
 				for (auto& [_, fileAccessorDeque] : fileAccessorReferenceHolder)
 				{
-					if (fileAccessorSemaphore.try_acquire())
+					if (!fileAccessorDeque.empty())
+					{
+						fileAccessorDeque.pop_front();
 						break;
-					fileAccessorDeque.pop_front();
+					}
 				}
 
-				mmapCount++;
-				_lock.unlock();
-				auto accessor = std::shared_ptr<MMappedFileAccessor>(new MMappedFileAccessor(ResolveFilePath(dscView, path)), [](MMappedFileAccessor* accessor){
-					// worker thread or we can deadlock on exit here.
-					BinaryNinja::WorkerEnqueue([accessor](){
-						fileAccessorSemaphore.release();
-						mmapCount--;
-						if (fileAccessors.count(accessor->m_path))
-						{
-							std::scoped_lock<std::mutex> lock(fileAccessorsMutex);
-							fileAccessors.erase(accessor->m_path);
-						}
-						delete accessor;
-					}, "MMappedFileAccessor Destructor");
-				});
-				_lock.lock();
-				// If some background thread has managed to try and open a file when the BV was already closed,
-				// 		we can still give them the file they want so they dont crash, but as soon as they let go it's gone.
+				// There should now be a count of 1 on `fileAccessorSemaphore` but its possible 
+				// that its not the case. This happens when the file limit is being heavily 
+				// consumed by long living references to `MMappedFileAccessor`. 
+				// `fileAccessorReferenceHolder` isn't the only holder of strong references to 
+				// `MMappedFileAccessor`. Any call to this function followed by calling 
+				// `SelfAllocatingWeakPtr::lock` on the return value will create a strong 
+				// reference. Dropping that `MMappedFileAccessor` from the map 
+				// `fileAccessorReferenceHolder` won't cause deallocation until those other strong 
+				// references returned via `SelfAllocatingWeakPtr::lock` have also been destructed.
+				// Therefore its possible to block here for a bit whilst another thread completes 
+				// up the work it is doing with a mapped file. It is also possible to deadlock 
+				// here if any of the coding in the rest of the plugin allows for a single thread 
+				// to lock more than 1 `MMappedFileAccessor` at a time. At the time of writing 
+				// this comment it is true that all paths of execution will only need to hold at 
+				// max 1 `MMappedFileAccessor` lock at a time. Future changes should try to 
+				// maintain this as much as possible to ensure a deadlock is impossible. However 
+				// even if this is not the case, as long as the maximum number of 
+				// `MMappedFileAccessor` locks that may need to be held by a single thread, is a 
+				// small number, then the actual probability of a deadlock should be 
+				// extraordinarily low and would likely require the perfect storm of conditions 
+				// for it to occur.
+				// `acquire` has been modified to have deadlock protection by adding a timeout. In 
+				// the case that a deadlock occurs and the timeout is reached, the following code 
+				// can go above `maxFPLimit` temporarily.
+				// The previous implementation of the code here tried its best to make a file 
+				// available but never checked that it had, instead it could go over the 
+				// `maxFPLimit`.
+				refAcquired = fileAccessorSemaphore.acquire(std::chrono::seconds(10));
+				if (!refAcquired)
+					BinaryNinja::LogWarn("Potential deadlock occurred in MMappedFileAccessor::Open");
+			}
+
+			mmapCount++;
+			auto accessor = std::shared_ptr<MMappedFileAccessor>(new MMappedFileAccessor(ResolveFilePath(dscView, path)), [refAcquired](MMappedFileAccessor* accessor){
+				{
+					std::unique_lock<std::mutex> lock(fileAccessorsMutex);
+					fileAccessors.erase(accessor->m_path);
+				}
+				delete accessor;
+				mmapCount--;
+				// Release the reference once the `MMappedFileAccessor` destructor has completed 
+				// and the file is actually closed. Only drop the ref if one was actually 
+				// acquired. Read the comment above the line where `fileAccessorSemaphore` is 
+				// acquired, for information on how this can occur.
+				if (refAcquired)
+					fileAccessorSemaphore.release();
+			});
+
+			// Only hold a strong reference to a `MMappedFileAccessor` if a 
+			// `fileAccessorSemaphore` ref was acquired, otherwise we're going over the FP limit 
+			// and therefore should drop the reference ASAP to cause the file to close. Also this 
+			// prevents a situation where the above code, when trying to acquire a 
+			// `fileAccessorSemaphore` ref, drops a reference to a `MMappedFileAccessor` that 
+			// won't release a `fileAccessorSemaphore` ref, which can cause a deadlock.
+			if (refAcquired)
+			{
+				// If some background thread has managed to try and open a file when the BV was 
+				// already closed, we can still give them the file they want so they dont crash, 
+				// but as soon as they let go it's gone.
 				if (!blockedSessionIDs.count(sessionID))
 					fileAccessorReferenceHolder[sessionID].push_back(accessor);
-				return accessor;
-			},
-			[postAllocationRoutine=postAllocationRoutine](std::shared_ptr<MMappedFileAccessor> accessor){
-				if (postAllocationRoutine)
-					postAllocationRoutine(accessor);
-			}));
-		fileAccessors.insert_or_assign(path, fileAcccessor);
-	}
-	return fileAccessors.at(path);
+			}
+			return accessor;
+		},
+		[postAllocationRoutine=postAllocationRoutine](std::shared_ptr<MMappedFileAccessor> accessor){
+			if (postAllocationRoutine)
+				postAllocationRoutine(accessor);
+		}));
+
+	fileAccessors.insert_or_assign(path, fileAccessor);
+	return fileAccessor;
 }
 
 
 void MMappedFileAccessor::CloseAll(const uint64_t sessionID)
 {
+	std::unique_lock<std::mutex> lock(fileAccessorDequeMutex);
 	blockedSessionIDs.insert(sessionID);
-	if (fileAccessorReferenceHolder.count(sessionID) == 0)
-		return;
 	fileAccessorReferenceHolder.erase(sessionID);
 }
 
@@ -285,21 +388,19 @@ void MMappedFileAccessor::InitialVMSetup()
 	}
 	else
 	{
-		if (maxFPLimit < 10) {
 #ifdef _MSC_VER
-			// It is not _super_ clear what the max file pointer limit is on windows,
-			// 	but to my understanding, we are using the windows API to map files,
-			// 	so we should have at least 2^24;
-			// kind of funny to me that windows would be the most effecient OS to
-			// parallelize sharedcache processing on in terms of FP usage concerns
-			maxFPLimit = 0x1000000;
+		// It is not _super_ clear what the max file pointer limit is on windows,
+		// 	but to my understanding, we are using the windows API to map files,
+		// 	so we should have at least 2^24;
+		// kind of funny to me that windows would be the most effecient OS to
+		// parallelize sharedcache processing on in terms of FP usage concerns
+		maxFPLimit = 0x1000000;
 #else
-			// unix in comparison will likely have a very small limit, especially mac, necessitating all of this consideration
-			struct rlimit rlim;
-			getrlimit(RLIMIT_NOFILE, &rlim);
-			maxFPLimit = rlim.rlim_cur / 2;
+		// unix in comparison will likely have a very small limit, especially mac, necessitating all of this consideration
+		struct rlimit rlim;
+		getrlimit(RLIMIT_NOFILE, &rlim);
+		maxFPLimit = rlim.rlim_cur / 2;
 #endif
-		}
 	}
 	BinaryNinja::LogInfo("Shared Cache processing initialized with a max file pointer limit of 0x%llx", maxFPLimit);
 	fileAccessorSemaphore.set_count(maxFPLimit);
