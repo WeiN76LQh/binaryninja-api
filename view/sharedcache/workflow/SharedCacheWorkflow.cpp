@@ -122,16 +122,11 @@ void SharedCacheWorkflow::FixupStubs(Ref<AnalysisContext> ctx)
 		auto workflowState = GetGlobalWorkflowState(bv);
 
 		auto funcStart = func->GetStart();
-		auto sectionExists = !bv->GetSectionsAt(funcStart).empty();
-		if (!sectionExists)
+		auto sections = bv->GetSectionsAt(funcStart);
+		if (sections.empty())
 			return;
-		auto section = bv->GetSectionsAt(funcStart)[0];
-
-		auto imageName = section->GetName();
-		// remove everything after ::
-		auto pos = imageName.find("::");
-		if (pos != std::string::npos)
-			imageName = imageName.substr(0, pos);
+		auto section = sections[0];
+		auto sectionName = section->GetName();
 
 		const auto llil = ctx->GetLowLevelILFunction();
 		if (!llil) {
@@ -152,7 +147,7 @@ void SharedCacheWorkflow::FixupStubs(Ref<AnalysisContext> ctx)
 		}
 
 		// Processor that automatically loads the libObjC image when it encounters a stub (so we can do inlining).
-		if (workflowState->autoLoadObjCStubRequirements && section->GetName().find("__objc_stubs") != std::string::npos)
+		if (workflowState->autoLoadObjCStubRequirements && sectionName.find("__objc_stubs") != std::string::npos)
 		{
 			auto firstInstruction = mlil->GetInstruction(0);
 			if (firstInstruction.operation == MLIL_TAILCALL)
@@ -271,10 +266,10 @@ void SharedCacheWorkflow::FixupStubs(Ref<AnalysisContext> ctx)
 			return;
 		}
 
-		if (section->GetName().find("::_stubs") != std::string::npos // Branch Islands (iOS 16)
-			|| section->GetName().find("dyld_shared_cache_branch_islands") != std::string::npos // Branch Islands (iOS 11-?)
-			|| section->GetName().find("::__stubs") != std::string::npos // Stubs (non arm64e)
-			|| section->GetName().find("::__auth_stubs") != std::string::npos // Stubs (arm64e)
+		if (sectionName.find("::_stubs") != std::string::npos // Branch Islands (iOS 16)
+			|| sectionName.find("dyld_shared_cache_branch_islands") != std::string::npos // Branch Islands (iOS 11-?)
+			|| sectionName.find("::__stubs") != std::string::npos // Stubs (non arm64e)
+			|| sectionName.find("::__auth_stubs") != std::string::npos // Stubs (arm64e)
 			)
 		{
 			auto firstInstruction = mlil->GetInstruction(0);
