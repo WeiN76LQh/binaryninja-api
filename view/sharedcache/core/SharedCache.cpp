@@ -59,8 +59,7 @@ int count_trailing_zeros(uint64_t value) {
 
 struct SharedCache::State
 {
-	immer::map<uint64_t, immer::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>>
-		exportInfos;
+	immer::map<uint64_t, std::shared_ptr<immer::map<uint64_t, Ref<Symbol>>>> exportInfos;
 	immer::map<uint64_t, immer::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>>
 		symbolInfos;
 
@@ -3050,48 +3049,51 @@ void SharedCache::InitializeHeader(
 
 	if (header.exportTriePresent && header.linkeditPresent && vm->AddressIsMapped(header.linkeditSegment.vmaddr))
 	{
-		auto symbols = SharedCache::ParseExportTrie(vm->MappingAtAddress(header.linkeditSegment.vmaddr).first.fileAccessor->lock(), header);
-		immer::vector_transient<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> exportMapping;
-		for (const auto& symbol : symbols)
+		auto symbols = GetExportListForHeader(header, [&]() {
+			return vm->MappingAtAddress(header.linkeditSegment.vmaddr).first.fileAccessor->lock();
+		});
+		if (symbols)
 		{
-			exportMapping.push_back({symbol->GetAddress(), {symbol->GetType(), symbol->GetRawName()}});
-			if (typeLib)
+			for (const auto& [symbolAddress, symbol] : *symbols)
 			{
-				auto type = m_dscView->ImportTypeLibraryObject(typeLib, {symbol->GetFullName()});
-
-				if (type)
+				if (typeLib)
 				{
-					view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symbol, type);
+					auto type = m_dscView->ImportTypeLibraryObject(typeLib, symbol->GetRawName());
+
+					if (type)
+					{
+						view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symbol, type);
+					}
+					else
+						view->DefineAutoSymbol(symbol);
+
+					if (view->GetAnalysisFunction(view->GetDefaultPlatform(), symbolAddress))
+					{
+						auto func = view->GetAnalysisFunction(view->GetDefaultPlatform(), symbolAddress);
+						auto name = symbol->GetFullName();
+						if (name == "_objc_msgSend")
+						{
+							func->SetHasVariableArguments(false);
+						}
+						else if (name.find("_objc_retain_x") != std::string::npos || name.find("_objc_release_x") != std::string::npos)
+						{
+							auto x = name.rfind("x");
+							auto num = name.substr(x + 1);
+
+							std::vector<BinaryNinja::FunctionParameter> callTypeParams;
+							auto cc = m_dscView->GetDefaultArchitecture()->GetCallingConventionByName("apple-arm64-objc-fast-arc-" + num);
+
+							callTypeParams.push_back({"obj", m_dscView->GetTypeByName({ "id" }), true, BinaryNinja::Variable()});
+
+							auto funcType = BinaryNinja::Type::FunctionType(m_dscView->GetTypeByName({ "id" }), cc, callTypeParams);
+							func->SetUserType(funcType);
+						}
+					}
 				}
 				else
 					view->DefineAutoSymbol(symbol);
-
-				if (view->GetAnalysisFunction(view->GetDefaultPlatform(), symbol->GetAddress()))
-				{
-					auto func = view->GetAnalysisFunction(view->GetDefaultPlatform(), symbol->GetAddress());
-					if (symbol->GetFullName() == "_objc_msgSend")
-					{
-						func->SetHasVariableArguments(false);
-					}
-					else if (symbol->GetFullName().find("_objc_retain_x") != std::string::npos || symbol->GetFullName().find("_objc_release_x") != std::string::npos)
-					{
-						auto x = symbol->GetFullName().rfind("x");
-						auto num = symbol->GetFullName().substr(x + 1);
-
-						std::vector<BinaryNinja::FunctionParameter> callTypeParams;
-						auto cc = m_dscView->GetDefaultArchitecture()->GetCallingConventionByName("apple-arm64-objc-fast-arc-" + num);
-
-						callTypeParams.push_back({"obj", m_dscView->GetTypeByName({ "id" }), true, BinaryNinja::Variable()});
-
-						auto funcType = BinaryNinja::Type::FunctionType(m_dscView->GetTypeByName({ "id" }), cc, callTypeParams);
-						func->SetUserType(funcType);
-					}
-				}
 			}
-			else
-				view->DefineAutoSymbol(symbol);
 		}
-		MutableState().exportInfos = State().exportInfos.set(header.textBase, std::move(exportMapping).persistent());
 	}
 	view->EndBulkModifySymbols();
 
@@ -3197,6 +3199,39 @@ std::vector<Ref<Symbol>> SharedCache::ParseExportTrie(std::shared_ptr<MMappedFil
 	return symbols;
 }
 
+
+std::shared_ptr<immer::map<uint64_t, Ref<Symbol>>> SharedCache::GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList)
+{
+	if (auto it = State().exportInfos.find(header.textBase))
+	{
+		if (didModifyExportList)
+			*didModifyExportList = false;
+		return *it;
+	}
+	else
+	{
+		std::shared_ptr<MMappedFileAccessor> linkeditFile = provideLinkeditFile();
+		if (!linkeditFile)
+		{
+			if (didModifyExportList)
+				*didModifyExportList = false;
+			return nullptr;
+		}
+
+		auto exportList = SharedCache::ParseExportTrie(linkeditFile, header);
+		auto exportMapping = immer::map_transient<uint64_t, Ref<Symbol>>();
+		for (const auto& sym : exportList)
+		{
+			exportMapping.set(sym->GetAddress(), sym);
+		}
+		MutableState().exportInfos = State().exportInfos.set(header.textBase, std::make_shared<immer::map<uint64_t, Ref<Symbol>>>(std::move(std::move(exportMapping).persistent())));
+		if (didModifyExportList)
+			*didModifyExportList = true;
+		return MutableState().exportInfos[header.textBase];
+	}
+}
+
+
 std::vector<std::string> SharedCache::GetAvailableImages()
 {
 	std::vector<std::string> installNames;
@@ -3214,32 +3249,33 @@ std::vector<std::pair<std::string, Ref<Symbol>>> SharedCache::LoadAllSymbolsAndW
 
 	std::unique_lock<std::mutex> initialLoadBlock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
 
+	bool doSave = false;
 	std::vector<std::pair<std::string, Ref<Symbol>>> symbols;
-	auto newExportInfos = State().exportInfos.transient();
 	for (const auto& img : State().images)
 	{
 		auto header = HeaderForAddress(img.headerLocation);
-		std::shared_ptr<MMappedFileAccessor> mapping;
-		try {
-			mapping = MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
-		}
-		catch (...)
-		{
-			m_logger->LogWarn("Serious Error: Failed to open export trie %s for %s", header->exportTriePath.c_str(), header->installName.c_str());
+		auto exportList = GetExportListForHeader(*header, [&]() {
+			try {
+				auto mapping = MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
+				return mapping;
+			}
+			catch (...)
+			{
+				m_logger->LogWarn("Serious Error: Failed to open export trie %s for %s", header->exportTriePath.c_str(), header->installName.c_str());
+				return std::shared_ptr<MMappedFileAccessor>(nullptr);
+			}
+		}, &doSave);
+		if (!exportList)
 			continue;
-		}
-		auto exportList = SharedCache::ParseExportTrie(mapping, *header);
-		immer::vector_transient<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> exportMapping;
-		for (const auto& sym : exportList)
+		for (const auto& [_, symbol] : *exportList)
 		{
-			exportMapping.push_back({sym->GetAddress(), {sym->GetType(), sym->GetRawName()}});
-			symbols.push_back({img.installName, sym});
+			symbols.push_back({img.installName, symbol});
 		}
-		newExportInfos.set(header->textBase, std::move(exportMapping).persistent());
 	}
-	MutableState().exportInfos = std::move(newExportInfos).persistent();
 
-	SaveToDSCView();
+	// Only save to DSC view if a header was actually loaded
+	if (doSave)
+		SaveToDSCView();
 
 	return symbols;
 }
@@ -3319,58 +3355,56 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 	auto header = HeaderForAddress(symbolLocation);
 	if (header)
 	{
-		std::shared_ptr<MMappedFileAccessor> mapping;
-		try {
-			mapping = MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
-		}
-		catch (...)
-		{
-			m_logger->LogWarn("Serious Error: Failed to open export trie for %s", header->installName.c_str());
-			return;
-		}
-		auto exportList = SharedCache::ParseExportTrie(mapping, *header);
-		immer::vector_transient<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> exportMapping;
 		auto typeLib = TypeLibraryForImage(header->installName);
-		id = m_dscView->BeginUndoActions();
-		m_dscView->BeginBulkModifySymbols();
-		for (const auto& sym : exportList)
-		{
-			exportMapping.push_back({sym->GetAddress(), {sym->GetType(), sym->GetRawName()}});
-			if (sym->GetAddress() == symbolLocation)
+		auto exportList = GetExportListForHeader(*header, [&]() {
+			try {
+				return MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
+			}
+			catch (...)
 			{
-				if (auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation))
+				m_logger->LogWarn("Serious Error: Failed to open export trie %s for %s", header->exportTriePath.c_str(), header->installName.c_str());
+				return std::shared_ptr<MMappedFileAccessor>(nullptr);
+			}
+		});
+
+		if (exportList)
+		{
+			if (auto it = exportList->find(symbolLocation))
+			{
+				auto symbol = *it;
+
+				id = m_dscView->BeginUndoActions();
+				m_dscView->BeginBulkModifySymbols();
+
+				auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation);
+				if (func)
 				{
 					m_dscView->DefineUserSymbol(
-						new Symbol(FunctionSymbol, prefix + sym->GetFullName(), targetLocation));
+						new Symbol(FunctionSymbol, prefix + symbol->GetFullName(), targetLocation));
 
 					if (typeLib)
-						if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {sym->GetFullName()}))
+						if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {symbol->GetFullName()}))
 							func->SetUserType(type);
 				}
 				else
 				{
 					m_dscView->DefineUserSymbol(
-						new Symbol(sym->GetType(), prefix + sym->GetFullName(), targetLocation));
+						new Symbol(symbol->GetType(), prefix + symbol->GetFullName(), targetLocation));
 
 					if (typeLib)
-						if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {sym->GetFullName()}))
+						if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {symbol->GetFullName()}))
 							m_dscView->DefineUserDataVariable(targetLocation, type);
 				}
 				if (triggerReanalysis)
 				{
-					auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation);
 					if (func)
 						func->Reanalyze();
 				}
-				break;
+
+				m_dscView->EndBulkModifySymbols();
+				m_dscView->ForgetUndoActions(id);
 			}
 		}
-		{
-			std::lock_guard lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
-			MutableState().exportInfos = State().exportInfos.set(header->textBase, std::move(exportMapping).persistent());
-		}
-		m_dscView->EndBulkModifySymbols();
-		m_dscView->ForgetUndoActions(id);
 	}
 }
 
@@ -3813,18 +3847,18 @@ void SharedCache::Store(SerializationContext& context) const
 
 	Serialize(context, "exportInfos");
 	context.writer.StartArray();
-	for (const auto& pair1 : State().exportInfos)
+	for (const auto& [headerLocation, symbolMap] : State().exportInfos)
 	{
 		context.writer.StartObject();
-		Serialize(context, "key", pair1.first);
+		Serialize(context, "key", headerLocation);
 		Serialize(context, "value");
 		context.writer.StartArray();
-		for (const auto& pair2 : pair1.second)
+		for (const auto& [symbolAddress, symbol] : *symbolMap)
 		{
 			context.writer.StartObject();
-			Serialize(context, "key", pair2.first);
-			Serialize(context, "val1", pair2.second.first);
-			Serialize(context, "val2", pair2.second.second);
+			Serialize(context, "key", symbolAddress);
+			Serialize(context, "val1", symbol->GetType());
+			Serialize(context, "val2", symbol->GetRawName());
 			context.writer.EndObject();
 		}
 		context.writer.EndArray();
@@ -3898,14 +3932,12 @@ void SharedCache::Load(DeserializationContext& context)
 	auto exportInfos = State().exportInfos.transient();
 	for (const auto& obj1 : context.doc["exportInfos"].GetArray())
 	{
-		immer::vector_transient<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> innerVec;
+		immer::map_transient<uint64_t, Ref<Symbol>> innerMap;
 		for (const auto& obj2 : obj1["value"].GetArray())
 		{
-			std::pair<BNSymbolType, std::string> innerPair = {
-				(BNSymbolType)obj2["val1"].GetUint64(), obj2["val2"].GetString()};
-			innerVec.push_back({obj2["key"].GetUint64(), innerPair});
+			innerMap.set(obj2["key"].GetUint64(), new Symbol((BNSymbolType)obj2["val1"].GetUint64(), obj2["val2"].GetString(), obj2["key"].GetUint64()));
 		}
-		exportInfos.set(obj1["key"].GetUint64(), std::move(innerVec).persistent());
+		exportInfos.set(obj1["key"].GetUint64(), std::make_shared<immer::map<uint64_t, Ref<Symbol>>>(std::move(std::move(innerMap).persistent())));
 	}
 	MutableState().exportInfos = std::move(exportInfos).persistent();
 

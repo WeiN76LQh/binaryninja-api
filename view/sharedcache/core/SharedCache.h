@@ -630,6 +630,7 @@ private:
 			uint64_t textBase, const std::string& currentText, size_t cursor, uint32_t endGuard);
 		std::vector<Ref<Symbol>> ParseExportTrie(
 			std::shared_ptr<MMappedFileAccessor> linkeditFile, SharedCacheMachOHeader header);
+		std::shared_ptr<immer::map<uint64_t, Ref<Symbol>>> GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList = nullptr);
 
 		size_t GetBaseAddress() const;
 		std::optional<ObjCOptimizationHeader> GetObjCOptimizationHeader(VMReader reader) const;
