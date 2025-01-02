@@ -6,6 +6,7 @@
 #include "ui/fontsettings.h"
 #include <QPainter>
 #include <QTextBrowser>
+#include <QCheckBox>
 #include "tabwidget.h"
 #include "globalarea.h"
 #include "progresstask.h"
@@ -665,26 +666,218 @@ DSCTriageView::DSCTriageView(QWidget* parent, BinaryViewRef data) : QWidget(pare
 			loadImageModel->setHorizontalHeaderLabels({"Name", "VM Address"});
 		} // loadImageModel
 
+		auto processObjCCheckbox = new QCheckBox("Process ObjC on Image Load");
+		processObjCCheckbox->setChecked(true);
+
 		auto loadImageButton = new CustomStyleFlatPushButton();
 		{
 			connect(loadImageButton, &QPushButton::clicked,
-				[this, loadImageTable](bool) {
+				[this, loadImageTable, processObjCCheckbox](bool) {
 					auto selected = loadImageTable->selectionModel()->selectedRows();
 					if (selected.size() == 0)
 					{
 						return;
 					}
 
-					auto name = selected[0].data().toString().toStdString();
-					WorkerPriorityEnqueue([this, name]() { m_cache->LoadImageWithInstallName(name); });
+					std::vector<std::string> names;
+					for (const auto& select : selected)
+					{
+						names.push_back(select.data().toString().toStdString());
+					}
+					bool processObjC = processObjCCheckbox->isChecked();
+
+					WorkerPriorityEnqueue([this, names, processObjC]() {
+						std::vector<std::string_view> imageNames;
+						for (const auto& name : names)
+						{
+							imageNames.push_back(name);
+						}
+						m_cache->LoadImagesWithInstallNames(imageNames, !processObjC);
+					});
 				});
-			loadImageButton->setText("Load");
+			loadImageButton->setText("Load 0 Images");
 
 			loadImageButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 			loadImageButton->setMinimumWidth(100);
 			loadImageButton->setMinimumHeight(30);
 
 		} // loadImageButton
+		loadImageButton->setEnabled(false);
+
+		auto loadImageWithDependenciesButton = new CustomStyleFlatPushButton();
+		{
+			connect(loadImageWithDependenciesButton, &QPushButton::clicked,
+				[this, loadImageTable, processObjCCheckbox](bool) {
+					auto selected = loadImageTable->selectionModel()->selectedRows();
+					if (selected.size() == 0)
+					{
+						return;
+					}
+
+					std::vector<std::string> names;
+					for (const auto& select : selected)
+					{
+						names.push_back(select.data().toString().toStdString());
+					}
+					bool processObjC = processObjCCheckbox->isChecked();
+
+					auto dialog = new QMessageBox(this);
+					dialog->setText("Are you sure you want to load " + QString("%1").arg(selected.size()) + " " + (selected.size() > 1 ? "images" : "image") + " and all of " + (selected.size() > 1 ? "their" : "its") + " dependencies?");
+					dialog->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+					connect(dialog, &QMessageBox::buttonClicked, this, [=](QAbstractButton* button)
+					{
+						if (button == dialog->button(QMessageBox::Yes))
+						{
+							WorkerPriorityEnqueue([this, names, processObjC]() {
+								// `imageNames` keeps the strings alive for `imageNamesToLoad
+								std::vector<std::string> imageNames = names;
+								std::vector<std::string_view> imageNamesToLoad;
+								std::unordered_set<std::string_view> originalImageNamesSet; // fast lookup
+								std::unordered_set<std::string_view> imageNamesToLoadSet; // fast lookup
+								for (const auto& name : imageNames)
+								{
+									imageNamesToLoadSet.insert(name);
+									originalImageNamesSet.insert(name);
+									imageNamesToLoad.push_back(name);
+								}
+
+								for (const auto& img : m_cache->GetImages())
+								{
+									if (originalImageNamesSet.find(img.name) == originalImageNamesSet.end())
+										continue;
+									
+									auto dependencies = img.dependencies;
+									for (const auto& dep : dependencies)
+									{
+										if (imageNamesToLoadSet.find(dep) != imageNamesToLoadSet.end())
+											continue;
+
+										imageNames.push_back(dep);
+										imageNamesToLoadSet.insert(imageNames.back());
+										imageNamesToLoad.push_back(imageNames.back());
+									}
+								}
+								m_cache->LoadImagesWithInstallNames(imageNamesToLoad, !processObjC);
+							});
+						}
+					});
+					dialog->exec();
+				});
+			loadImageWithDependenciesButton->setText("Load 0 Images + Dependencies");
+
+			loadImageWithDependenciesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+			loadImageWithDependenciesButton->setMinimumWidth(100);
+			loadImageWithDependenciesButton->setMinimumHeight(30);
+
+		} // loadImageWithDependenciesButton
+		loadImageWithDependenciesButton->setEnabled(false);
+
+		auto loadAllImagesButton = new CustomStyleFlatPushButton();
+		{
+			connect(loadAllImagesButton, &QPushButton::clicked,
+				[this, loadImageTable, processObjCCheckbox](bool) {
+					bool processObjC = processObjCCheckbox->isChecked();
+
+					auto dialog = new QMessageBox(this);
+					dialog->setText("Are you sure you want to load all images?");
+					dialog->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+					connect(dialog, &QMessageBox::buttonClicked, this, [=](QAbstractButton* button)
+					{
+						if (button == dialog->button(QMessageBox::Yes))
+						{
+							WorkerPriorityEnqueue([this, processObjC]() {
+								std::vector<std::string_view> allImageNames;
+								auto availableImages = m_cache->GetAvailableImages();
+								for (const auto& imageName : availableImages)
+								{
+									allImageNames.push_back(imageName);
+								}
+								m_cache->LoadImagesWithInstallNames(allImageNames, !processObjC);
+							});
+						}
+					});
+					dialog->exec();
+				});
+			loadAllImagesButton->setText("Load All Images");
+
+			loadAllImagesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+			loadAllImagesButton->setMinimumWidth(100);
+			loadAllImagesButton->setMinimumHeight(30);
+
+		} // loadAllImagesButton
+
+		auto runObjcProcessingButton = new CustomStyleFlatPushButton();
+		{
+			connect(runObjcProcessingButton, &QPushButton::clicked,
+				[this, loadImageTable, runObjcProcessingButton](bool) {
+					auto selected = loadImageTable->selectionModel()->selectedRows();
+					if (selected.size() == 0)
+					{
+						return;
+					}
+
+					std::vector<std::string> names;
+					for (const auto& select : selected)
+					{
+						names.push_back(select.data().toString().toStdString());
+					}
+
+					auto dialog = new QMessageBox(this);
+					dialog->setText("Are you sure you want to process the Objective-C sections for " + QString("%1").arg(selected.size()) + " " + (selected.size() > 1 ? "images" : "image") + "?");
+					dialog->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+					connect(dialog, &QMessageBox::buttonClicked, this, [=](QAbstractButton* button)
+					{
+						if (button == dialog->button(QMessageBox::Yes))
+						{
+							WorkerPriorityEnqueue([this, names]() {
+								for (const auto& name : names)
+								{
+									m_cache->ProcessObjCSectionsForImageWithInstallName(name);
+								}
+							});
+						}
+					});
+					dialog->exec();
+				});
+			runObjcProcessingButton->setText("Process ObjC for 0 Images");
+
+			runObjcProcessingButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+			runObjcProcessingButton->setMinimumWidth(100);
+			runObjcProcessingButton->setMinimumHeight(30);
+
+		} // runObjcProcessingButton
+		runObjcProcessingButton->setEnabled(false);
+
+		auto runAllObjcProcessingButton = new CustomStyleFlatPushButton();
+		{
+			connect(runAllObjcProcessingButton, &QPushButton::clicked,
+				[this, loadImageTable, runObjcProcessingButton](bool) {
+					auto dialog = new QMessageBox(this);
+					dialog->setText("Are you sure you want to process all Objective-C sections?");
+					dialog->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+					connect(dialog, &QMessageBox::buttonClicked, this, [=](QAbstractButton* button)
+					{
+						if (button == dialog->button(QMessageBox::Yes))
+						{
+							WorkerPriorityEnqueue([this]() {
+								m_cache->ProcessAllObjCSections();
+							});
+						}
+					});
+					dialog->exec();
+				});
+			runAllObjcProcessingButton->setText("Process All ObjC");
+
+			runAllObjcProcessingButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+			runAllObjcProcessingButton->setMinimumWidth(100);
+			runAllObjcProcessingButton->setMinimumHeight(30);
+
+		} // runAllObjcProcessingButton
+
 		loadImageTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 		auto loadImageFilterEdit = new FilterEdit(loadImageTable);
@@ -711,10 +904,24 @@ DSCTriageView::DSCTriageView(QWidget* parent, BinaryViewRef data) : QWidget(pare
 					});
 			});
 
+		auto loadImageButtonsLayout = new QHBoxLayout;
+		loadImageButtonsLayout->setAlignment(Qt::AlignLeft);
+		loadImageButtonsLayout->setContentsMargins(0, 0, 0, 0);
+		loadImageButtonsLayout->addWidget(loadImageButton);
+		loadImageButtonsLayout->addWidget(loadImageWithDependenciesButton);
+		loadImageButtonsLayout->addWidget(loadAllImagesButton);
+		loadImageButtonsLayout->addWidget(runObjcProcessingButton);
+		loadImageButtonsLayout->addWidget(runAllObjcProcessingButton);
+		loadImageButtonsLayout->addSpacerItem(new QSpacerItem(0,0, QSizePolicy::Expanding ));
+		loadImageButtonsLayout->addWidget(processObjCCheckbox);
+
+		auto loadImageButtonsWidget = new QWidget;
+		loadImageButtonsWidget->setLayout(loadImageButtonsLayout);
+
 		auto loadImageLayout = new QVBoxLayout;
 		loadImageLayout->addWidget(loadImageFilterEdit);
 		loadImageLayout->addWidget(loadImageTable);
-		loadImageLayout->addWidget(loadImageButton);
+		loadImageLayout->addWidget(loadImageButtonsWidget);
 
 		auto loadImageWidget = new QWidget;
 		loadImageWidget->setLayout(loadImageLayout);
@@ -722,12 +929,32 @@ DSCTriageView::DSCTriageView(QWidget* parent, BinaryViewRef data) : QWidget(pare
 		m_bottomRegionTabs->addTab(loadImageWidget, "Load an Image");
 
 		loadImageTable->setModel(loadImageModel);
+		connect(loadImageTable->selectionModel(), &QItemSelectionModel::selectionChanged, this, [=](const QItemSelection &selected, const QItemSelection &deselected)
+			{
+				const auto numRowsSelected = loadImageTable->selectionModel()->selectedRows().size();
+				if (numRowsSelected == 0)
+				{
+					loadImageButton->setEnabled(false);
+					loadImageWithDependenciesButton->setEnabled(false);
+					runObjcProcessingButton->setEnabled(false);
+				}
+				else
+				{
+					loadImageButton->setEnabled(true);
+					loadImageWithDependenciesButton->setEnabled(true);
+					runObjcProcessingButton->setEnabled(true);
+				}
+				const auto imageStr = numRowsSelected == 1 ? "Image" : "Images";
+				loadImageButton->setText("Load " + QString("%1").arg(numRowsSelected) + " " + imageStr);
+				loadImageWithDependenciesButton->setText("Load " + QString("%1").arg(numRowsSelected) + " " + imageStr + " + Dependencies");
+				runObjcProcessingButton->setText("Process ObjC for " + QString("%1").arg(numRowsSelected) + " " + imageStr);
+			});
 
 		loadImageTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 		loadImageTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 
 		loadImageTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-		loadImageTable->setSelectionMode(QAbstractItemView::SingleSelection);
+		loadImageTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
 		m_triageTabs->addTab(loadImageWidget, "Images");
 		defaultWidget = loadImageWidget;
