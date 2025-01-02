@@ -42,6 +42,7 @@ def free_string(value:ctypes.c_char_p) -> None:
     BNFreeString(ctypes.cast(value, ctypes.POINTER(ctypes.c_byte)))
 
 # Type definitions
+BackingCacheTypeEnum = ctypes.c_int
 from binaryninja._binaryninjacore import BNBinaryView, BNBinaryViewHandle
 class BNDSCBackingCache(ctypes.Structure):
 	@property
@@ -110,7 +111,7 @@ BNSharedCacheHandle = ctypes.POINTER(BNSharedCache)
 # Structure definitions
 BNDSCBackingCache._fields_ = [
 		("_path", ctypes.c_char_p),
-		("isPrimary", ctypes.c_bool),
+		("cacheType", BackingCacheTypeEnum),
 		("mappings", ctypes.POINTER(BNDSCBackingCacheMapping)),
 		("mappingCount", ctypes.c_ulonglong),
 	]

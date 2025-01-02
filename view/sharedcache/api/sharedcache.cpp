@@ -106,7 +106,7 @@ namespace SharedCacheAPI {
 		{
 			BackingCache cache;
 			cache.path = value[i].path;
-			cache.isPrimary = value[i].isPrimary;
+			cache.cacheType = value[i].cacheType;
 			cache.mappings.reserve(value[i].mappingCount);
 			for (size_t j = 0; j < value[i].mappingCount; j++)
 			{

@@ -37,6 +37,7 @@
 
 #include "immer/flex_vector.hpp"
 #include "immer/vector_transient.hpp"
+#include "view/sharedcache/api/sharedcachecore.h"
 
 using namespace BinaryNinja;
 using namespace SharedCacheCore;
@@ -60,8 +61,7 @@ int count_trailing_zeros(uint64_t value) {
 struct SharedCache::State
 {
 	immer::map<uint64_t, std::shared_ptr<immer::map<uint64_t, Ref<Symbol>>>> exportInfos;
-	immer::map<uint64_t, immer::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>>
-		symbolInfos;
+	immer::map<uint64_t, std::shared_ptr<immer::vector<Ref<Symbol>>>> symbolInfos;
 
 	immer::map<std::string, uint64_t> imageStarts;
 	immer::map<uint64_t, SharedCacheMachOHeader> headers;
@@ -347,13 +347,17 @@ void SharedCache::PerformInitialLoad()
 		MutableState().objcOptimizationDataRange = {primaryCacheHeader.objcOptsOffset, primaryCacheHeader.objcOptsSize};
 	}
 
+	// Don't store directly into `State().imageStarts` so that the order is preserved. That way 
+	// `imageIndex` can be assigned to a `CacheImage` in `m_images`.
+	std::vector<std::pair<std::string, uint64_t>> imageStarts;
+
 	switch (State().cacheFormat)
 	{
 	case RegularCacheFormat:
 	{
 		dyld_cache_mapping_info mapping {};
 		BackingCache cache;
-		cache.isPrimary = true;
+		cache.cacheType = BackingCacheTypePrimary;
 		cache.path = path;
 
 		immer::vector_transient<dyld_cache_mapping_info> mappings;
@@ -366,14 +370,13 @@ void SharedCache::PerformInitialLoad()
 		MutableState().backingCaches = State().backingCaches.push_back(std::move(cache));
 
 		dyld_cache_image_info img {};
-		auto imageStarts = State().imageStarts.transient();
+
 		for (size_t i = 0; i < primaryCacheHeader.imagesCountOld; i++)
 		{
 			baseFile->Read(&img, primaryCacheHeader.imagesOffsetOld + (i * sizeof(img)), sizeof(img));
 			auto iname = baseFile->ReadNullTermString(img.pathFileOffset);
-			imageStarts.set(iname, img.address);
+			imageStarts.push_back({iname, img.address});
 		}
-		MutableState().imageStarts = std::move(imageStarts).persistent();
 
 		m_logger->LogInfo("Found %d images in the shared cache", primaryCacheHeader.imagesCountOld);
 
@@ -422,7 +425,7 @@ void SharedCache::PerformInitialLoad()
 											 // briefly.
 
 		BackingCache cache;
-		cache.isPrimary = true;
+		cache.cacheType = BackingCacheTypePrimary;
 		cache.path = path;
 		auto mappings = cache.mappings.transient();
 		for (size_t i = 0; i < primaryCacheHeader.mappingCount; i++)
@@ -435,12 +438,11 @@ void SharedCache::PerformInitialLoad()
 
 		dyld_cache_image_info img {};
 
-		auto imageStarts = State().imageStarts.transient();
 		for (size_t i = 0; i < primaryCacheHeader.imagesCount; i++)
 		{
 			baseFile->Read(&img, primaryCacheHeader.imagesOffset + (i * sizeof(img)), sizeof(img));
 			auto iname = baseFile->ReadNullTermString(img.pathFileOffset);
-			imageStarts.set(iname, img.address);
+			imageStarts.push_back({iname, img.address});
 		}
 
 		if (primaryCacheHeader.branchPoolsCount)
@@ -448,11 +450,9 @@ void SharedCache::PerformInitialLoad()
 			std::vector<uint64_t> pool {};
 			for (size_t i = 0; i < primaryCacheHeader.branchPoolsCount; i++)
 			{
-				imageStarts.set("dyld_shared_cache_branch_islands_" + std::to_string(i), 
-					baseFile->ReadULong(primaryCacheHeader.branchPoolsOffset + (i * m_dscView->GetAddressSize())));
+				imageStarts.push_back({"dyld_shared_cache_branch_islands_" + std::to_string(i), baseFile->ReadULong(primaryCacheHeader.branchPoolsOffset + (i * m_dscView->GetAddressSize()))});
 			}
 		}
-		MutableState().imageStarts = std::move(imageStarts).persistent();
 
 		std::string mainFileName = base_name(path);
 		if (auto projectFile = m_dscView->GetFile()->GetProjectFile())
@@ -497,7 +497,7 @@ void SharedCache::PerformInitialLoad()
 
 			dyld_cache_mapping_info subCacheMapping {};
 			BackingCache subCache;
-			subCache.isPrimary = false;
+			subCache.cacheType = BackingCacheTypeSecondary;
 			subCache.path = subCachePath;
 
 			auto mappings = subCache.mappings.transient();
@@ -532,7 +532,7 @@ void SharedCache::PerformInitialLoad()
 		dyld_cache_mapping_info mapping {};	 // We're going to reuse this for all of the mappings. We only need it
 											 // briefly.
 		BackingCache cache;
-		cache.isPrimary = true;
+		cache.cacheType = BackingCacheTypePrimary;
 		cache.path = path;
 
 		auto mappings = cache.mappings.transient();
@@ -546,12 +546,11 @@ void SharedCache::PerformInitialLoad()
 
 		dyld_cache_image_info img {};
 
-		auto imageStarts = State().imageStarts.transient();
 		for (size_t i = 0; i < primaryCacheHeader.imagesCount; i++)
 		{
 			baseFile->Read(&img, primaryCacheHeader.imagesOffset + (i * sizeof(img)), sizeof(img));
 			auto iname = baseFile->ReadNullTermString(img.pathFileOffset);
-			imageStarts.set(iname, img.address);
+			imageStarts.push_back({iname, img.address});
 		}
 
 		if (primaryCacheHeader.branchPoolsCount)
@@ -559,11 +558,9 @@ void SharedCache::PerformInitialLoad()
 			std::vector<uint64_t> pool {};
 			for (size_t i = 0; i < primaryCacheHeader.branchPoolsCount; i++)
 			{
-				imageStarts.set("dyld_shared_cache_branch_islands_" + std::to_string(i), 
-					baseFile->ReadULong(primaryCacheHeader.branchPoolsOffset + (i * m_dscView->GetAddressSize())));
+				imageStarts.push_back({"dyld_shared_cache_branch_islands_" + std::to_string(i), baseFile->ReadULong(primaryCacheHeader.branchPoolsOffset + (i * m_dscView->GetAddressSize()))});
 			}
 		}
-		MutableState().imageStarts = std::move(imageStarts).persistent();
 
 		std::string mainFileName = base_name(path);
 		if (auto projectFile = m_dscView->GetFile()->GetProjectFile())
@@ -589,7 +586,7 @@ void SharedCache::PerformInitialLoad()
 			subCacheFile->Read(&subCacheHeader, 0, headerSize);
 
 			BackingCache subCache;
-			subCache.isPrimary = false;
+			subCache.cacheType = BackingCacheTypeSecondary;
 			subCache.path = subCachePath;
 
 			dyld_cache_mapping_info subCacheMapping {};
@@ -654,7 +651,7 @@ void SharedCache::PerformInitialLoad()
 		dyld_cache_mapping_info mapping {};
 
 		BackingCache cache;
-		cache.isPrimary = true;
+		cache.cacheType = BackingCacheTypePrimary;
 		cache.path = path;
 
 		auto mappings = cache.mappings.transient();
@@ -668,12 +665,11 @@ void SharedCache::PerformInitialLoad()
 
 		dyld_cache_image_info img {};
 
-		auto imageStarts = State().imageStarts.transient();
 		for (size_t i = 0; i < primaryCacheHeader.imagesCount; i++)
 		{
 			baseFile->Read(&img, primaryCacheHeader.imagesOffset + (i * sizeof(img)), sizeof(img));
 			auto iname = baseFile->ReadNullTermString(img.pathFileOffset);
-			imageStarts.set(iname, img.address);
+			imageStarts.push_back({iname, img.address});
 		}
 
 		if (primaryCacheHeader.branchPoolsCount)
@@ -681,11 +677,9 @@ void SharedCache::PerformInitialLoad()
 			std::vector<uint64_t> pool {};
 			for (size_t i = 0; i < primaryCacheHeader.branchPoolsCount; i++)
 			{
-				imageStarts.set("dyld_shared_cache_branch_islands_" + std::to_string(i),
-					baseFile->ReadULong(primaryCacheHeader.branchPoolsOffset + (i * m_dscView->GetAddressSize())));
+				imageStarts.push_back({"dyld_shared_cache_branch_islands_" + std::to_string(i), baseFile->ReadULong(primaryCacheHeader.branchPoolsOffset + (i * m_dscView->GetAddressSize()))});
 			}
 		}
-		MutableState().imageStarts = std::move(imageStarts).persistent();
 
 		std::string mainFileName = base_name(path);
 		if (auto projectFile = m_dscView->GetFile()->GetProjectFile())
@@ -734,7 +728,7 @@ void SharedCache::PerformInitialLoad()
 			dyld_cache_mapping_info subCacheMapping {};
 
 			BackingCache subCache;
-			subCache.isPrimary = false;
+			subCache.cacheType = BackingCacheTypeSecondary;
 			subCache.path = subCachePath;
 			auto mappings = subCache.mappings.transient();
 
@@ -791,7 +785,7 @@ void SharedCache::PerformInitialLoad()
 			subCacheFile->Read(&subCacheHeader, 0, headerSize);
 
 			BackingCache subCache;
-			subCache.isPrimary = false;
+			subCache.cacheType = BackingCacheTypeSymbols;
 			subCache.path = subCachePath;
 
 			dyld_cache_mapping_info subCacheMapping {};
@@ -806,7 +800,9 @@ void SharedCache::PerformInitialLoad()
 			MutableState().backingCaches = State().backingCaches.push_back(std::move(subCache));
 		}
 		catch (...)
-		{}
+		{
+			m_logger->LogWarn("Failed to load the symbols cache");
+		}
 		break;
 	}
 	}
@@ -825,8 +821,11 @@ void SharedCache::PerformInitialLoad()
 
 	auto headers = State().headers.transient();
 	auto images = State().images.transient();
-	for (const auto& start : State().imageStarts)
+	auto stateImageStarts = State().imageStarts.transient();
+	for (uint32_t imageIndex = 0; imageIndex < imageStarts.size(); imageIndex++)
 	{
+		const auto& start = imageStarts[imageIndex];
+		stateImageStarts.set(start.first, start.second);
 		try {
 			auto imageHeader = SharedCache::LoadHeaderForAddress(vm, start.second, start.first);
 			if (imageHeader)
@@ -838,6 +837,7 @@ void SharedCache::PerformInitialLoad()
 				}
 				headers.set(start.second, imageHeader.value());
 				CacheImage image;
+				image.index = imageIndex;
 				image.installName = start.first;
 				image.headerLocation = start.second;
 				auto regions = image.regions.transient();
@@ -2671,6 +2671,132 @@ std::optional<SharedCacheMachOHeader> SharedCache::LoadHeaderForAddress(std::sha
 	return std::move(header).persistent();
 }
 
+void SharedCache::ProcessSymbols(std::shared_ptr<MMappedFileAccessor> file, const SharedCacheMachOHeader& header, uint64_t stringsOffset, size_t stringsSize, uint64_t nlistEntriesOffset, uint32_t nlistCount, uint32_t nlistStartIndex)
+{
+	WillMutateState();
+
+	auto addressSize = m_dscView->GetAddressSize();
+	auto strings = file->ReadBuffer(stringsOffset, stringsSize);
+
+	immer::vector_transient<Ref<Symbol>> symbolInfos;
+	for (uint64_t i = 0; i < nlistCount; i++)
+	{
+		uint64_t entryIndex = (nlistStartIndex + i);
+
+		nlist_64 nlist;
+		if (addressSize == 4)
+		{
+			// 32-bit DSC
+			struct nlist nlist32;
+			file->Read(&nlist, nlistEntriesOffset + (entryIndex * sizeof(nlist32)), sizeof(nlist32));
+			nlist.n_strx = nlist32.n_strx;
+			nlist.n_type = nlist32.n_type;
+			nlist.n_sect = nlist32.n_sect;
+			nlist.n_desc = nlist32.n_desc;
+			nlist.n_value = nlist32.n_value;
+		}
+		else
+		{
+			// 64-bit DSC
+			file->Read(&nlist, nlistEntriesOffset + (entryIndex * sizeof(nlist)), sizeof(nlist));
+		}
+
+		auto symbolAddress = nlist.n_value;
+		if (((nlist.n_type & N_TYPE) == N_INDR) || symbolAddress == 0)
+			continue;
+
+		if (nlist.n_strx >= stringsSize)
+		{
+			m_logger->LogError("Symbol entry at index %llu has a string offset of %u which is outside the strings buffer of size %llu for file %s", entryIndex, nlist.n_strx, stringsSize, file->Path().c_str());
+			continue;
+		}
+		
+		std::string symbolName((char*)strings.GetDataAt(nlist.n_strx));
+		if (symbolName == "<redacted>")
+			continue;
+
+		BNSymbolType symbolType = DataSymbol;
+		uint32_t flags;
+		if ((nlist.n_type & N_TYPE) == N_SECT && nlist.n_sect > 0 && (size_t)(nlist.n_sect - 1) < header.sections.size())
+		{}
+		else if ((nlist.n_type & N_TYPE) == N_ABS)
+		{}
+		else if ((nlist.n_type & N_EXT))
+		{
+			symbolType = ExternalSymbol;
+		}
+		else
+			continue;
+
+		for (auto s : header.sections)
+		{
+			if (s.addr <= symbolAddress && symbolAddress < s.addr + s.size)
+			{
+				flags = s.flags;
+			}
+		}
+
+		if (symbolType != ExternalSymbol)
+		{
+			if ((flags & S_ATTR_PURE_INSTRUCTIONS) == S_ATTR_PURE_INSTRUCTIONS
+				|| (flags & S_ATTR_SOME_INSTRUCTIONS) == S_ATTR_SOME_INSTRUCTIONS)
+				symbolType = FunctionSymbol;
+			else
+				symbolType = DataSymbol;
+		}
+		if ((nlist.n_desc & N_ARM_THUMB_DEF) == N_ARM_THUMB_DEF)
+			symbolAddress++;
+
+		symbolInfos.push_back(new Symbol(symbolType, symbolName, symbolAddress, GlobalBinding));
+	}
+	MutableState().symbolInfos = State().symbolInfos.set(header.textBase, std::make_shared<immer::vector<Ref<Symbol>>>(std::move(std::move(symbolInfos).persistent())));
+}
+
+void SharedCache::ApplySymbol(Ref<BinaryView> view, Ref<TypeLibrary> typeLib, Ref<Symbol> symbol)
+{
+	Ref<Function> func = nullptr;
+	auto symbolAddress = symbol->GetAddress();
+
+	if (symbol->GetType() == FunctionSymbol)
+	{
+		Ref<Platform> targetPlatform = view->GetDefaultPlatform();
+		func = view->AddFunctionForAnalysis(targetPlatform, symbolAddress);
+	}
+	if (typeLib)
+	{
+		auto type = m_dscView->ImportTypeLibraryObject(typeLib, {symbol->GetFullName()});
+		if (type)
+			view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symbol, type);
+		else
+			view->DefineAutoSymbol(symbol);
+
+		if (!func)
+			func = view->GetAnalysisFunction(view->GetDefaultPlatform(), symbolAddress);
+		if (func)
+		{
+			if (symbol->GetFullName() == "_objc_msgSend")
+			{
+				func->SetHasVariableArguments(false);
+			}
+			else if (symbol->GetFullName().find("_objc_retain_x") != std::string::npos || symbol->GetFullName().find("_objc_release_x") != std::string::npos)
+			{
+				auto x = symbol->GetFullName().rfind("x");
+				auto num = symbol->GetFullName().substr(x + 1);
+
+				std::vector<BinaryNinja::FunctionParameter> callTypeParams;
+				auto cc = m_dscView->GetDefaultArchitecture()->GetCallingConventionByName("apple-arm64-objc-fast-arc-" + num);
+
+				callTypeParams.push_back({"obj", m_dscView->GetTypeByName({ "id" }), true, BinaryNinja::Variable()});
+
+				auto funcType = BinaryNinja::Type::FunctionType(m_dscView->GetTypeByName({ "id" }), cc, callTypeParams);
+				func->SetUserType(funcType);
+			}
+		}
+	}
+	else
+		view->DefineAutoSymbol(symbol);
+}
+
 void SharedCache::InitializeHeader(
 	Ref<BinaryView> view, VM* vm, SharedCacheMachOHeader header, const std::vector<const MemoryRegion*> regionsToLoad)
 {
@@ -2965,86 +3091,84 @@ void SharedCache::InitializeHeader(
 		}
 	}
 
-	view->BeginBulkModifySymbols();
 	if (header.symtab.symoff != 0 && header.linkeditPresent && vm->AddressIsMapped(header.linkeditSegment.vmaddr))
 	{
 		// Mach-O View symtab processing with
 		// a ton of stuff cut out so it can work
 
 		auto reader = vm->MappingAtAddress(header.linkeditSegment.vmaddr).first.fileAccessor->lock();
-		// auto symtab = reader->ReadBuffer(header.symtab.symoff, header.symtab.nsyms * sizeof(nlist_64));
-		auto strtab = reader->ReadBuffer(header.symtab.stroff, header.symtab.strsize);
-		nlist_64 sym;
-		memset(&sym, 0, sizeof(sym));
-		auto N_TYPE = 0xE;	// idk
-		immer::vector_transient<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> symbolInfos;
-		for (size_t i = 0; i < header.symtab.nsyms; i++)
+		ProcessSymbols(reader, header, header.symtab.stroff, header.symtab.strsize, header.symtab.symoff, header.symtab.nsyms);
+	}
+
+	int64_t imageIndex = -1;
+	for (auto& cacheImage : State().images)
+	{
+		if (cacheImage.headerLocation == header.textBase)
 		{
-			reader->Read(&sym, header.symtab.symoff + i * sizeof(nlist_64), sizeof(nlist_64));
-			if (sym.n_strx >= header.symtab.strsize || ((sym.n_type & N_TYPE) == N_INDR))
-				continue;
-
-			std::string symbol((char*)strtab.GetDataAt(sym.n_strx));
-			// BNLogError("%s: 0x%llx", symbol.c_str(), sym.n_value);
-			if (symbol == "<redacted>")
-				continue;
-
-			BNSymbolType type = DataSymbol;
-			uint32_t flags;
-			if ((sym.n_type & N_TYPE) == N_SECT && sym.n_sect > 0 && (size_t)(sym.n_sect - 1) < header.sections.size())
-			{}
-			else if ((sym.n_type & N_TYPE) == N_ABS)
-			{}
-			else if ((sym.n_type & 0x1))
-			{
-				type = ExternalSymbol;
-			}
-			else
-				continue;
-
-			for (auto s : header.sections)
-			{
-				if (s.addr < sym.n_value)
-				{
-					if (s.addr + s.size > sym.n_value)
-					{
-						flags = s.flags;
-					}
-				}
-			}
-
-			if (type != ExternalSymbol)
-			{
-				if ((flags & S_ATTR_PURE_INSTRUCTIONS) == S_ATTR_PURE_INSTRUCTIONS
-					|| (flags & S_ATTR_SOME_INSTRUCTIONS) == S_ATTR_SOME_INSTRUCTIONS)
-					type = FunctionSymbol;
-				else
-					type = DataSymbol;
-			}
-			if ((sym.n_desc & N_ARM_THUMB_DEF) == N_ARM_THUMB_DEF)
-				sym.n_value++;
-
-			auto symbolObj = new Symbol(type, symbol, sym.n_value, GlobalBinding);
-			if (type == FunctionSymbol)
-			{
-				Ref<Platform> targetPlatform = view->GetDefaultPlatform();
-				view->AddFunctionForAnalysis(targetPlatform, sym.n_value);
-			}
-			if (typeLib)
-			{
-				auto _type = m_dscView->ImportTypeLibraryObject(typeLib, {symbolObj->GetFullName()});
-				if (_type)
-				{
-					view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symbolObj, _type);
-				}
-				else
-					view->DefineAutoSymbol(symbolObj);
-			}
-			else
-				view->DefineAutoSymbol(symbolObj);
-			symbolInfos.push_back({sym.n_value, {type, symbol}});
+			imageIndex = cacheImage.index;
+			break;
 		}
-		MutableState().symbolInfos = State().symbolInfos.set(header.textBase, std::move(symbolInfos).persistent());
+	}
+	if (imageIndex > -1)
+	{
+		auto addressSize = m_dscView->GetAddressSize();
+		for (auto backingCache : State().backingCaches)
+		{
+			if (backingCache.cacheType != BackingCacheTypeSymbols)
+				continue;
+
+			auto subCacheFile = MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), backingCache.path)->lock();
+			
+			dyld_cache_header subCacheHeader {};
+			uint64_t headerSize = subCacheFile->ReadUInt32(__offsetof(dyld_cache_header, mappingOffset));
+			if (headerSize > sizeof(dyld_cache_header))
+			{
+				m_logger->LogDebug("Header size is larger than expected, using default size");
+				headerSize = sizeof(dyld_cache_header);
+			}
+			subCacheFile->Read(&subCacheHeader, 0, headerSize);
+
+			if (subCacheHeader.localSymbolsOffset != 0)
+			{
+				dyld_cache_local_symbols_info localSymbolsInfo;
+				subCacheFile->Read(&localSymbolsInfo, subCacheHeader.localSymbolsOffset, sizeof(localSymbolsInfo));
+				
+				if (imageIndex < localSymbolsInfo.entriesCount)
+				{
+					dyld_cache_local_symbols_entry_64 localSymbolsEntry;
+					if (addressSize == 4)
+					{
+						// 32-bit DSC
+						dyld_cache_local_symbols_entry localSymbolsEntry32;
+						subCacheFile->Read(&localSymbolsEntry32, subCacheHeader.localSymbolsOffset + localSymbolsInfo.entriesOffset + (imageIndex * sizeof(localSymbolsEntry32)), sizeof(localSymbolsEntry32));
+						localSymbolsEntry.dylibOffset = localSymbolsEntry32.dylibOffset;
+						localSymbolsEntry.nlistStartIndex = localSymbolsEntry32.nlistStartIndex;
+						localSymbolsEntry.nlistCount = localSymbolsEntry32.nlistCount;
+					}
+					else
+					{
+						// 64-bit DSC
+						subCacheFile->Read(&localSymbolsEntry, subCacheHeader.localSymbolsOffset + localSymbolsInfo.entriesOffset + (imageIndex * sizeof(localSymbolsEntry)), sizeof(localSymbolsEntry));
+					}
+					ProcessSymbols(subCacheFile, header, subCacheHeader.localSymbolsOffset + localSymbolsInfo.stringsOffset, localSymbolsInfo.stringsSize, subCacheHeader.localSymbolsOffset + localSymbolsInfo.nlistOffset, localSymbolsEntry.nlistCount, localSymbolsEntry.nlistStartIndex);
+				}
+				else
+				{
+					m_logger->LogDebug("No entry for image index %lld in symbols file %s with %u entries", imageIndex, subCacheFile->Path().c_str(), localSymbolsInfo.entriesCount);
+				}
+			}
+		}
+		m_logger->LogDebug("Loaded local symbols");
+	}
+	else
+	{
+		m_logger->LogError("Failed to identify the DSC image that contains the header at 0x%llx", header.textBase);
+	}
+
+	view->BeginBulkModifySymbols();
+	for (auto symbol : *MutableState().symbolInfos[header.textBase])
+	{
+		ApplySymbol(view, typeLib, symbol);
 	}
 
 	if (header.exportTriePresent && header.linkeditPresent && vm->AddressIsMapped(header.linkeditSegment.vmaddr))
@@ -3054,44 +3178,9 @@ void SharedCache::InitializeHeader(
 		});
 		if (symbols)
 		{
-			for (const auto& [symbolAddress, symbol] : *symbols)
+			for (const auto& [_, symbol] : *symbols)
 			{
-				if (typeLib)
-				{
-					auto type = m_dscView->ImportTypeLibraryObject(typeLib, symbol->GetRawName());
-
-					if (type)
-					{
-						view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symbol, type);
-					}
-					else
-						view->DefineAutoSymbol(symbol);
-
-					if (view->GetAnalysisFunction(view->GetDefaultPlatform(), symbolAddress))
-					{
-						auto func = view->GetAnalysisFunction(view->GetDefaultPlatform(), symbolAddress);
-						auto name = symbol->GetFullName();
-						if (name == "_objc_msgSend")
-						{
-							func->SetHasVariableArguments(false);
-						}
-						else if (name.find("_objc_retain_x") != std::string::npos || name.find("_objc_release_x") != std::string::npos)
-						{
-							auto x = name.rfind("x");
-							auto num = name.substr(x + 1);
-
-							std::vector<BinaryNinja::FunctionParameter> callTypeParams;
-							auto cc = m_dscView->GetDefaultArchitecture()->GetCallingConventionByName("apple-arm64-objc-fast-arc-" + num);
-
-							callTypeParams.push_back({"obj", m_dscView->GetTypeByName({ "id" }), true, BinaryNinja::Variable()});
-
-							auto funcType = BinaryNinja::Type::FunctionType(m_dscView->GetTypeByName({ "id" }), cc, callTypeParams);
-							func->SetUserType(funcType);
-						}
-					}
-				}
-				else
-					view->DefineAutoSymbol(symbol);
+				ApplySymbol(view, typeLib, symbol);
 			}
 		}
 	}
@@ -3631,7 +3720,7 @@ extern "C"
 			for (size_t i = 0; i < viewCaches.size(); i++)
 			{
 				caches[i].path = BNAllocString(viewCaches[i].path.c_str());
-				caches[i].isPrimary = viewCaches[i].isPrimary;
+				caches[i].cacheType = viewCaches[i].cacheType;
 
 				BNDSCBackingCacheMapping* mappings;
 				mappings = (BNDSCBackingCacheMapping*)malloc(sizeof(BNDSCBackingCacheMapping) * viewCaches[i].mappings.size());
@@ -3854,18 +3943,18 @@ void SharedCache::Store(SerializationContext& context) const
 
 	Serialize(context, "symbolInfos");
 	context.writer.StartArray();
-	for (const auto& pair1 : State().symbolInfos)
+	for (const auto& [headerLocation, symbols] : State().symbolInfos)
 	{
 	        context.writer.StartObject();
-	        Serialize(context, "key", pair1.first);
+	        Serialize(context, "key", headerLocation);
 	        Serialize(context, "value");
 	        context.writer.StartArray();
-	        for (const auto& pair2 : pair1.second)
+	        for (const auto& symbol : *symbols)
 	        {
 	                context.writer.StartObject();
-	                Serialize(context, "key", pair2.first);
-	                Serialize(context, "val1", pair2.second.first);
-	                Serialize(context, "val2", pair2.second.second);
+	                Serialize(context, "key", symbol->GetAddress());
+	                Serialize(context, "val1", symbol->GetType());
+	                Serialize(context, "val2", symbol->GetRawName());
 	                context.writer.EndObject();
 	        }
 	        context.writer.EndArray();
@@ -3930,13 +4019,15 @@ void SharedCache::Load(DeserializationContext& context)
 	auto symbolInfos = State().symbolInfos.transient();
 	for (auto& symbolInfo : context.doc["symbolInfos"].GetArray())
 	{
-		immer::vector_transient<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> symbolInfoVec;
-		for (auto& symbolInfoPair : symbolInfo.GetArray())
+		immer::vector_transient<Ref<Symbol>> symbolsVec;
+		for (auto& symbol : symbolInfo["value"].GetArray())
 		{
-			symbolInfoVec.push_back({symbolInfoPair[0].GetUint64(),
-				{(BNSymbolType)symbolInfoPair[1].GetUint(), symbolInfoPair[2].GetString()}});
+			symbolsVec.push_back(new Symbol(
+				(BNSymbolType)symbol["val1"].GetUint(), 
+				symbol["val2"].GetString(), 
+				symbol["key"].GetUint64()));
 		}
-		symbolInfos.set(symbolInfo[0].GetUint64(), std::move(symbolInfoVec).persistent());
+		symbolInfos.set(symbolInfo["key"].GetUint64(), std::make_shared<immer::vector<Ref<Symbol>>>(std::move(std::move(symbolsVec).persistent())));
 	}
 	MutableState().symbolInfos = std::move(symbolInfos).persistent();
 
@@ -4042,13 +4133,13 @@ const immer::map<uint64_t, SharedCacheMachOHeader>& SharedCache::AllImageHeaders
 void BackingCache::Store(SerializationContext& context) const
 {
 	MSS(path);
-	MSS(isPrimary);
+	MSS_CAST(cacheType, uint32_t);
 	MSS(mappings);
 }
 void BackingCache::Load(DeserializationContext& context)
 {
 	MSL(path);
-	MSL(isPrimary);
+	MSL_CAST(cacheType, uint32_t, BNBackingCacheType);
 	MSL(mappings);
 }
 
@@ -4058,7 +4149,7 @@ size_t SharedCache::GetBaseAddress() const {
 	}
 
 	const BackingCache& primaryCache = State().backingCaches[0];
-	if (!primaryCache.isPrimary) {
+	if (primaryCache.cacheType != BackingCacheTypePrimary) {
 		abort();
 		return 0;
 	}

@@ -64,6 +64,12 @@ extern "C"
 		LoadProgressFinished,
 	} BNDSCViewLoadProgress;
 
+	typedef enum BNBackingCacheType {
+		BackingCacheTypePrimary,
+		BackingCacheTypeSecondary,
+		BackingCacheTypeSymbols,
+	} BNBackingCacheType;
+
 	typedef struct BNBinaryView BNBinaryView;
 	typedef struct BNSharedCache BNSharedCache;
 
@@ -97,7 +103,7 @@ extern "C"
 
 	typedef struct BNDSCBackingCache {
 		char* path;
-		bool isPrimary;
+		BNBackingCacheType cacheType;
 		BNDSCBackingCacheMapping* mappings;
 		size_t mappingCount;
 	} BNDSCBackingCache;

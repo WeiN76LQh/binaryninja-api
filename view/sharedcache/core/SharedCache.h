@@ -63,12 +63,14 @@ namespace SharedCacheCore {
 
 	struct CacheImage : public MetadataSerializable<CacheImage>
 	{
+		uint32_t index; // image index in the DSC
 		std::string installName;
 		uint64_t headerLocation;
 		immer::vector<MemoryRegion> regions;
 
 		void Store(SerializationContext& context) const
 		{
+			MSS(index);
 			MSS(installName);
 			MSS(headerLocation);
 			Serialize(context, "regions");
@@ -82,6 +84,7 @@ namespace SharedCacheCore {
 
 		void Load(DeserializationContext& context)
 		{
+			MSL(index);
 			MSL(installName);
 			MSL(headerLocation);
 			auto bArr = context.doc["regions"].GetArray();
@@ -120,7 +123,7 @@ namespace SharedCacheCore {
 	struct BackingCache : public MetadataSerializable<BackingCache>
 	{
 		std::string path;
-		bool isPrimary = false;
+		BNBackingCacheType cacheType = BackingCacheTypeSecondary;
 		immer::vector<dyld_cache_mapping_info> mappings;
 
 		void Store(SerializationContext& context) const;
@@ -631,6 +634,9 @@ private:
 		std::vector<Ref<Symbol>> ParseExportTrie(
 			std::shared_ptr<MMappedFileAccessor> linkeditFile, SharedCacheMachOHeader header);
 		std::shared_ptr<immer::map<uint64_t, Ref<Symbol>>> GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList = nullptr);
+		
+		void ProcessSymbols(std::shared_ptr<MMappedFileAccessor> file, const SharedCacheMachOHeader& header, uint64_t stringsOffset, size_t stringsSize, uint64_t nlistEntriesOffset, uint32_t nlistCount, uint32_t nlistStartIndex = 0);
+		void ApplySymbol(Ref<BinaryView> view, Ref<TypeLibrary> typeLib, Ref<Symbol> symbol);
 
 		size_t GetBaseAddress() const;
 		std::optional<ObjCOptimizationHeader> GetObjCOptimizationHeader(VMReader reader) const;
