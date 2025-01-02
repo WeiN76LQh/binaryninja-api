@@ -3336,22 +3336,15 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 		if (preexistingSymbol->GetFullName().find("j_") != std::string::npos)
 			return;
 	}
-	auto id = m_dscView->BeginUndoActions();
 	if (auto loadedSymbol = m_dscView->GetSymbolByAddress(symbolLocation))
 	{
+		auto id = m_dscView->BeginUndoActions();
 		if (m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation))
 			m_dscView->DefineUserSymbol(new Symbol(FunctionSymbol, prefix + loadedSymbol->GetFullName(), targetLocation));
 		else
 			m_dscView->DefineUserSymbol(new Symbol(loadedSymbol->GetType(), prefix + loadedSymbol->GetFullName(), targetLocation));
+		m_dscView->ForgetUndoActions(id);
 	}
-	else if (auto sym = m_dscView->GetSymbolByAddress(symbolLocation))
-	{
-		if (m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation))
-			m_dscView->DefineUserSymbol(new Symbol(FunctionSymbol, prefix + sym->GetFullName(), targetLocation));
-		else
-			m_dscView->DefineUserSymbol(new Symbol(sym->GetType(), prefix + sym->GetFullName(), targetLocation));
-	}
-	m_dscView->ForgetUndoActions(id);
 	auto header = HeaderForAddress(symbolLocation);
 	if (header)
 	{
@@ -3373,36 +3366,29 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 			{
 				auto symbol = *it;
 
-				id = m_dscView->BeginUndoActions();
-				m_dscView->BeginBulkModifySymbols();
-
 				auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation);
-				if (func)
-				{
-					m_dscView->DefineUserSymbol(
-						new Symbol(FunctionSymbol, prefix + symbol->GetFullName(), targetLocation));
+				
+				auto id = m_dscView->BeginUndoActions();
+				m_dscView->DefineUserSymbol(
+					new Symbol(func ? FunctionSymbol : symbol->GetType(), prefix + symbol->GetFullName(), targetLocation));
 
-					if (typeLib)
-						if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {symbol->GetFullName()}))
+				if (typeLib)
+				{
+					if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {symbol->GetFullName()}))
+					{
+						if (func)
 							func->SetUserType(type);
-				}
-				else
-				{
-					m_dscView->DefineUserSymbol(
-						new Symbol(symbol->GetType(), prefix + symbol->GetFullName(), targetLocation));
-
-					if (typeLib)
-						if (auto type = m_dscView->ImportTypeLibraryObject(typeLib, {symbol->GetFullName()}))
+						else
 							m_dscView->DefineUserDataVariable(targetLocation, type);
+					}
 				}
+				m_dscView->ForgetUndoActions(id);
+
 				if (triggerReanalysis)
 				{
 					if (func)
 						func->Reanalyze();
 				}
-
-				m_dscView->EndBulkModifySymbols();
-				m_dscView->ForgetUndoActions(id);
 			}
 		}
 	}
