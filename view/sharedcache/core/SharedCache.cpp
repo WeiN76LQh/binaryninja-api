@@ -1891,19 +1891,20 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 	}
 
 	SharedCacheMachOHeader targetHeader;
-	const CacheImage* targetImage = nullptr;
 	decltype(State().images.begin()) targetImageIt;
 	decltype(CacheImage().regions.begin()) targetSegmentIt;
+	targetSegment = nullptr;
 
-	for (auto imageIt = MutableState().images.begin(); imageIt != MutableState().images.end(); ++imageIt)
+	for (auto imageIt = State().images.begin(); imageIt != State().images.end(); ++imageIt)
 	{
 		for (auto regionIt = imageIt->regions.begin(); regionIt != imageIt->regions.end(); ++regionIt)
 		{
 			if (regionIt->start <= address && regionIt->start + regionIt->size > address)
 			{
-				targetHeader = MutableState().headers[imageIt->headerLocation];
+				targetHeader = State().headers[imageIt->headerLocation];
 				targetImageIt = imageIt;
 				targetSegmentIt = regionIt;
+				targetSegment = &*regionIt;
 				break;
 			}
 		}
@@ -1936,7 +1937,7 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 
 	auto images = State().images;
 	auto regions = images[targetImageIt.index()].regions;
-	CacheImage newTargetImage(*targetImage);
+	CacheImage newTargetImage(*targetImageIt);
 	newTargetImage.regions = regions.set(targetSegmentIt.index(), std::move(newTargetSegment));
 	MutableState().images = images.set(targetImageIt.index(), std::move(newTargetImage));
 
@@ -1951,7 +1952,7 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 		newTargetSegment.headerInitialized = true;
 		auto images = State().images;
 		auto regions = images[targetImageIt.index()].regions;
-		CacheImage newTargetImage(*targetImage);
+		CacheImage newTargetImage(*targetImageIt);
 		newTargetImage.regions = regions.set(targetSegmentIt.index(), std::move(newTargetSegment));
 		MutableState().images = images.set(targetImageIt.index(), std::move(newTargetImage));
 	}
