@@ -130,12 +130,6 @@ namespace SharedCacheCore {
 		void Load(DeserializationContext& context);
 	};
 
-	struct LoadedMapping
-	{
-		std::shared_ptr<MMappedFileAccessor> backingFile;
-		dyld_cache_mapping_info mappingInfo;
-	};
-
 	struct PACKED_STRUCT dyld_cache_mapping_and_slide_info
 	{
 		uint64_t address;
