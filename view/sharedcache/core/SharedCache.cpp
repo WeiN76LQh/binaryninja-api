@@ -94,6 +94,9 @@ struct SharedCache::ViewSpecificState {
 
 	std::mutex stateMutex;
 
+	std::mutex memoryRegionLoadingMutexesMutex;
+	std::unordered_map<uint64_t, std::mutex> memoryRegionLoadingMutexes;
+
 #if __has_feature(__cpp_lib_atomic_shared_ptr)
        std::shared_ptr<struct SharedCache::State> GetCachedState() const {
                return cachedState;
@@ -1611,22 +1614,7 @@ bool SharedCache::LoadImageContainingAddress(uint64_t address, bool skipObjC)
 
 bool SharedCache::LoadSectionAtAddress(uint64_t address)
 {
-	std::unique_lock lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
-	DeserializeFromRawView();
-	WillMutateState();
-
-	auto vm = GetVMMap();
-	if (!vm)
-	{
-		m_logger->LogError("Failed to map VM pages for Shared Cache.");
-		return false;
-	}
-
-	SharedCacheMachOHeader targetHeader;
-	const CacheImage* targetImage = nullptr;
-	decltype(State().images.begin()) targetImageIt;
 	const MemoryRegion* targetSegment = nullptr;
-	decltype(CacheImage().regions.begin()) targetSegmentIt;
 
 	for (auto imageIt = State().images.begin(); imageIt != State().images.end(); ++imageIt)
 	{
@@ -1636,11 +1624,7 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 			auto& region = *regionIt;
 			if (region.start <= address && region.start + region.size > address)
 			{
-				targetHeader = MutableState().headers[image.headerLocation];
-				targetImage = &image;
-				targetImageIt = imageIt;
 				targetSegment = &region;
-				targetSegmentIt = regionIt;
 				break;
 			}
 		}
@@ -1651,31 +1635,71 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 	{
 		for (auto it = State().stubIslandRegions.begin(); it != State().stubIslandRegions.end(); ++it)
 		{
-			auto& stubIsland = *it;
-			if (stubIsland.start <= address && stubIsland.start + stubIsland.size > address)
+			auto stubIsland = &*it;
+			if (stubIsland->start <= address && stubIsland->start + stubIsland->size > address)
 			{
-				if (stubIsland.loaded)
+				if (stubIsland->loaded)
 				{
 					return true;
 				}
-				m_logger->LogInfo("Loading stub island %s @ 0x%llx", stubIsland.prettyName.c_str(), stubIsland.start);
-				auto targetFile = vm->MappingAtAddress(stubIsland.start).first.fileAccessor->lock();
+
+				// The region appears not to be loaded. Acquire the loading lock, re-check 
+				// that it hasn't been loaded and if it still hasn't then actually load it.
+				std::unique_lock<std::mutex> memoryRegionLoadingLockslock(m_viewSpecificState->memoryRegionLoadingMutexesMutex);
+				auto& memoryRegionLoadingMutex = m_viewSpecificState->memoryRegionLoadingMutexes[stubIsland->start];
+				// Now the specific memory region's loading mutex has been retrieved, this one can be dropped
+				memoryRegionLoadingLockslock.unlock();
+				// Hold this lock until loading of the region is done
+				std::unique_lock<std::mutex> memoryRegionLoadingLock(memoryRegionLoadingMutex);
+
+				// Check the latest state to see if the memory region has been loaded while acquiring the lock
+				{
+					std::unique_lock<std::mutex> viewStateCacheLock(m_viewSpecificState->stateMutex);
+					
+					for (auto& cacheStubIsland : m_viewSpecificState->GetCachedState()->stubIslandRegions)
+					{
+						if (cacheStubIsland.start <= address && cacheStubIsland.start + cacheStubIsland.size > address)
+						{
+							if (cacheStubIsland.loaded)
+							{
+								return true;
+							}
+							stubIsland = &cacheStubIsland;
+							break;
+						}
+					}
+				}
+
+				// Still not loaded, so load it below
+				std::unique_lock<std::mutex> lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
+				DeserializeFromRawView();
+				WillMutateState();
+
+				auto vm = GetVMMap();
+				if (!vm)
+				{
+					m_logger->LogError("Failed to map VM pages for Shared Cache.");
+					return false;
+				}
+
+				m_logger->LogInfo("Loading stub island %s @ 0x%llx", stubIsland->prettyName.c_str(), stubIsland->start);
+				auto targetFile = vm->MappingAtAddress(stubIsland->start).first.fileAccessor->lock();
 				ParseAndApplySlideInfoForFile(targetFile);
 				auto reader = VMReader(vm);
-				auto buff = reader.ReadBuffer(stubIsland.start, stubIsland.size);
+				auto buff = reader.ReadBuffer(stubIsland->start, stubIsland->size);
 				auto rawViewEnd = m_dscView->GetParentView()->GetEnd();
 
-				auto name = stubIsland.prettyName;
+				auto name = stubIsland->prettyName;
 				m_dscView->GetParentView()->GetParentView()->WriteBuffer(
 					m_dscView->GetParentView()->GetParentView()->GetEnd(), buff);
-				m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, stubIsland.size, rawViewEnd, stubIsland.size,
+				m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, stubIsland->size, rawViewEnd, stubIsland->size,
 					SegmentReadable | SegmentExecutable);
-				m_dscView->AddUserSegment(stubIsland.start, stubIsland.size, rawViewEnd, stubIsland.size,
+				m_dscView->AddUserSegment(stubIsland->start, stubIsland->size, rawViewEnd, stubIsland->size,
 					SegmentReadable | SegmentExecutable);
-				m_dscView->AddUserSection(name, stubIsland.start, stubIsland.size, ReadOnlyCodeSectionSemantics);
-				m_dscView->WriteBuffer(stubIsland.start, buff);
+				m_dscView->AddUserSection(name, stubIsland->start, stubIsland->size, ReadOnlyCodeSectionSemantics);
+				m_dscView->WriteBuffer(stubIsland->start, buff);
 
-				MemoryRegion newStubIsland(stubIsland);
+				MemoryRegion newStubIsland(*stubIsland);
 				newStubIsland.loaded = true;
 				newStubIsland.rawViewOffsetIfLoaded = rawViewEnd;
 				MutableState().regionsMappedIntoMemory = State().regionsMappedIntoMemory.push_back(newStubIsland);
@@ -1692,31 +1716,71 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 
 		for (auto it = State().dyldDataRegions.begin(); it != State().dyldDataRegions.end(); ++it)
 		{
-			auto& dyldData = *it;
-			if (dyldData.start <= address && dyldData.start + dyldData.size > address)
+			auto dyldData = &*it;
+			if (dyldData->start <= address && dyldData->start + dyldData->size > address)
 			{
-				if (dyldData.loaded)
+				if (dyldData->loaded)
 				{
 					return true;
 				}
-				m_logger->LogInfo("Loading dyld data %s", dyldData.prettyName.c_str());
-				auto targetFile = vm->MappingAtAddress(dyldData.start).first.fileAccessor->lock();
+
+				// The region appears not to be loaded. Acquire the loading lock, re-check 
+				// that it hasn't been loaded and if it still hasn't then actually load it.
+				std::unique_lock<std::mutex> memoryRegionLoadingLockslock(m_viewSpecificState->memoryRegionLoadingMutexesMutex);
+				auto& memoryRegionLoadingMutex = m_viewSpecificState->memoryRegionLoadingMutexes[dyldData->start];
+				// Now the specific memory region's loading mutex has been retrieved, this one can be dropped
+				memoryRegionLoadingLockslock.unlock();
+				// Hold this lock until loading of the region is done
+				std::unique_lock<std::mutex> memoryRegionLoadingLock(memoryRegionLoadingMutex);
+
+				// Check the latest state to see if the memory region has been loaded while acquiring the lock
+				{
+					std::unique_lock<std::mutex> viewStateCacheLock(m_viewSpecificState->stateMutex);
+					
+					for (auto& cacheDyldData : m_viewSpecificState->GetCachedState()->dyldDataRegions)
+					{
+						if (cacheDyldData.start <= address && cacheDyldData.start + cacheDyldData.size > address)
+						{
+							if (cacheDyldData.loaded)
+							{
+								return true;
+							}
+							dyldData = &cacheDyldData;
+							break;
+						}
+					}
+				}
+
+				// Still not loaded, so load it below
+				std::unique_lock<std::mutex> lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
+				DeserializeFromRawView();
+				WillMutateState();
+
+				auto vm = GetVMMap();
+				if (!vm)
+				{
+					m_logger->LogError("Failed to map VM pages for Shared Cache.");
+					return false;
+				}
+
+				m_logger->LogInfo("Loading dyld data %s", dyldData->prettyName.c_str());
+				auto targetFile = vm->MappingAtAddress(dyldData->start).first.fileAccessor->lock();
 				ParseAndApplySlideInfoForFile(targetFile);
 				auto reader = VMReader(vm);
-				auto buff = reader.ReadBuffer(dyldData.start, dyldData.size);
+				auto buff = reader.ReadBuffer(dyldData->start, dyldData->size);
 				auto rawViewEnd = m_dscView->GetParentView()->GetEnd();
 
-				auto name = dyldData.prettyName;
+				auto name = dyldData->prettyName;
 				m_dscView->GetParentView()->GetParentView()->WriteBuffer(
 					m_dscView->GetParentView()->GetParentView()->GetEnd(), buff);
 				m_dscView->GetParentView()->WriteBuffer(rawViewEnd, buff);
-				m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, dyldData.size, rawViewEnd, dyldData.size,
+				m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, dyldData->size, rawViewEnd, dyldData->size,
 					SegmentReadable);
-				m_dscView->AddUserSegment(dyldData.start, dyldData.size, rawViewEnd, dyldData.size, SegmentReadable);
-				m_dscView->AddUserSection(name, dyldData.start, dyldData.size, ReadOnlyDataSectionSemantics);
-				m_dscView->WriteBuffer(dyldData.start, buff);
+				m_dscView->AddUserSegment(dyldData->start, dyldData->size, rawViewEnd, dyldData->size, SegmentReadable);
+				m_dscView->AddUserSection(name, dyldData->start, dyldData->size, ReadOnlyDataSectionSemantics);
+				m_dscView->WriteBuffer(dyldData->start, buff);
 
-				MemoryRegion newDyldData(dyldData);
+				MemoryRegion newDyldData(*dyldData);
 				newDyldData.loaded = true;
 				newDyldData.rawViewOffsetIfLoaded = rawViewEnd;
 				MutableState().regionsMappedIntoMemory = State().regionsMappedIntoMemory.push_back(newDyldData);
@@ -1733,30 +1797,71 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 
 		for (auto it = State().nonImageRegions.begin(); it != State().nonImageRegions.end(); ++it)
 		{
-			auto& region = *it;
-			if (region.start <= address && region.start + region.size > address)
+			auto region = &*it;
+			if (region->start <= address && region->start + region->size > address)
 			{
-				if (region.loaded)
+				if (region->loaded)
 				{
 					return true;
 				}
-				m_logger->LogInfo("Loading non-image region %s", region.prettyName.c_str());
-				auto targetFile = vm->MappingAtAddress(region.start).first.fileAccessor->lock();
+
+				// The region appears not to be loaded. Acquire the loading lock, re-check 
+				// that it hasn't been loaded and if it still hasn't then actually load it.
+				std::unique_lock<std::mutex> memoryRegionLoadingLockslock(m_viewSpecificState->memoryRegionLoadingMutexesMutex);
+				auto& memoryRegionLoadingMutex = m_viewSpecificState->memoryRegionLoadingMutexes[region->start];
+				// Now the specific memory region's loading mutex has been retrieved, this one can be dropped
+				memoryRegionLoadingLockslock.unlock();
+				// Hold this lock until loading of the region is done
+				std::unique_lock<std::mutex> memoryRegionLoadingLock(memoryRegionLoadingMutex);
+
+				// Check the latest state to see if the memory region has been loaded while acquiring the lock
+				{
+					auto viewSpecificState = m_viewSpecificState;
+					std::unique_lock<std::mutex> viewStateCacheLock(viewSpecificState->stateMutex);
+					
+					for (auto& cacheRegion : viewSpecificState->GetCachedState()->nonImageRegions)
+					{
+						if (cacheRegion.start <= address && cacheRegion.start + cacheRegion.size > address)
+						{
+							if (cacheRegion.loaded)
+							{
+								return true;
+							}
+							region = &cacheRegion;
+							break;
+						}
+					}
+				}
+
+				// Still not loaded, so load it below
+				std::unique_lock<std::mutex> lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
+				DeserializeFromRawView();
+				WillMutateState();
+
+				auto vm = GetVMMap();
+				if (!vm)
+				{
+					m_logger->LogError("Failed to map VM pages for Shared Cache.");
+					return false;
+				}
+
+				m_logger->LogInfo("Loading non-image region %s", region->prettyName.c_str());
+				auto targetFile = vm->MappingAtAddress(region->start).first.fileAccessor->lock();
 				ParseAndApplySlideInfoForFile(targetFile);
 				auto reader = VMReader(vm);
-				auto buff = reader.ReadBuffer(region.start, region.size);
+				auto buff = reader.ReadBuffer(region->start, region->size);
 				auto rawViewEnd = m_dscView->GetParentView()->GetEnd();
 
-				auto name = region.prettyName;
+				auto name = region->prettyName;
 				m_dscView->GetParentView()->GetParentView()->WriteBuffer(
 					m_dscView->GetParentView()->GetParentView()->GetEnd(), buff);
 				m_dscView->GetParentView()->WriteBuffer(rawViewEnd, buff);
-				m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, region.size, rawViewEnd, region.size, region.flags);
-				m_dscView->AddUserSegment(region.start, region.size, rawViewEnd, region.size, region.flags);
-				m_dscView->AddUserSection(name, region.start, region.size, region.flags & SegmentDenyExecute ? ReadOnlyDataSectionSemantics : ReadOnlyCodeSectionSemantics);
-				m_dscView->WriteBuffer(region.start, buff);
+				m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, region->size, rawViewEnd, region->size, region->flags);
+				m_dscView->AddUserSegment(region->start, region->size, rawViewEnd, region->size, region->flags);
+				m_dscView->AddUserSection(name, region->start, region->size, region->flags & SegmentDenyExecute ? ReadOnlyDataSectionSemantics : ReadOnlyCodeSectionSemantics);
+				m_dscView->WriteBuffer(region->start, buff);
 
-				MemoryRegion newRegion(region);
+				MemoryRegion newRegion(*region);
 				newRegion.loaded = true;
 				newRegion.rawViewOffsetIfLoaded = rawViewEnd;
 				MutableState().regionsMappedIntoMemory = State().regionsMappedIntoMemory.push_back(newRegion);
@@ -1773,6 +1878,38 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 
 		m_logger->LogError("Failed to find a segment containing address 0x%llx", address);
 		return false;
+	}
+
+	std::unique_lock lock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
+	DeserializeFromRawView();
+	WillMutateState();
+
+	auto vm = GetVMMap();
+	if (!vm)
+	{
+		m_logger->LogError("Failed to map VM pages for Shared Cache.");
+		return false;
+	}
+
+	SharedCacheMachOHeader targetHeader;
+	const CacheImage* targetImage = nullptr;
+	decltype(State().images.begin()) targetImageIt;
+	decltype(CacheImage().regions.begin()) targetSegmentIt;
+
+	for (auto imageIt = MutableState().images.begin(); imageIt != MutableState().images.end(); ++imageIt)
+	{
+		for (auto regionIt = imageIt->regions.begin(); regionIt != imageIt->regions.end(); ++regionIt)
+		{
+			if (regionIt->start <= address && regionIt->start + regionIt->size > address)
+			{
+				targetHeader = MutableState().headers[imageIt->headerLocation];
+				targetImageIt = imageIt;
+				targetSegmentIt = regionIt;
+				break;
+			}
+		}
+		if (targetSegment)
+			break;
 	}
 
 	auto id = m_dscView->BeginUndoActions();
