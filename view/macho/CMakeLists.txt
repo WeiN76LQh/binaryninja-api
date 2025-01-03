@@ -9,6 +9,7 @@ endif()
 file(GLOB SOURCES
 	*.cpp
 	*.h)
+list(APPEND SOURCES ../../objc/objc.cpp)
 
 if(DEMO)
 	add_library(view_macho STATIC ${SOURCES})
