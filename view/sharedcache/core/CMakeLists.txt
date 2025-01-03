@@ -12,6 +12,7 @@ file(GLOB COMMON_SOURCES
         *.cpp
         *.h
         )
+list(APPEND COMMON_SOURCES ../../../objc/objc.cpp)
 set(SOURCES ${COMMON_SOURCES})
 
 add_library(sharedcachecore OBJECT ${SOURCES})
