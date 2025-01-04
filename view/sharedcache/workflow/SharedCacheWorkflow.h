@@ -7,6 +7,7 @@ using namespace BinaryNinja;
 #ifndef SHAREDCACHE_SHAREDCACHEWORKFLOW_H
 #define SHAREDCACHE_SHAREDCACHEWORKFLOW_H
 
+constexpr uint32_t CFSTRIntrinsicIndex = UINT32_MAX - 64;
 
 class SharedCacheWorkflow
 {

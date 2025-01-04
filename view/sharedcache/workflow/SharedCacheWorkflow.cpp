@@ -515,14 +515,68 @@ void fixObjCCallTypes(Ref<AnalysisContext> ctx)
 }
 
 
+void inlineCFStrings(Ref<AnalysisContext> ac)
+{
+    const auto func = ac->GetFunction();
+    const auto bv = func->GetView();
+    const auto addressSize = bv->GetAddressSize();
+
+	const auto llil = ac->GetLowLevelILFunction();
+	if (!llil) {
+		return;
+	}
+	const auto ssa = llil->GetSSAForm();
+	if (!ssa) {
+		return;
+	}
+
+    for (const auto& block : ssa->GetBasicBlocks())
+    {
+        for (size_t i = block->GetStart(), end = block->GetEnd(); i < end; ++i)
+        {
+            const auto insn = ssa->GetInstruction(i);
+            if (insn.operation != LLIL_SET_REG_SSA)
+                continue;
+
+            const auto sourceExpr = insn.GetSourceExpr<LLIL_SET_REG_SSA>();
+            const auto addr = sourceExpr.GetValue().value;
+            BinaryNinja::DataVariable var;
+            if (!bv->GetDataVariableAtAddress(addr, var))
+                continue;
+            const auto varTypeString = var.type->GetString();
+            if (varTypeString != "struct CFString" && varTypeString != "struct __NSConstantString")
+                continue;
+
+			const auto llilIndex = ssa->GetNonSSAInstructionIndex(i);
+			auto llilInsn = llil->GetInstruction(llilIndex);
+
+			auto destRegister = llilInsn.GetDestRegister();
+
+			auto stringPointer = addr + 0x10;
+			uint64_t dest;
+			bv->Read(&dest, stringPointer, addressSize);
+
+			auto targetPointer = llil->ConstPointer(addressSize, dest, llilInsn);
+			auto cfstrCall = llil->Intrinsic({ BinaryNinja::RegisterOrFlag(0, destRegister) }, CFSTRIntrinsicIndex, {targetPointer}, 0, llilInsn);
+
+			llilInsn.Replace(cfstrCall);
+
+			llil->GenerateSSAForm();
+			llil->Finalize();
+        }
+    }
+}
+
 
 void SharedCacheWorkflow::Register()
 {
 	Ref<Workflow> wf = BinaryNinja::Workflow::Instance("core.function.baseAnalysis")->Clone("core.function.dsc");
 	wf->RegisterActivity(new BinaryNinja::Activity("core.analysis.dscstubs", &SharedCacheWorkflow::FixupStubs));
 	wf->RegisterActivity(new BinaryNinja::Activity("core.analysis.fixObjCCallTypes", &fixObjCCallTypes));
+    wf->RegisterActivity(new BinaryNinja::Activity("core.function.objectiveC.resolveCFStrings", &inlineCFStrings));
 	wf->Insert("core.function.analyzeTailCalls", "core.analysis.fixObjCCallTypes");
 	wf->Insert("core.function.analyzeTailCalls", "core.analysis.dscstubs");
+    wf->Insert("core.function.translateTailCalls", "core.function.objectiveC.resolveCFStrings");
 
 	BinaryNinja::Workflow::RegisterWorkflow(wf, workflowInfo);
 }
