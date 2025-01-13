@@ -37,7 +37,7 @@
 // Current ABI version for linking to the core. This is incremented any time
 // there are changes to the API that affect linking, including new functions,
 // new types, or modifications to existing functions or types.
-#define BN_CURRENT_CORE_ABI_VERSION 86
+#define BN_CURRENT_CORE_ABI_VERSION 87
 
 // Minimum ABI version that is supported for loading of plugins. Plugins that
 // are linked to an ABI version less than this will not be able to load and
@@ -3539,6 +3539,7 @@ extern "C"
 
 
 	BINARYNINJACOREAPI char* BNAllocString(const char* contents);
+	BINARYNINJACOREAPI char* BNAllocStringWithLength(const char* contents, size_t len);
 	BINARYNINJACOREAPI void BNFreeString(char* str);
 	BINARYNINJACOREAPI char** BNAllocStringList(const char** contents, size_t size);
 	BINARYNINJACOREAPI void BNFreeStringList(char** strs, size_t count);

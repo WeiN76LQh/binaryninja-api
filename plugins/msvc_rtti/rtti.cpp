@@ -441,6 +441,17 @@ std::optional<ClassInfo> MicrosoftRTTIProcessor::ProcessRTTI(uint64_t coLocatorA
     if (!className.has_value())
         return std::nullopt;
 
+    // If the className is empty we will change it to the address, this is to fix type clobbering.
+    if (className->empty())
+    {
+        if (!allowAnonymousClassNames)
+        {
+            m_logger->LogDebug("Skipping CompleteObjectorLocator with anonymous name %llx", coLocatorAddr);
+            return std::nullopt;
+        }
+        className = fmt::format("ANONYMOUS_{:#x}", coLocatorAddr);
+    }
+
     auto classInfo = ClassInfo{className.value()};
     if (coLocator->offset > 0)
         classInfo.classOffset = coLocator->offset;
@@ -509,7 +520,8 @@ std::optional<VirtualFunctionTableInfo> MicrosoftRTTIProcessor::ProcessVFT(uint6
     // Gather all virtual functions
     BinaryReader reader = BinaryReader(m_view);
     reader.Seek(vftAddr);
-    std::vector<Ref<Function> > virtualFunctions = {};
+    // Virtual functions and the analysis object of it, if it exists.
+    std::vector<std::pair<uint64_t, std::optional<Ref<Function>>>> virtualFunctions = {};
     while (true)
     {
         uint64_t vFuncAddr = reader.ReadPointer();
@@ -525,10 +537,13 @@ std::optional<VirtualFunctionTableInfo> MicrosoftRTTIProcessor::ProcessVFT(uint6
             // TODO: Is likely a function check here?
             m_logger->LogDebug("Discovered function from virtual function table... %llx", vFuncAddr);
             auto vFunc = m_view->AddFunctionForAnalysis(m_view->GetDefaultPlatform(), vFuncAddr, true);
-            funcs.emplace_back(vFunc);
+            virtualFunctions.emplace_back(vFuncAddr, vFunc ? std::optional(vFunc) : std::nullopt);
         }
-        // Only ever add one function.
-        virtualFunctions.emplace_back(funcs.front());
+        else
+        {
+            // Only ever add one function.
+            virtualFunctions.emplace_back(vFuncAddr, funcs.front());
+        }
     }
 
     if (virtualFunctions.empty())
@@ -537,8 +552,8 @@ std::optional<VirtualFunctionTableInfo> MicrosoftRTTIProcessor::ProcessVFT(uint6
         return std::nullopt;
     }
 
-    for (auto &func: virtualFunctions)
-        vftInfo.virtualFunctions.emplace_back(VirtualFunctionInfo{func->GetStart()});
+    for (auto &[vFuncAddr, _]: virtualFunctions)
+        vftInfo.virtualFunctions.emplace_back(VirtualFunctionInfo{vFuncAddr});
 
     // Create virtual function table type
     auto vftTypeName = fmt::format("{}::VTable", classInfo.className);
@@ -585,22 +600,27 @@ std::optional<VirtualFunctionTableInfo> MicrosoftRTTIProcessor::ProcessVFT(uint6
             }
         }
         
-        for (auto &&vFunc: virtualFunctions)
+        for (auto &&[_, vFunc]: virtualFunctions)
         {
             auto vFuncName = fmt::format("vFunc_{}", vFuncIdx);
-            // If we have a better name, use it.
-            auto vFuncSymName = vFunc->GetSymbol()->GetShortName();
-            if (vFuncSymName.compare(0, 4, "sub_") != 0)
-                vFuncName = vFunc->GetSymbol()->GetShortName();
-            // MyClass::func -> func
-            std::size_t pos = vFuncName.rfind("::");
-            if (pos != std::string::npos)
-                vFuncName = vFuncName.substr(pos + 2);
+            if (vFunc.has_value())
+            {
+                // If we have a better name, use it.
+                auto vFuncObj = vFunc.value();
+                auto vFuncSymName = vFuncObj->GetSymbol()->GetShortName();
+                if (vFuncSymName.compare(0, 4, "sub_") != 0)
+                    vFuncName = vFuncObj->GetSymbol()->GetShortName();
+                // MyClass::func -> func
+                std::size_t pos = vFuncName.rfind("::");
+                if (pos != std::string::npos)
+                    vFuncName = vFuncName.substr(pos + 2);
+            }
 
             // NOTE: The analyzed function type might not be available here.
             auto vFuncOffset = vFuncIdx * addrSize;
+            // We have access to a backing function type, use it, otherwise void!
             vftBuilder.AddMemberAtOffset(
-                Type::PointerType(addrSize, vFunc->GetType(), true), vFuncName, vFuncOffset);
+                Type::PointerType(addrSize, vFunc.has_value() ? vFunc.value()->GetType() : Type::VoidType(), true), vFuncName, vFuncOffset);
             vFuncIdx++;
         }
         m_view->DefineType(typeId, vftTypeName,
@@ -616,10 +636,11 @@ std::optional<VirtualFunctionTableInfo> MicrosoftRTTIProcessor::ProcessVFT(uint6
 }
 
 
-MicrosoftRTTIProcessor::MicrosoftRTTIProcessor(const Ref<BinaryView> &view, bool useMangled, bool checkRData, bool vftSweep) : m_view(view)
+MicrosoftRTTIProcessor::MicrosoftRTTIProcessor(const Ref<BinaryView> &view, bool useMangled, bool checkRData, bool vftSweep, bool allowAnonymous) : m_view(view)
 {
     m_logger = new Logger("Microsoft RTTI");
     allowMangledClassNames = useMangled;
+    allowAnonymousClassNames = allowAnonymous;
     checkWritableRData = checkRData;
     m_classInfo = {};
     virtualFunctionTableSweep = vftSweep;
