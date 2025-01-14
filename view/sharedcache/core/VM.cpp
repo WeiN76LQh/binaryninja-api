@@ -227,14 +227,15 @@ void MMAP::Unmap()
 }
 
 
-std::shared_ptr<SelfAllocatingWeakPtr<MMappedFileAccessor>> MMappedFileAccessor::Open(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, const uint64_t sessionID, const std::string &path, std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine)
+std::shared_ptr<LazyMappedFileAccessor> MMappedFileAccessor::Open(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, const uint64_t sessionID, const std::string &path, std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine)
 {
 	std::unique_lock<std::mutex> lock(fileAccessorsMutex);
 	if (auto it = fileAccessors.find(path); it != fileAccessors.end()) {
 		return it->second;
 	}
 
-	auto fileAccessor = std::shared_ptr<SelfAllocatingWeakPtr<MMappedFileAccessor>>(new SelfAllocatingWeakPtr<MMappedFileAccessor>(
+	auto fileAccessor = std::make_shared<LazyMappedFileAccessor>(
+		path,
 		// Allocator logic for the SelfAllocatingWeakPtr. This has been written to respect 
 		// `maxFPLimit` as much as possible. However if, for whatever reason, a deadlock occurs, 
 		// requiring more than `maxFPLimit` of files to be opened to continue past, there is a 
@@ -353,7 +354,7 @@ std::shared_ptr<SelfAllocatingWeakPtr<MMappedFileAccessor>> MMappedFileAccessor:
 		[postAllocationRoutine=postAllocationRoutine](std::shared_ptr<MMappedFileAccessor> accessor){
 			if (postAllocationRoutine)
 				postAllocationRoutine(accessor);
-		}));
+		});
 
 	fileAccessors.insert_or_assign(path, fileAccessor);
 	return fileAccessor;
@@ -562,7 +563,7 @@ VM::~VM()
 }
 
 
-void VM::MapPages(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, uint64_t sessionID, size_t vm_address, size_t fileoff, size_t size, std::string filePath, std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine)
+void VM::MapPages(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, uint64_t sessionID, size_t vm_address, size_t fileoff, size_t size, const std::string& filePath, std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine)
 {
 	// The mappings provided for shared caches will always be page aligned.
 	// We can use this to our advantage and gain considerable performance via page tables.
@@ -575,7 +576,7 @@ void VM::MapPages(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, uint64_t se
 	}
 
 	auto accessor = MMappedFileAccessor::Open(std::move(dscView), sessionID, filePath, postAllocationRoutine);
-	auto [it, inserted] = m_map.insert_or_assign({vm_address, vm_address + size}, PageMapping(std::move(filePath), std::move(accessor), fileoff));
+	auto [it, inserted] = m_map.insert_or_assign({vm_address, vm_address + size}, PageMapping(std::move(accessor), fileoff));
 	if (m_safe && !inserted)
 	{
 		BNLogWarn("Remapping page 0x%zx (f: 0x%zx)", vm_address, fileoff);
