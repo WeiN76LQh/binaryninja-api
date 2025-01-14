@@ -780,7 +780,7 @@ void SharedCache::PerformInitialLoad()
 				if (imageHeader->linkeditPresent && vm->AddressIsMapped(imageHeader->linkeditSegment.vmaddr))
 				{
 					auto mapping = vm->MappingAtAddress(imageHeader->linkeditSegment.vmaddr);
-					imageHeader->exportTriePath = mapping.first.filePath;
+					imageHeader->exportTriePath = mapping.first.fileAccessor->filePath();
 				}
 				MutableState().headers[start.second] = imageHeader.value();
 				CacheImage image;
@@ -3330,7 +3330,8 @@ extern "C"
 						images[i].mappings[j].vmAddress = sectionStart;
 						images[i].mappings[j].size = header.sections[j].size;
 						images[i].mappings[j].name = BNAllocString(header.sectionNames[j].c_str());
-						images[i].mappings[j].filePath = BNAllocString(vm->MappingAtAddress(sectionStart).first.filePath.c_str());
+						auto fileAccessor = vm->MappingAtAddress(sectionStart).first.fileAccessor;
+						images[i].mappings[j].filePath = BNAllocStringWithLength(fileAccessor->filePath().data(), fileAccessor->filePath().length());
 						images[i].mappings[j].loaded = cache->object->IsMemoryMapped(sectionStart);
 					}
 					i++;
