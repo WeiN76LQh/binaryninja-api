@@ -674,11 +674,11 @@ private:
 		std::optional<SharedCacheMachOHeader> LoadHeaderForAddress(
 			std::shared_ptr<VM> vm, uint64_t address, std::string_view installName);
 		void InitializeHeader(
-			Ref<BinaryView> view, VM* vm, SharedCacheMachOHeader header, const std::vector<const MemoryRegion*> regionsToLoad);
-		void ReadExportNode(std::vector<Ref<Symbol>>& symbolList, SharedCacheMachOHeader& header, DataBuffer& buffer,
-			uint64_t textBase, const std::string& currentText, size_t cursor, uint32_t endGuard);
+			Ref<BinaryView> view, VM* vm, const SharedCacheMachOHeader& header, const std::vector<const MemoryRegion*> regionsToLoad);
+		void ReadExportNode(std::vector<Ref<Symbol>>& symbolList, const SharedCacheMachOHeader& header, const uint8_t* begin,
+			const uint8_t *end, const uint8_t* current, uint64_t textBase, const std::string& currentText);
 		std::vector<Ref<Symbol>> ParseExportTrie(
-			std::shared_ptr<MMappedFileAccessor> linkeditFile, SharedCacheMachOHeader header);
+			std::shared_ptr<MMappedFileAccessor> linkeditFile, const SharedCacheMachOHeader& header);
 		std::shared_ptr<immer::map<uint64_t, Ref<Symbol>>> GetExportListForHeader(SharedCacheMachOHeader header, std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList = nullptr);
 		
 		void ProcessSymbols(std::shared_ptr<MMappedFileAccessor> file, const SharedCacheMachOHeader& header, uint64_t stringsOffset, size_t stringsSize, uint64_t nlistEntriesOffset, uint32_t nlistCount, uint32_t nlistStartIndex = 0);

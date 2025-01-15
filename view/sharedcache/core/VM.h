@@ -208,6 +208,14 @@ public:
 
     BinaryNinja::DataBuffer ReadBuffer(size_t addr, size_t length);
 
+    // Returns a range of pointers within the mapped memory region corresponding to
+    // {addr, length}.
+    // WARNING: The pointers returned by this method is only valid for the lifetime
+    // of this file accessor.
+    // TODO: This should use std::span<const uint8_t> once the minimum supported
+    // C++ version supports it.
+    std::pair<const uint8_t*, const uint8_t*> ReadSpan(size_t addr, size_t length);
+
     void Read(void *dest, size_t addr, size_t length);
 
     template <typename T>
