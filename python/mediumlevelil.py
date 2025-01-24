@@ -1101,6 +1101,12 @@ class MediumLevelILInstruction(BaseILInstruction):
 		finally:
 			core.BNMediumLevelILFreeOperandList(operand_list)
 
+	def _get_constraint(self, operand_index: int) -> variable.PossibleValueSet:
+		value = core.BNGetCachedMediumLevelILPossibleValueSet(self.function.handle, self.instr.operands[operand_index])
+		result = variable.PossibleValueSet(self.function.arch, value)
+		core.BNFreePossibleValueSet(value)
+		return result
+
 
 @dataclass(frozen=True, repr=False, eq=False)
 class MediumLevelILConstBase(MediumLevelILInstruction, Constant):
@@ -3001,6 +3007,47 @@ class MediumLevelILStoreStructSsa(MediumLevelILInstruction, Store, SSA):
 			('src', self.src, 'MediumLevelILInstruction'),
 		]
 
+@dataclass(frozen=True, repr=False, eq=False)
+class MediumLevelILAssert(MediumLevelILInstruction):
+    @property
+    def src(self) -> variable.Variable:
+        return self._get_var(0)
+
+    @property
+    def constraint(self) -> variable.PossibleValueSet:
+        return self._get_constraint(1)
+
+@dataclass(frozen=True, repr=False, eq=False)
+class MediumLevelILAssertSsa(MediumLevelILInstruction, SSA):
+    @property
+    def src(self) -> SSAVariable:
+        return self._get_var_ssa(0, 1)
+
+    @property
+    def constraint(self) -> variable.PossibleValueSet:
+        return self._get_constraint(2)
+
+@dataclass(frozen=True, repr=False, eq=False)
+class MediumLevelILForceVer(MediumLevelILInstruction):
+    @property
+    def dest(self) -> variable.Variable:
+        return self._get_var(0)
+
+    @property
+    def src(self) -> variable.Variable:
+        return self._get_var(1)
+
+@dataclass(frozen=True, repr=False, eq=False)
+class MediumLevelILForceVerSsa(MediumLevelILInstruction, SSA):
+    @property
+    def dest(self) -> SSAVariable:
+        return self._get_var_ssa(0, 1)
+
+    @property
+    def src(self) -> SSAVariable:
+        return self._get_var_ssa(2, 3)
+
+
 
 ILInstruction = {
     MediumLevelILOperation.MLIL_NOP: MediumLevelILNop,  # [],
@@ -3164,6 +3211,10 @@ ILInstruction = {
         MediumLevelILCallUntyped,  # [("output", "expr"), ("dest", "expr"), ("params", "expr"), ("stack", "expr")],
     MediumLevelILOperation.MLIL_STORE_STRUCT_SSA:
         MediumLevelILStoreStructSsa,  # [("dest", "expr"), ("offset", "int"), ("dest_memory", "int"), ("src_memory", "int"), ("src", "expr")],
+    MediumLevelILOperation.MLIL_ASSERT: MediumLevelILAssert,
+    MediumLevelILOperation.MLIL_ASSERT_SSA: MediumLevelILAssertSsa,
+    MediumLevelILOperation.MLIL_FORCE_VER: MediumLevelILForceVer,
+    MediumLevelILOperation.MLIL_FORCE_VER_SSA: MediumLevelILForceVerSsa,
 }
 
 

@@ -766,6 +766,12 @@ class HighLevelILInstruction(BaseILInstruction):
 	def get_label(self, operand_index: int) -> GotoLabel:
 		return GotoLabel(self.function, self.core_instr.operands[operand_index])
 
+	def get_constraint(self, operand_index: int) -> variable.PossibleValueSet:
+		value = core.BNGetCachedHighLevelILPossibleValueSet(self.function.handle, self.core_instr.operands[operand_index])
+		result = variable.PossibleValueSet(self.function.arch, value)
+		core.BNFreePossibleValueSet(value)
+		return result
+
 	@property
 	def raw_operands(self) -> OperandsType:
 		"""Raw operand expression indices as specified by the core structure (read-only)"""
@@ -2285,6 +2291,46 @@ class HighLevelILFcmpO(HighLevelILComparisonBase, FloatingPoint):
 class HighLevelILFcmpUo(HighLevelILComparisonBase, FloatingPoint):
 	pass
 
+@dataclass(frozen=True, repr=False, eq=False)
+class HighLevelILAssert(HighLevelILInstruction):
+    @property
+    def src(self) -> variable.Variable:
+        return self.get_var(0)
+
+    @property
+    def constraint(self) -> variable.PossibleValueSet:
+        return self.get_constraint(1)
+
+@dataclass(frozen=True, repr=False, eq=False)
+class HighLevelILAssertSsa(HighLevelILInstruction, SSA):
+    @property
+    def src(self) -> 'mediumlevelil.SSAVariable':
+        return self.get_var_ssa(0, 1)
+
+    @property
+    def constraint(self) -> variable.PossibleValueSet:
+        return self.get_constraint(2)
+
+@dataclass(frozen=True, repr=False, eq=False)
+class HighLevelILForceVer(HighLevelILInstruction):
+    @property
+    def dest(self) -> variable.Variable:
+        return self.get_var(0)
+
+    @property
+    def src(self) -> variable.Variable:
+        return self.get_var(1)
+
+@dataclass(frozen=True, repr=False, eq=False)
+class HighLevelILForceVerSsa(HighLevelILInstruction, SSA):
+    @property
+    def dest(self) -> 'mediumlevelil.SSAVariable':
+        return self.get_var_ssa(0, 1)
+
+    @property
+    def src(self) -> 'mediumlevelil.SSAVariable':
+        return self.get_var_ssa(2, 3)
+
 
 ILInstruction = {
     HighLevelILOperation.HLIL_NOP: HighLevelILNop,  #  ,
@@ -2423,6 +2469,10 @@ ILInstruction = {
     HighLevelILOperation.HLIL_FCMP_GT: HighLevelILFcmpGt,  #  ("left", "expr"), ("right", "expr"),
     HighLevelILOperation.HLIL_FCMP_O: HighLevelILFcmpO,  #  ("left", "expr"), ("right", "expr"),
     HighLevelILOperation.HLIL_FCMP_UO: HighLevelILFcmpUo,  #  ("left", "expr"), ("right", "expr"),
+    HighLevelILOperation.HLIL_ASSERT: HighLevelILAssert,
+    HighLevelILOperation.HLIL_ASSERT_SSA: HighLevelILAssertSsa,
+    HighLevelILOperation.HLIL_FORCE_VER: HighLevelILForceVer,
+    HighLevelILOperation.HLIL_FORCE_VER_SSA: HighLevelILForceVerSsa,
 }
 
 

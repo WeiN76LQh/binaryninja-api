@@ -219,6 +219,7 @@ unsafe impl CoreArrayProviderInner for NamedVariableWithType {
 pub struct UserVariableValue {
     pub variable: Variable,
     pub def_site: Location,
+    pub after: bool,
     pub value: PossibleValueSet,
 }
 
@@ -227,6 +228,7 @@ impl UserVariableValue {
         Self {
             variable: value.var.into(),
             def_site: value.defSite.into(),
+            after: value.after,
             value: PossibleValueSet::from_raw(&value.value),
         }
     }
@@ -235,6 +237,7 @@ impl UserVariableValue {
         BNUserVariableValue {
             var: value.variable.into(),
             defSite: value.def_site.into(),
+            after: value.after,
             value: PossibleValueSet::into_raw(value.value),
         }
     }

@@ -2835,7 +2835,21 @@ class Function:
 			arch = self.arch
 		return core.BNIsCallInstruction(self.handle, arch.handle, addr)
 
-	def set_user_var_value(self, var: 'variable.Variable', def_addr: int, value: 'variable.PossibleValueSet') -> None:
+	def create_forced_var_version(self, var: 'variable.Variable', def_addr: int) -> None:
+		def_site = core.BNArchitectureAndAddress()
+		def_site.arch = self.arch.handle
+		def_site.address = def_addr
+
+		core.BNCreateForcedVariableVersion(self.handle, var.to_BNVariable(), def_site)
+
+	def clear_forced_var_version(self, var: 'variable.Variable', def_addr: int) -> None:
+		def_site = core.BNArchitectureAndAddress()
+		def_site.arch = self.arch.handle
+		def_site.address = def_addr
+
+		core.BNClearForcedVariableVersion(self.handle, var.to_BNVariable(), def_site)
+
+	def set_user_var_value(self, var: 'variable.Variable', def_addr: int, value: 'variable.PossibleValueSet', after: bool = True) -> None:
 		"""
 		`set_user_var_value` allows the user to specify a PossibleValueSet value for an MLIL variable at its \
 		definition site.
@@ -2846,8 +2860,9 @@ class Function:
 		the HLIL layer.
 
 		:param Variable var: Variable for which the value is to be set
-		:param int def_addr: Address of the definition site of the variable
+		:param int def_addr: Address where the variable is set
 		:param PossibleValueSet value: Informed value of the variable
+		:param bool after: Whether the value happens before or after the instruction
 		:rtype: None
 
 		:Example:
@@ -2857,27 +2872,27 @@ class Function:
 			>>> var_value = PossibleValueSet.constant(5)
 			>>> current_function.set_user_var_value(mlil_var, def_address, var_value)
 		"""
-		if var.index == 0:
-			# Special case: function parameters have index 0 and are defined at the start of the function
-			def_addr = self.start
-		else:
-			var_defs = self.mlil.get_var_definitions(var)
-			if var_defs is None:
-				raise ValueError("Could not get definition for Variable")
-			found = False
-			for site in var_defs:
-				if site.address == def_addr:
-					found = True
-					break
-			if not found:
-				raise ValueError("No definition for Variable found at given address")
+		#if var.index == 0:
+		#	# Special case: function parameters have index 0 and are defined at the start of the function
+		#	def_addr = self.start
+		#else:
+		#	var_defs = self.mlil.get_var_definitions(var)
+		#	if var_defs is None:
+		#		raise ValueError("Could not get definition for Variable")
+		#	found = False
+		#	for site in var_defs:
+		#		if site.address == def_addr:
+		#			found = True
+		#			break
+		#	if not found:
+		#		raise ValueError("No definition for Variable found at given address")
 		def_site = core.BNArchitectureAndAddress()
 		def_site.arch = self.arch.handle
 		def_site.address = def_addr
 
-		core.BNSetUserVariableValue(self.handle, var.to_BNVariable(), def_site, value._to_core_struct())
+		core.BNSetUserVariableValue(self.handle, var.to_BNVariable(), def_site, after, value._to_core_struct())
 
-	def clear_user_var_value(self, var: 'variable.Variable', def_addr: int) -> None:
+	def clear_user_var_value(self, var: 'variable.Variable', def_addr: int, after: bool = True) -> None:
 		"""
 		Clears a previously defined user variable value.
 
@@ -2904,7 +2919,7 @@ class Function:
 		def_site.arch = self.arch.handle
 		def_site.address = def_addr
 
-		core.BNClearUserVariableValue(self.handle, var.to_BNVariable(), def_site)
+		core.BNClearUserVariableValue(self.handle, var.to_BNVariable(), def_site, after)
 
 	def get_all_user_var_values(
 	    self

@@ -205,6 +205,7 @@ impl MediumLevelILFunction {
         var: &Variable,
         addr: u64,
         value: PossibleValueSet,
+        after: bool,
     ) -> Result<(), ()> {
         let Some(_def_site) = self
             .var_definitions(var)
@@ -221,7 +222,7 @@ impl MediumLevelILFunction {
         };
         let raw_var = BNVariable::from(var);
         let raw_value = PossibleValueSet::into_raw(value);
-        unsafe { BNSetUserVariableValue(function.handle, &raw_var, &def_site, &raw_value) }
+        unsafe { BNSetUserVariableValue(function.handle, &raw_var, &def_site, after, &raw_value) }
         PossibleValueSet::free_owned_raw(raw_value);
         Ok(())
     }
@@ -230,7 +231,7 @@ impl MediumLevelILFunction {
     ///
     /// * `var` - Variable for which the value was informed
     /// * `def_addr` - Address of the definition site of the variable
-    pub fn clear_user_var_value(&self, var: &Variable, addr: u64) -> Result<(), ()> {
+    pub fn clear_user_var_value(&self, var: &Variable, addr: u64, after: bool) -> Result<(), ()> {
         let Some(_var_def) = self
             .var_definitions(var)
             .iter()
@@ -247,7 +248,7 @@ impl MediumLevelILFunction {
             address: addr,
         };
 
-        unsafe { BNClearUserVariableValue(function.handle, &raw_var, &def_site) };
+        unsafe { BNClearUserVariableValue(function.handle, &raw_var, &def_site, after) };
         Ok(())
     }
 
@@ -264,7 +265,7 @@ impl MediumLevelILFunction {
     /// Clear all user defined variable values.
     pub fn clear_user_var_values(&self) -> Result<(), ()> {
         for user_var_val in &self.user_var_values() {
-            self.clear_user_var_value(&user_var_val.variable, user_var_val.def_site.addr)?;
+            self.clear_user_var_value(&user_var_val.variable, user_var_val.def_site.addr, user_var_val.after)?;
         }
         Ok(())
     }

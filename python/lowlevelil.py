@@ -1171,6 +1171,12 @@ class LowLevelILInstruction(BaseILInstruction):
 		finally:
 			core.BNLowLevelILFreeOperandList(operand_list)
 
+	def _get_constraint(self, operand_index: int) -> variable.PossibleValueSet:
+		value = core.BNGetCachedLowLevelILPossibleValueSet(self.function.handle, self.instr.operands[operand_index])
+		result = variable.PossibleValueSet(self.function.arch, value)
+		core.BNFreePossibleValueSet(value)
+		return result
+
 
 @dataclass(frozen=True, repr=False, eq=False)
 class LowLevelILBinaryBase(LowLevelILInstruction, BinaryOperation):
@@ -3011,6 +3017,42 @@ class LowLevelILStoreSsa(LowLevelILInstruction, Store, SSA):
 			("src", self.src, "LowLevelILInstruction"),
 		]
 
+@dataclass(frozen=True, repr=False, eq=False)
+class LowLevelILAssert(LowLevelILInstruction):
+    @property
+    def src(self) -> ILRegister:
+        return self._get_reg(0)
+
+    @property
+    def constraint(self) -> variable.PossibleValueSet:
+        return self._get_constraint(1)
+
+@dataclass(frozen=True, repr=False, eq=False)
+class LowLevelILAssertSsa(LowLevelILInstruction, SSA):
+    @property
+    def src(self) -> SSARegister:
+        return self._get_reg_ssa(0, 1)
+
+    @property
+    def constraint(self) -> variable.PossibleValueSet:
+        return self._get_constraint(2)
+
+@dataclass(frozen=True, repr=False, eq=False)
+class LowLevelILForceVer(LowLevelILInstruction):
+    @property
+    def dest(self) -> ILRegister:
+        return self._get_reg(0)
+
+@dataclass(frozen=True, repr=False, eq=False)
+class LowLevelILForceVerSsa(LowLevelILInstruction, SSA):
+    @property
+    def dest(self) -> SSARegister:
+        return self._get_reg_ssa(0, 1)
+
+    @property
+    def src(self) -> SSARegister:
+        return self._get_reg_ssa(2, 3)
+
 
 ILInstruction:Dict[LowLevelILOperation, LowLevelILInstruction] = {  # type: ignore
     LowLevelILOperation.LLIL_NOP: LowLevelILNop,                                    #  [],
@@ -3152,6 +3194,10 @@ ILInstruction:Dict[LowLevelILOperation, LowLevelILInstruction] = {  # type: igno
     LowLevelILOperation.LLIL_REG_STACK_PHI: LowLevelILRegStackPhi,                  #  [("dest", "reg_stack_ssa"), ("src", "reg_stack_ssa_list")],
     LowLevelILOperation.LLIL_FLAG_PHI: LowLevelILFlagPhi,                           #  [("dest", "flag_ssa"), ("src", "flag_ssa_list")],
     LowLevelILOperation.LLIL_MEM_PHI: LowLevelILMemPhi,                             #  [("dest_memory", "int"), ("src_memory", "int_list")]
+    LowLevelILOperation.LLIL_ASSERT: LowLevelILAssert,                              #  [("src", "reg"), ("constraint", "constraint")]
+    LowLevelILOperation.LLIL_ASSERT_SSA: LowLevelILAssertSsa,                       #  [("src", "reg_ssa"), ("constraint", "constraint")]
+    LowLevelILOperation.LLIL_FORCE_VER: LowLevelILForceVer,                         #  [("dest", "reg"), ("src", "reg")]
+    LowLevelILOperation.LLIL_FORCE_VER_SSA: LowLevelILForceVerSsa,                  #  [("dest", "reg_ssa"), ("src", "reg_ssa")]
 }
 
 

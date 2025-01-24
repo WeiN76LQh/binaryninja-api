@@ -347,8 +347,6 @@ class BINARYNINJAUIAPI FlowGraphWidget :
 	void followPointer();
 	void defineName();
 	void undefine();
-	void setUserVariableValue();
-	void clearUserVariableValue();
 	void defineFuncName();
 	void editFunctionProperties();
 	void createFunc(const UIActionContext& context);

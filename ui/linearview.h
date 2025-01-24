@@ -329,8 +329,6 @@ private Q_SLOTS:
 	void defineNameAtAddr(uint64_t addr);
 	void defineName();
 	void undefine();
-	void setUserVariableValue();
-	void clearUserVariableValue();
 	void createFunc(const UIActionContext& context);
 	void createFuncWithPlatform(PlatformRef platform, bool autoSelect = false);
 	void defineFuncName();

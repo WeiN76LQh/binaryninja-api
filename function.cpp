@@ -539,7 +539,7 @@ PossibleValueSet PossibleValueSet::FromAPIObject(BNPossibleValueSet& value)
 }
 
 
-BNPossibleValueSet PossibleValueSet::ToAPIObject()
+BNPossibleValueSet PossibleValueSet::ToAPIObject() const
 {
 	BNPossibleValueSet result;
 	result.state = state;
@@ -2601,35 +2601,11 @@ Ref<FlowGraph> Function::GetUnresolvedStackAdjustmentGraph()
 }
 
 
-void Function::SetUserVariableValue(const Variable& var, uint64_t defAddr, PossibleValueSet& value)
+void Function::SetUserVariableValue(const Variable& var, const ArchAndAddr& defAddr, PossibleValueSet& value, bool after)
 {
-	if (var.index != 0)
-	{
-		Ref<MediumLevelILFunction> mlil = GetMediumLevelIL();
-		const set<size_t>& varDefs = mlil->GetVariableDefinitions(var);
-		if (varDefs.size() == 0)
-		{
-			LogError("Could not get definition for Variable");
-			return;
-		}
-		bool found = false;
-		for (auto& site : varDefs)
-		{
-			const MediumLevelILInstruction& instr = mlil->GetInstruction(site);
-			if (instr.address == defAddr)
-			{
-				found = true;
-				break;
-			}
-		}
-		if (!found)
-		{
-			LogError("Could not find definition for variable at given address");
-		}
-	}
 	auto defSite = BNArchitectureAndAddress();
-	defSite.arch = GetArchitecture()->m_object;
-	defSite.address = defAddr;
+	defSite.arch = defAddr.arch->m_object;
+	defSite.address = defAddr.address;
 
 	auto var_data = BNVariable();
 	var_data.type = var.type;
@@ -2638,55 +2614,31 @@ void Function::SetUserVariableValue(const Variable& var, uint64_t defAddr, Possi
 
 	auto valueObj = value.ToAPIObject();
 
-	BNSetUserVariableValue(m_object, &var_data, &defSite, &valueObj);
+	BNSetUserVariableValue(m_object, &var_data, &defSite, after, &valueObj);
 
 	PossibleValueSet::FreeAPIObject(&valueObj);
 }
 
 
-void Function::ClearUserVariableValue(const Variable& var, uint64_t defAddr)
+void Function::ClearUserVariableValue(const Variable& var, const ArchAndAddr& defAddr, bool after)
 {
-	if (var.index != 0)
-	{
-		Ref<MediumLevelILFunction> mlil = GetMediumLevelIL();
-		const set<size_t>& varDefs = mlil->GetVariableDefinitions(var);
-		if (varDefs.size() == 0)
-		{
-			LogError("Could not get definition for Variable");
-			return;
-		}
-		bool found = false;
-		for (auto& site : varDefs)
-		{
-			const MediumLevelILInstruction& instr = mlil->GetInstruction(site);
-			if (instr.address == defAddr)
-			{
-				found = true;
-				break;
-			}
-		}
-		if (!found)
-		{
-			LogError("Could not find definition for variable at given address");
-		}
-	}
 	auto defSite = BNArchitectureAndAddress();
-	defSite.arch = GetArchitecture()->m_object;
-	defSite.address = defAddr;
+	defSite.arch = defAddr.arch->m_object;
+	defSite.address = defAddr.address;
 
 	auto var_data = BNVariable();
 	var_data.type = var.type;
 	var_data.index = var.index;
 	var_data.storage = var.storage;
 
-	BNClearUserVariableValue(m_object, &var_data, &defSite);
+	BNClearUserVariableValue(m_object, &var_data, &defSite, after);
 }
 
 
-map<Variable, map<ArchAndAddr, PossibleValueSet>> Function::GetAllUserVariableValues()
+map<Variable, map<pair<ArchAndAddr, bool>, PossibleValueSet>> Function::GetAllUserVariableValues()
 {
 	size_t count;
-	map<Variable, map<ArchAndAddr, PossibleValueSet>> result;
+	map<Variable, map<pair<ArchAndAddr, bool>, PossibleValueSet>> result;
 	BNUserVariableValue* var_values = BNGetAllUserVariableValues(m_object, &count);
 
 	for (size_t i = 0; i < count; i++)
@@ -2696,7 +2648,7 @@ map<Variable, map<ArchAndAddr, PossibleValueSet>> Function::GetAllUserVariableVa
 		uint64_t address = var_values[i].defSite.address;
 		ArchAndAddr defSite(arch, address);
 		PossibleValueSet value = PossibleValueSet::FromAPIObject(var_values[i].value);
-		result[var][defSite] = value;
+		result[var][{defSite, var_values[i].after}] = value;
 	}
 
 	BNFreeUserVariableValues(var_values);
@@ -2706,14 +2658,44 @@ map<Variable, map<ArchAndAddr, PossibleValueSet>> Function::GetAllUserVariableVa
 
 void Function::ClearAllUserVariableValues()
 {
-	const map<Variable, map<ArchAndAddr, PossibleValueSet>>& allValues = GetAllUserVariableValues();
+	const map<Variable, map<pair<ArchAndAddr, bool>, PossibleValueSet>>& allValues = GetAllUserVariableValues();
 	for (auto& valuePair : allValues)
 	{
 		for (auto& valMap : valuePair.second)
 		{
-			ClearUserVariableValue(valuePair.first, valMap.first.address);
+			ClearUserVariableValue(valuePair.first, valMap.first.first, valMap.first.second);
 		}
 	}
+}
+
+
+void Function::CreateForcedVariableVersion(const Variable& var, const ArchAndAddr& location)
+{
+	auto defSite = BNArchitectureAndAddress();
+	defSite.arch = location.arch->m_object;
+	defSite.address = location.address;
+
+	auto var_data = BNVariable();
+	var_data.type = var.type;
+	var_data.index = var.index;
+	var_data.storage = var.storage;
+
+	BNCreateForcedVariableVersion(m_object, &var_data, &defSite);
+}
+
+
+void Function::ClearForcedVariableVersion(const Variable& var, const ArchAndAddr& location)
+{
+	auto defSite = BNArchitectureAndAddress();
+	defSite.arch = location.arch->m_object;
+	defSite.address = location.address;
+
+	auto var_data = BNVariable();
+	var_data.type = var.type;
+	var_data.index = var.index;
+	var_data.storage = var.storage;
+
+	BNClearForcedVariableVersion(m_object, &var_data, &defSite);
 }
 
 
