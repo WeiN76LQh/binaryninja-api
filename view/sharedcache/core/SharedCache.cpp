@@ -96,14 +96,14 @@ struct SharedCache::ViewSpecificState {
 	// in the `stubIslandRegions`, `dyldDataRegions` and `nonImageRegions` 
 	// vectors.
 	// Access to this map requires `memoryRegionMutexesMutex` to be held.
-	std::unordered_map<uint64_t, std::mutex> memoryRegionMutexes;
+	std::unordered_map<uint64_t, std::unique_ptr<std::mutex>> memoryRegionMutexes;
 
 	// Must be held when accessing `imageMutexes`.
 	std::mutex imageMutexesMutex;
 	// Locks for modifying/loading of `CacheImage`s in the `images` vector and 
 	// their `MemoryRegion`s.
 	// Access to this map requires `imageMutexesMutex` to be held.
-	std::unordered_map<uint64_t, std::mutex> imageMutexes;
+	std::unordered_map<uint64_t, std::unique_ptr<std::mutex>> imageMutexes;
 
 	// When adding new sections, they are written to the end of the view. This 
 	// is done by asking the view what its current end is and then writing to 
@@ -117,25 +117,25 @@ struct SharedCache::ViewSpecificState {
 	std::mutex saveMetadataMutex;
 
 #if __has_feature(__cpp_lib_atomic_shared_ptr)
-       std::shared_ptr<struct SharedCache::State> GetCachedState() const {
-               return cachedState;
-       }
-       void SetCachedState(std::shared_ptr<struct SharedCache::State> newState) {
-               cachedState = newState;
-       }
+	   std::shared_ptr<struct SharedCache::State> GetCachedState() const {
+			   return cachedState;
+	   }
+	   void SetCachedState(std::shared_ptr<struct SharedCache::State> newState) {
+			   cachedState = newState;
+	   }
 #else
-       std::shared_ptr<struct SharedCache::State> GetCachedState() const {
-               return std::atomic_load(&cachedState);
-       }
-       void SetCachedState(std::shared_ptr<struct SharedCache::State> newState) {
-               std::atomic_store(&cachedState, std::move(newState));
-       }
+	   std::shared_ptr<struct SharedCache::State> GetCachedState() const {
+			   return std::atomic_load(&cachedState);
+	   }
+	   void SetCachedState(std::shared_ptr<struct SharedCache::State> newState) {
+			   std::atomic_store(&cachedState, std::move(newState));
+	   }
 #endif
 private:
 #if __has_feature(__cpp_lib_atomic_shared_ptr)
-       std::atomic<std::shared_ptr<struct SharedCache::State>> cachedState;
+	   std::atomic<std::shared_ptr<struct SharedCache::State>> cachedState;
 #else
-       std::shared_ptr<struct SharedCache::State> cachedState;
+	   std::shared_ptr<struct SharedCache::State> cachedState;
 #endif
 };
 
@@ -1739,11 +1739,18 @@ bool SharedCache::LoadNonImageSectionAtAddress(uint64_t regionStart, MemoryRegio
 	// The region appears not to be loaded. Acquire the loading lock, re-check 
 	// that it hasn't been loaded and if it still hasn't then actually load it.
 	std::unique_lock<std::mutex> memoryRegionLoadingLockslock(m_viewSpecificState->memoryRegionMutexesMutex);
-	auto& memoryRegionLoadingMutex = m_viewSpecificState->memoryRegionMutexes[regionStart];
+	std::mutex* memoryRegionLoadingMutex;
+	if (auto it = m_viewSpecificState->memoryRegionMutexes.find(regionStart); it != m_viewSpecificState->memoryRegionMutexes.end()) {
+		memoryRegionLoadingMutex = it->second.get();
+	} else {
+		memoryRegionLoadingMutex = new std::mutex;
+		std::unique_ptr<std::mutex> newMemoryRegionLoadingMutex(memoryRegionLoadingMutex);
+		m_viewSpecificState->memoryRegionMutexes[regionStart] = std::move(newMemoryRegionLoadingMutex);
+	}
 	// Now the specific memory region's loading mutex has been retrieved, this one can be dropped
 	memoryRegionLoadingLockslock.unlock();
 	// Hold this lock until loading of the region is done
-	std::unique_lock<std::mutex> memoryRegionLoadingLock(memoryRegionLoadingMutex);
+	std::unique_lock<std::mutex> memoryRegionLoadingLock(*memoryRegionLoadingMutex);
 
 	// Check the latest state to see if the memory region has been loaded while acquiring the lock. 
 	// Deserialize from raw view because another thread doing another API call may have updated the 
@@ -1953,10 +1960,18 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 	// The region appears not to be loaded. Acquire the loading lock, re-check 
 	// that it hasn't been loaded and if it still hasn't then actually load it.
 	std::unique_lock<std::mutex> imageLoadingLockslock(m_viewSpecificState->imageMutexesMutex);
-	// Hold this lock until loading of the image region is done
-	std::unique_lock<std::mutex> imageLoadingLock(m_viewSpecificState->imageMutexes[tmpRegion.start]);
+	std::mutex* imageLoadingMutex;
+	if (auto it = m_viewSpecificState->imageMutexes.find(tmpRegion.start); it != m_viewSpecificState->imageMutexes.end()) {
+		imageLoadingMutex = it->second.get();
+	} else {
+		imageLoadingMutex = new std::mutex;
+		std::unique_ptr<std::mutex> newImageLoadingMutex(imageLoadingMutex);
+		m_viewSpecificState->imageMutexes[tmpRegion.start] = std::move(newImageLoadingMutex);
+	}
 	// Now the specific image's loading mutex has been retrieved, this one can be dropped
 	imageLoadingLockslock.unlock();
+	// Hold this lock until loading of the image region is done
+	std::unique_lock<std::mutex> imageLoadingLock(*imageLoadingMutex);
 
 	// Check the latest state to see if the image region has been loaded while acquiring the lock. 
 	// Deserialize from raw view because another thread doing another API call may have updated the 
@@ -2176,10 +2191,19 @@ bool SharedCache::LoadImagesWithInstallNames(std::vector<std::string_view> insta
 
 					// Get the lock for the image so that nothing else can be 
 					// modifying this image whilst this thread loads it
-					std::unique_lock<std::mutex> imageLockslock(m_viewSpecificState->imageMutexesMutex);
-					auto& imageMutex = m_viewSpecificState->imageMutexes[targetImageIndex];
-					imageLockslock.unlock();
-					targetImageLock = std::unique_lock<std::mutex>(imageMutex);
+					std::unique_lock<std::mutex> imageLoadingLockslock(m_viewSpecificState->imageMutexesMutex);
+					std::mutex* imageLoadingMutex;
+					if (auto it = m_viewSpecificState->imageMutexes.find(targetImageIndex); it != m_viewSpecificState->imageMutexes.end()) {
+						imageLoadingMutex = it->second.get();
+					} else {
+						imageLoadingMutex = new std::mutex;
+						std::unique_ptr<std::mutex> newImageLoadingMutex(imageLoadingMutex);
+						m_viewSpecificState->imageMutexes[targetImageIndex] = std::move(newImageLoadingMutex);
+					}
+					// Now the specific image's loading mutex has been retrieved, this one can be dropped
+					imageLoadingLockslock.unlock();
+					// Hold this lock until loading of the image is done
+					targetImageLock = std::unique_lock<std::mutex>(*imageLoadingMutex);
 
 					// Get the latest state of the regions
 					targetImageRegions = images[targetImageIndex].regions;
@@ -4200,10 +4224,10 @@ void SharedCache::Store(SerializationContext& context) const
 
 	Serialize(context, "metadataVersion", METADATA_VERSION);
 
-    Serialize(context, "m_viewState", state.viewState);
-    Serialize(context, "m_cacheFormat", state.cacheFormat);
-    Serialize(context, "m_imageStarts", state.imageStarts);
-    Serialize(context, "m_baseFilePath", state.baseFilePath);
+	Serialize(context, "m_viewState", state.viewState);
+	Serialize(context, "m_cacheFormat", state.cacheFormat);
+	Serialize(context, "m_imageStarts", state.imageStarts);
+	Serialize(context, "m_baseFilePath", state.baseFilePath);
 
 	Serialize(context, "headers");
 	context.writer.StartArray();
@@ -4240,20 +4264,20 @@ void SharedCache::Store(SerializationContext& context) const
 	context.writer.StartArray();
 	for (const auto& [headerLocation, symbols] : state.symbolInfos)
 	{
-	        context.writer.StartObject();
-	        Serialize(context, "key", headerLocation);
-	        Serialize(context, "value");
-	        context.writer.StartArray();
-	        for (const auto& symbol : *symbols)
-	        {
-	                context.writer.StartObject();
-	                Serialize(context, "key", symbol->GetAddress());
-	                Serialize(context, "val1", symbol->GetType());
-	                Serialize(context, "val2", symbol->GetRawName());
-	                context.writer.EndObject();
-	        }
-	        context.writer.EndArray();
-	        context.writer.EndObject();
+			context.writer.StartObject();
+			Serialize(context, "key", headerLocation);
+			Serialize(context, "value");
+			context.writer.StartArray();
+			for (const auto& symbol : *symbols)
+			{
+					context.writer.StartObject();
+					Serialize(context, "key", symbol->GetAddress());
+					Serialize(context, "val1", symbol->GetType());
+					Serialize(context, "val2", symbol->GetRawName());
+					context.writer.EndObject();
+			}
+			context.writer.EndArray();
+			context.writer.EndObject();
 	}
 	context.writer.EndArray();
 
