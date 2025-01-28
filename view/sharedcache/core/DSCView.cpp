@@ -18,59 +18,6 @@
 
 using namespace BinaryNinja;
 
-/*
- * DSCRawView is a "fake" parent view that the child view actually fills with data on init.
- *
- * This is the 'magic' that makes this sort of horrible "serialize the file headers and then refill the parent view"
- * work.
- *
- * This throws errors on deser due to undo actions, but it still works.
- * */
-DSCRawView::DSCRawView(const std::string& typeName, BinaryView* data, bool parseOnly) :
-	BinaryView(typeName, data->GetFile(), data)
-{
-	// This is going to load _only_ the dyld header of the loaded file.
-	// This written region will be immediately overwritten on image loading by SharedCache.cpp
-	GetFile()->SetFilename(data->GetFile()->GetOriginalFilename());
-	uint32_t size;
-	GetParentView()->Read(&size, 16, 4);
-	size += 8;
-	AddAutoSegment(0, size, 0, size, SegmentReadable);
-	GetParentView()->WriteBuffer(0, GetParentView()->ReadBuffer(0, size));
-}
-
-bool DSCRawView::Init()
-{
-	return true;
-}
-
-DSCRawViewType::DSCRawViewType() : BinaryViewType("DSCRaw", "DSCRaw") {}
-
-BinaryNinja::Ref<BinaryNinja::BinaryView> DSCRawViewType::Create(BinaryView* data)
-{
-	return new DSCRawView("DSCRaw", data, false);
-}
-
-BinaryNinja::Ref<BinaryNinja::BinaryView> DSCRawViewType::Parse(BinaryView* data)
-{
-	return new DSCRawView("DSCRaw", data, true);
-}
-
-bool DSCRawViewType::IsTypeValidForData(BinaryNinja::BinaryView* data)
-{
-	// Always return false here.
-	// This view pretty much exists to keep a bunch of internal core logic happy as it expects certain things
-	// from our view's parent that we need to control, and cannot control on a standard raw view.
-
-	// IIRC an example of this was the need to add more data past the end of the original file.
-
-	// in ios16 caches, the primary file can be like 100kb while a standard image will easily break 1MB
-
-	// I actually should check if the stuff related to non-file-backed-segments changes the need for this,
-	// but at the time it was created (2022) it was necessary.
-	return false;
-}
-
 
 DSCView::DSCView(const std::string& typeName, BinaryView* data, bool parseOnly) :
 	BinaryView(typeName, data->GetFile(), data), m_parseOnly(parseOnly)
@@ -92,12 +39,14 @@ enum DSCPlatform {
 
 bool DSCView::Init()
 {
+	std::string os;
+	std::string arch;
+
 	uint32_t platform;
 	GetParentView()->Read(&platform, 0xd8, 4);
 	char magic[17];
 	GetParentView()->Read(&magic, 0, 16);
 	magic[16] = 0;
-	std::string os;
 	if (platform == DSCPlatformMacOS)
 	{
 		os = "mac";
@@ -111,21 +60,24 @@ bool DSCView::Init()
 		LogError("Unknown platform: %d", platform);
 		return false;
 	}
+
 	if (std::string(magic) == "dyld_v1   arm64" || std::string(magic) == "dyld_v1  arm64e")
 	{
-		SetDefaultPlatform(Platform::GetByName(os + "-aarch64"));
-		SetDefaultArchitecture(Architecture::GetByName("aarch64"));
+		arch = "aarch64";
 	}
 	else if (std::string(magic) == "dyld_v1  x86_64")
 	{
-		SetDefaultPlatform(Platform::GetByName(os + "-x86_64"));
-		SetDefaultArchitecture(Architecture::GetByName("x86_64"));
+		arch = "x86_64";
 	}
 	else
 	{
 		LogError("Unknown magic: %s", magic);
 		return false;
 	}
+
+	SetDefaultPlatform(Platform::GetByName(os + "-" + arch));
+	SetDefaultArchitecture(Architecture::GetByName(arch));
+
 	QualifiedNameAndType headerType;
 	std::string err;
 
@@ -631,9 +583,9 @@ bool DSCView::Init()
 	DefineType(filesetEntryCommandTypeId, filesetEntryCommandName, filesetEntryCommandType);
 
 	std::vector<SharedCacheCore::MemoryRegion> regionsMappedIntoMemory;
-	if (auto meta = GetParentView()->GetParentView()->QueryMetadata(SharedCacheCore::SharedCacheMetadataTag))
+	if (auto meta = GetParentView()->QueryMetadata(SharedCacheCore::SharedCacheMetadataTag))
 	{
-		std::string data = GetParentView()->GetParentView()->GetStringMetadata(SharedCacheCore::SharedCacheMetadataTag);
+		std::string data = GetParentView()->GetStringMetadata(SharedCacheCore::SharedCacheMetadataTag);
 		std::stringstream ss;
 		ss.str(data);
 		rapidjson::Document result(rapidjson::kObjectType);
@@ -683,14 +635,6 @@ bool DSCView::Init()
 
 			exportInfos.push_back({obj1["key"].GetUint64(), innerVec});
 		}
-		// We need to re-map data located in the Raw (parent parent) viewtype to the DSCRaw (parent) viewtype.
-		for (auto region : regionsMappedIntoMemory)
-		{
-			GetParentView()->AddUserSegment(
-				region.rawViewOffsetIfLoaded, region.size, region.rawViewOffsetIfLoaded, region.size, region.flags);
-			GetParentView()->WriteBuffer(
-				region.rawViewOffsetIfLoaded, GetParentView()->GetParentView()->ReadBuffer(region.rawViewOffsetIfLoaded, region.size));
-		}
 
 		BeginBulkModifySymbols();
 		for (const auto & [imageBaseAddr, exportList] : exportInfos)
@@ -727,14 +671,14 @@ bool DSCView::Init()
 	// first uint64_t in that struct is the base address of the primary
 	// double gpv here because DSCRaw explicitly stops at the start of this mapping table
 	uint64_t basePointer = 0;
-	GetParentView()->GetParentView()->Read(&basePointer, 16, 4);
+	GetParentView()->Read(&basePointer, 16, 4);
 	if (basePointer == 0)
 	{
 		LogError("Failed to read base pointer");
 		return false;
 	}
 	uint64_t primaryBase = 0;
-	GetParentView()->GetParentView()->Read(&primaryBase, basePointer, 8);
+	GetParentView()->Read(&primaryBase, basePointer, 8);
 	if (primaryBase == 0)
 	{
 		LogError("Failed to read primary base at 0x%llx", basePointer);
@@ -755,12 +699,13 @@ bool DSCView::Init()
 }
 
 
-DSCViewType::DSCViewType() : BinaryViewType(VIEW_NAME, VIEW_NAME) {}
+DSCViewType::DSCViewType() : BinaryViewType(VIEW_NAME, VIEW_NAME)
+{
+}
 
 BinaryNinja::Ref<BinaryNinja::BinaryView> DSCViewType::Create(BinaryNinja::BinaryView* data)
 {
-	Ref<BinaryView> rawViewRef = new DSCRawView("DSCRawView", data, false);
-	return new DSCView(VIEW_NAME, rawViewRef, false);
+	return new DSCView(VIEW_NAME, data, false);
 }
 
 
@@ -769,8 +714,8 @@ Ref<Settings> DSCViewType::GetLoadSettingsForData(BinaryView* data)
 	Ref<BinaryView> viewRef = Parse(data);
 	if (!viewRef || !viewRef->Init())
 	{
-		LogError("View type '%s' could not be created", GetName().c_str());
-		return nullptr;
+		LogWarn("Failed to initialize view of type '%s'. Generating default load settings.", GetName().c_str());
+		viewRef = data;
 	}
 
 	Ref<Settings> settings = GetDefaultLoadSettingsForData(viewRef);
@@ -858,7 +803,7 @@ Ref<Settings> DSCViewType::GetLoadSettingsForData(BinaryView* data)
 
 BinaryNinja::Ref<BinaryNinja::BinaryView> DSCViewType::Parse(BinaryNinja::BinaryView* data)
 {
-	return new DSCView(VIEW_NAME, new DSCRawView("DSCRawView", data, true), true);
+	return new DSCView(VIEW_NAME, data, true);
 }
 
 bool DSCViewType::IsTypeValidForData(BinaryNinja::BinaryView* data)

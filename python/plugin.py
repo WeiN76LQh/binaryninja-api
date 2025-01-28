@@ -38,6 +38,17 @@ from . import highlevelil
 
 
 class PluginCommandContext:
+	"""
+	The ``class PluginCommandContext`` is used to access loaded plugins and their exposed methods with the context of a specific Binary VIew.
+
+	:Example:
+		# To trigger a registered plugin with a BinaryView, for example:
+		>>> bv = load("/tmp/file1")
+		>>> ctx = PluginCommandContext(bv);
+		>>> binexport = PluginCommand.get_valid_list(ctx)["BinExport"]
+		>>> binexport.execute(ctx)
+	"""
+
 	def __init__(self, view):
 		self._view = view
 		self._address = 0

@@ -7,9 +7,9 @@ using namespace std;
 using namespace BinaryNinja;
 
 
-PseudoRustFunction::PseudoRustFunction(
-	Architecture* arch, Function* owner, HighLevelILFunction* highLevelILFunction) :
-	LanguageRepresentationFunction(arch, owner, highLevelILFunction), m_highLevelIL(highLevelILFunction)
+PseudoRustFunction::PseudoRustFunction(LanguageRepresentationFunctionType* type, Architecture* arch, Function* owner,
+	HighLevelILFunction* highLevelILFunction) :
+	LanguageRepresentationFunction(type, arch, owner, highLevelILFunction), m_highLevelIL(highLevelILFunction)
 {
 }
 
@@ -2814,7 +2814,7 @@ PseudoRustFunctionType::PseudoRustFunctionType(): LanguageRepresentationFunction
 Ref<LanguageRepresentationFunction> PseudoRustFunctionType::Create(Architecture* arch, Function* owner,
 	HighLevelILFunction* highLevelILFunction)
 {
-	return new PseudoRustFunction(arch, owner, highLevelILFunction);
+	return new PseudoRustFunction(this, arch, owner, highLevelILFunction);
 }
 
 

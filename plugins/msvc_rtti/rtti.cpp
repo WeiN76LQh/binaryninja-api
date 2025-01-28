@@ -6,6 +6,7 @@ constexpr int COL_SIG_REV0 = 0;
 constexpr int COL_SIG_REV1 = 1;
 constexpr int RTTI_CONFIDENCE = 100;
 
+constexpr int BCD_HASPCHD = 0x40;
 
 ClassHierarchyDescriptor::ClassHierarchyDescriptor(BinaryView *view, uint64_t address)
 {
@@ -60,7 +61,7 @@ CompleteObjectLocator::CompleteObjectLocator(BinaryView *view, uint64_t address)
     offset = reader.Read32();
     cdOffset = reader.Read32();
     pTypeDescriptor = static_cast<int32_t>(reader.Read32());
-    pClassHeirarchyDescriptor = static_cast<int32_t>(reader.Read32());
+    pClassHierarchyDescriptor = static_cast<int32_t>(reader.Read32());
     if (signature == COL_SIG_REV1)
     {
         pSelf = static_cast<int32_t>(reader.Read32());
@@ -93,7 +94,7 @@ std::optional<CompleteObjectLocator> ReadCompleteObjectorLocator(BinaryView *vie
         if (outsideSection(coLocator.pTypeDescriptor + startAddr))
             return std::nullopt;
 
-        if (outsideSection(coLocator.pClassHeirarchyDescriptor + startAddr))
+        if (outsideSection(coLocator.pClassHierarchyDescriptor + startAddr))
             return std::nullopt;
     }
     else
@@ -102,7 +103,7 @@ std::optional<CompleteObjectLocator> ReadCompleteObjectorLocator(BinaryView *vie
         if (outsideSection(coLocator.pTypeDescriptor))
             return std::nullopt;
 
-        if (outsideSection(coLocator.pClassHeirarchyDescriptor))
+        if (outsideSection(coLocator.pClassHierarchyDescriptor))
             return std::nullopt;
     }
 
@@ -141,6 +142,7 @@ Ref<Type> BaseClassDescriptorType(BinaryView *view, BNPointerBaseType ptrBaseTy)
 
     if (typeCache == nullptr)
     {
+        Ref<Architecture> arch = view->GetDefaultArchitecture();
         Ref<Type> uintType = Type::IntegerType(4, false);
 
         StructureBuilder baseClassDescriptorBuilder;
@@ -151,7 +153,17 @@ Ref<Type> BaseClassDescriptorType(BinaryView *view, BNPointerBaseType ptrBaseTy)
         baseClassDescriptorBuilder.AddMember(pTypeDescType, "pTypeDescriptor");
         baseClassDescriptorBuilder.AddMember(uintType, "numContainedBases");
         baseClassDescriptorBuilder.AddMember(GetPMDType(view), "where");
-        baseClassDescriptorBuilder.AddMember(uintType, "attributes");
+        Ref<Enumeration> attrEnum = EnumerationBuilder()
+                .AddMemberWithValue("BCD_NOT_VISIBLE",         0x01)
+                .AddMemberWithValue("BCD_AMBIGUOUS",           0x02)
+                .AddMemberWithValue("BCD_PRIVORPROTBASE",      0x04)
+                .AddMemberWithValue("BCD_PRIVORPROTINCOMPOBJ", 0x08)
+                .AddMemberWithValue("BCD_VBOFCONTOBJ",         0x10)
+                .AddMemberWithValue("BCD_NONPOLYMORPHIC",      0x20)
+                .AddMemberWithValue("BCD_HASPCHD",             0x40)
+                .Finalize();
+        Ref<Type> attrType = Type::EnumerationType(arch, attrEnum, 4);
+        baseClassDescriptorBuilder.AddMember(attrType, "attributes");
         Ref<Type> pClassDescType = TypeBuilder::PointerType(4, ClassHierarchyDescriptorType(view, ptrBaseTy))
                 .SetPointerBase(ptrBaseTy, 0)
                 .Finalize();
@@ -185,11 +197,18 @@ Ref<Type> ClassHierarchyDescriptorType(BinaryView *view, BNPointerBaseType ptrBa
 
     if (typeCache == nullptr)
     {
+        Ref<Architecture> arch = view->GetDefaultArchitecture();
         Ref<Type> uintType = Type::IntegerType(4, false);
 
         StructureBuilder classHierarchyDescriptorBuilder;
         classHierarchyDescriptorBuilder.AddMember(uintType, "signature");
-        classHierarchyDescriptorBuilder.AddMember(uintType, "attributes");
+        Ref<Enumeration> attrEnum = EnumerationBuilder()
+                .AddMemberWithValue("CHD_MULTINH",   0x01)
+                .AddMemberWithValue("CHD_VIRTINH",   0x02)
+                .AddMemberWithValue("CHD_AMBIGUOUS", 0x04)
+                .Finalize();
+        Ref<Type> attrType = Type::EnumerationType(arch, attrEnum, 4);
+        classHierarchyDescriptorBuilder.AddMember(attrType, "attributes");
         classHierarchyDescriptorBuilder.AddMember(uintType, "numBaseClasses");
         Ref<Type> pBaseClassArrayType = TypeBuilder::PointerType(4, Type::VoidType())
                 .SetPointerBase(ptrBaseTy, 0)
@@ -434,6 +453,66 @@ std::optional<ClassInfo> MicrosoftRTTIProcessor::ProcessRTTI(uint64_t coLocatorA
 
     auto ptrBaseTy = coLocator->signature ? RelativeToBinaryStartPointerBaseType : AbsolutePointerBaseType;
 
+    auto defineClassHierarchyDesc = [&](const uint64_t classHierarchyDescAddr, ClassInfo& classInfo, std::optional<CompleteObjectLocator> coLocator) {
+        auto classHierarchyDesc = ClassHierarchyDescriptor(m_view, classHierarchyDescAddr);
+        auto classHierarchyDescName = fmt::format("{}::`RTTI Class Hierarchy Descriptor'", classInfo.className);
+        m_view->DefineAutoSymbol(new Symbol{DataSymbol, classHierarchyDescName, classHierarchyDescAddr});
+        m_view->DefineDataVariable(classHierarchyDescAddr,
+                                Confidence(ClassHierarchyDescriptorType(m_view, ptrBaseTy), RTTI_CONFIDENCE));
+
+        auto baseClassArrayAddr = resolveAddr(classHierarchyDesc.pBaseClassArray);
+        auto baseClassArray = BaseClassArray(m_view, baseClassArrayAddr, classHierarchyDesc.numBaseClasses);
+        auto baseClassArrayName = fmt::format("{}::`RTTI Base Class Array'", classInfo.className);
+        m_view->DefineAutoSymbol(new Symbol{DataSymbol, baseClassArrayName, baseClassArrayAddr});
+        m_view->DefineDataVariable(baseClassArrayAddr,
+                                Confidence(BaseClassArrayType(m_view, baseClassArray.length, ptrBaseTy),
+                                            RTTI_CONFIDENCE));
+
+        std::map<uint64_t, ClassInfo> baseClasses = {};
+        for (auto pBaseClassDescAddr: baseClassArray.descriptors)
+        {
+            auto baseClassDescAddr = resolveAddr(pBaseClassDescAddr);
+            auto baseClassDesc = BaseClassDescriptor(m_view, baseClassDescAddr);
+
+            auto baseClassTypeDescAddr = resolveAddr(baseClassDesc.pTypeDescriptor);
+            auto baseClassTypeDesc = TypeDescriptor(m_view, baseClassTypeDescAddr);
+            auto baseClassName = DemangleName(baseClassTypeDesc.name);
+            if (!baseClassName.has_value())
+            {
+                m_logger->LogWarn("Skipping BaseClassDescriptor with mangled name %llx", baseClassTypeDescAddr);
+                continue;
+            }
+
+            // TODO: we probably want to maintain this state
+            auto baseClassInfo = ClassInfo{baseClassName.value()};
+
+            if (coLocator.has_value())
+            {
+                if (baseClassDesc.where_mdisp == coLocator->offset && !classInfo.baseClassName.has_value() && classInfo.className != baseClassInfo.className)
+                    classInfo.baseClassName = baseClassInfo.className;
+            }
+
+            auto baseClassDescName = fmt::format("{}::`RTTI Base Class Descriptor at ({},{},{},{})", baseClassInfo.className,
+                                                baseClassDesc.where_mdisp, baseClassDesc.where_pdisp,
+                                                baseClassDesc.where_vdisp, baseClassDesc.attributes);
+            m_view->DefineAutoSymbol(new Symbol{DataSymbol, baseClassDescName, baseClassDescAddr});
+            m_view->DefineDataVariable(baseClassDescAddr,
+                                    Confidence(BaseClassDescriptorType(m_view, ptrBaseTy), RTTI_CONFIDENCE));
+
+            auto baseClassTypeDescSymName = fmt::format("class {} `RTTI Type Descriptor'", baseClassInfo.className);
+            m_view->DefineAutoSymbol(new Symbol{DataSymbol, baseClassTypeDescSymName, baseClassTypeDescAddr});
+            m_view->DefineDataVariable(baseClassTypeDescAddr,
+                                    Confidence(TypeDescriptorType(m_view, baseClassTypeDesc.name.length()), RTTI_CONFIDENCE));
+
+            if (baseClassDesc.attributes & BCD_HASPCHD) {
+                auto classHierarchyDescAddr = resolveAddr(baseClassDesc.pClassHierarchyDescriptor);
+                baseClasses[classHierarchyDescAddr] = baseClassInfo;
+            }
+        }
+
+        return baseClasses;
+    };
+
     // Get type descriptor then check to see if the class name was demangled.
     auto typeDescAddr = resolveAddr(coLocator->pTypeDescriptor);
     auto typeDesc = TypeDescriptor(m_view, typeDescAddr);
@@ -461,44 +540,22 @@ std::optional<ClassInfo> MicrosoftRTTIProcessor::ProcessRTTI(uint64_t coLocatorA
     m_view->DefineDataVariable(typeDescAddr,
                                Confidence(TypeDescriptorType(m_view, typeDesc.name.length()), RTTI_CONFIDENCE));
 
-    auto classHierarchyDescAddr = resolveAddr(coLocator->pClassHeirarchyDescriptor);
-    auto classHierarchyDesc = ClassHierarchyDescriptor(m_view, classHierarchyDescAddr);
-    auto classHierarchyDescName = fmt::format("{}::`RTTI Class Hierarchy Descriptor'", classInfo.className);
-    m_view->DefineAutoSymbol(new Symbol{DataSymbol, classHierarchyDescName, classHierarchyDescAddr});
-    m_view->DefineDataVariable(classHierarchyDescAddr,
-                               Confidence(ClassHierarchyDescriptorType(m_view, ptrBaseTy), RTTI_CONFIDENCE));
-
-    auto baseClassArrayAddr = resolveAddr(classHierarchyDesc.pBaseClassArray);
-    auto baseClassArray = BaseClassArray(m_view, baseClassArrayAddr, classHierarchyDesc.numBaseClasses);
-    auto baseClassArrayName = fmt::format("{}::`RTTI Base Class Array'", classInfo.className);
-    m_view->DefineAutoSymbol(new Symbol{DataSymbol, baseClassArrayName, baseClassArrayAddr});
-    m_view->DefineDataVariable(baseClassArrayAddr,
-                               Confidence(BaseClassArrayType(m_view, baseClassArray.length, ptrBaseTy),
-                                          RTTI_CONFIDENCE));
-
-    for (auto pBaseClassDescAddr: baseClassArray.descriptors)
+    auto classHierarchyDescAddr = resolveAddr(coLocator->pClassHierarchyDescriptor);
+    auto baseClasses = defineClassHierarchyDesc(classHierarchyDescAddr, classInfo, coLocator);
+    m_visitedClassHierarchyDescAddrs.insert(classHierarchyDescAddr);
+    while (baseClasses.size() > 0)
     {
-        auto baseClassDescAddr = resolveAddr(pBaseClassDescAddr);
-        auto baseClassDesc = BaseClassDescriptor(m_view, baseClassDescAddr);
-
-        auto baseClassTypeDescAddr = resolveAddr(baseClassDesc.pTypeDescriptor);
-        auto baseClassTypeDesc = TypeDescriptor(m_view, baseClassTypeDescAddr);
-        auto baseClassName = DemangleName(baseClassTypeDesc.name);
-        if (!baseClassName.has_value())
+        std::map<uint64_t, ClassInfo> newBaseClasses = {};
+        for (auto& [baseClassHierarchyDescAddr, baseClassInfo] : baseClasses)
         {
-            m_logger->LogWarn("Skipping BaseClassDescriptor with mangled name %llx", baseClassTypeDescAddr);
-            continue;
+            if (m_visitedClassHierarchyDescAddrs.find(baseClassHierarchyDescAddr) != m_visitedClassHierarchyDescAddrs.end())
+                continue;
+
+            newBaseClasses.merge(defineClassHierarchyDesc(baseClassHierarchyDescAddr, baseClassInfo, std::nullopt));
+            m_visitedClassHierarchyDescAddrs.insert(baseClassHierarchyDescAddr);
         }
 
-        if (baseClassDesc.where_mdisp == coLocator->offset && classInfo.className != baseClassName.value())
-            classInfo.baseClassName = baseClassName;
-
-        auto baseClassDescName = fmt::format("{}::`RTTI Base Class Descriptor at ({},{},{},{})", baseClassName.value(),
-                                             baseClassDesc.where_mdisp, baseClassDesc.where_pdisp,
-                                             baseClassDesc.where_vdisp, baseClassDesc.attributes);
-        m_view->DefineAutoSymbol(new Symbol{DataSymbol, baseClassDescName, baseClassDescAddr});
-        m_view->DefineDataVariable(baseClassDescAddr,
-                                   Confidence(BaseClassDescriptorType(m_view, ptrBaseTy), RTTI_CONFIDENCE));
+        baseClasses = newBaseClasses;
     }
 
     auto coLocatorName = fmt::format("{}::`RTTI Complete Object Locator'", className.value());
@@ -643,6 +700,7 @@ MicrosoftRTTIProcessor::MicrosoftRTTIProcessor(const Ref<BinaryView> &view, bool
     allowAnonymousClassNames = allowAnonymous;
     checkWritableRData = checkRData;
     m_classInfo = {};
+    m_visitedClassHierarchyDescAddrs = {};
     virtualFunctionTableSweep = vftSweep;
     auto metadata = view->QueryMetadata(VIEW_METADATA_MSVC);
     if (metadata != nullptr)

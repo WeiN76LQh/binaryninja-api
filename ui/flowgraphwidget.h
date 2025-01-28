@@ -82,10 +82,11 @@ class BINARYNINJAUIAPI FlowGraphWidget :
 		size_t lineIndexForAddress;
 		size_t tokenIndex;
 		size_t characterIndex;
-		// Directly from QMouseEvent, not used in comparator
+		// Directly from QMouseEvent, not used in comparators
 		int cursorX;
 		int cursorY;
 
+		bool operator==(const CursorPosition& other) const;
 		bool operator<(const CursorPosition& other) const;
 	};
 

@@ -21,8 +21,8 @@
 
 import ctypes
 from dataclasses import dataclass
-from typing import Callable
-from .binaryview import BinaryView
+from typing import Callable, Union, Optional
+from .binaryview import BinaryView, Section, DataVariable
 from .variable import RegisterValue
 from .enums import (
     FirmwareNinjaMemoryHeuristic,
@@ -32,6 +32,111 @@ from .enums import (
 )
 from .function import Function
 from . import _binaryninjacore as core
+
+
+class FirmwareNinjaReferenceNode:
+    """
+    ``class FirmwareNinjaReferenceNode`` is a class for building reference trees for functions, data variables, and
+    memory regions.
+    """
+
+    def __init__(self, handle=None, view=None):
+        assert handle is not None, "Cannot create reference node directly, run `FirmwareNinja.get_reference_tree`"
+        self._handle = handle
+        self._view = view
+
+    def __del__(self):
+        if core is not None:
+            core.BNFreeFirmwareNinjaReferenceNode(self._handle)
+
+    def is_function(self) -> bool:
+        """
+        ``is_function`` determines if the reference tree node is for a function
+
+        :return: True if the reference tree node is for a function, False otherwise
+        :rtype: bool
+        """
+
+        return core.BNFirmwareNinjaReferenceNodeIsFunction(self._handle)
+
+    def is_data_variable(self) -> bool:
+        """
+        ``is_data_variable`` determines if the reference tree node is for a data variable
+
+        :return: True if the reference tree node is for a data variable, False otherwise
+        :rtype: bool
+        """
+
+        return core.BNFirmwareNinjaReferenceNodeIsDataVariable(self._handle)
+
+    def has_children(self) -> bool:
+        """
+        ``has_children`` determines if the reference tree node contains child reference tree nodes
+
+        :return: True if the reference tree node contains children, False otherwise
+        :rtype: bool
+        """
+
+        return core.BNFirmwareNinjaReferenceNodeHasChildren(self._handle)
+
+    @property
+    def function(self) -> Function:
+        """
+        ``function`` query the function from the reference tree node
+
+        :return: Function contained in the reference tree node
+        :rtype: Function
+        """
+
+        bn_function = core.BNFirmwareNinjaReferenceNodeGetFunction(self._handle)
+        if not bn_function:
+            return None
+
+        return Function(handle=bn_function)
+
+    @property
+    def data_variable(self) -> DataVariable:
+        """
+        ``data_variable`` query the data variable from the reference tree node
+
+        :return: Data variable contained in the reference tree node
+        :rtype: DataVariable
+        """
+
+        try:
+            bn_data_var = core.BNFirmwareNinjaReferenceNodeGetDataVariable(
+                self._handle)
+            if not bn_data_var:
+                return None
+
+            data_var = DataVariable.from_core_struct(bn_data_var.contents, self._view)
+        finally:
+            core.BNFreeDataVariable(bn_data_var)
+        return data_var
+
+    @property
+    def children(self) -> list['FirmwareNinjaReferenceNode']:
+        """
+        ``children`` query the child reference tree nodes
+
+        :return: Child nodes contained in the reference tree node
+        :rtype: list[FirmwareNinjaReferenceNode]
+        """
+
+        count = ctypes.c_ulonglong(0)
+        nodes = []
+        try:
+            bn_nodes = core.BNFirmwareNinjaReferenceNodeGetChildren(
+                self._handle, count)
+            for i in range(count.value):
+                nodes.append(
+                    FirmwareNinjaReferenceNode(
+                        core.BNNewFirmwareNinjaReferenceNodeReference(
+                            bn_nodes[i]), self._view))
+        finally:
+            core.BNFreeFirmwareNinjaReferenceNodes(bn_nodes, count.value)
+
+        return nodes
 
 
 @dataclass
@@ -74,7 +179,9 @@ class FirmwareNinjaMemoryAccess:
     value: RegisterValue
 
     @classmethod
-    def from_BNFirmwareNinjaMemoryAccess(cls, access: core.BNFirmwareNinjaMemoryAccess) -> "FirmwareNinjaMemoryAccess":
+    def from_BNFirmwareNinjaMemoryAccess(
+        cls, access: core.BNFirmwareNinjaMemoryAccess
+    ) -> "FirmwareNinjaMemoryAccess":
         return cls(
             instr_address=access.instrAddress,
             mem_address=RegisterValue.from_BNRegisterValue(access.memAddress),
@@ -84,7 +191,9 @@ class FirmwareNinjaMemoryAccess:
         )
 
     @classmethod
-    def to_BNFirmwareNinjaMemoryAccess(cls, access: "FirmwareNinjaMemoryAccess") -> core.BNFirmwareNinjaMemoryAccess:
+    def to_BNFirmwareNinjaMemoryAccess(
+        cls, access: "FirmwareNinjaMemoryAccess"
+    ) -> core.BNFirmwareNinjaMemoryAccess:
         return core.BNFirmwareNinjaMemoryAccess(
             instrAddress=access.instr_address,
             memAddress=RegisterValue.to_BNRegisterValue(access.mem_address),
@@ -113,7 +222,9 @@ class FirmwareNinjaFunctionMemoryAccesses:
         accesses = []
         for i in range(info.count):
             access = info.accesses[i]
-            accesses.append(FirmwareNinjaMemoryAccess.from_BNFirmwareNinjaMemoryAccess(access.contents))
+            accesses.append(
+                FirmwareNinjaMemoryAccess.from_BNFirmwareNinjaMemoryAccess(
+                    access.contents))
 
         return cls(
             function=view.get_function_at(info.start),
@@ -156,9 +267,10 @@ class FirmwareNinja:
         if core is not None:
             core.BNFreeFirmwareNinja(self._handle)
 
-    def store_custom_device(self, name: str, start: int, size: int, info: str) -> bool:
+    def store_custom_device(self, name: str, start: int, size: int,
+                            info: str) -> bool:
         """
-        ``store_custom_device`` store a user-defined Firmware Ninja device in the binary view metadata
+        ``store_custom_device`` stores a user-defined Firmware Ninja device in the binary view metadata
 
         :param str name: Name of the device
         :param int start: Start address of the device
@@ -168,7 +280,8 @@ class FirmwareNinja:
         :rtype: bool
         """
 
-        return core.BNFirmwareNinjaStoreCustomDevice(self._handle, name, start, start + size, info)
+        return core.BNFirmwareNinjaStoreCustomDevice(self._handle, name, start,
+                                                     start + size, info)
 
     def remove_custom_device(self, name: str) -> bool:
         """
@@ -186,12 +299,13 @@ class FirmwareNinja:
         """
         ``query_custom_devices`` queries user-defined Firmware Ninja devices from the binary view metadata
 
-        :return: List of Firmware Ninja device objects
+        :return: List of Firmware Ninja devices
         :rtype: list[FirmwareNinjaDevice]
         """
 
         devices = ctypes.POINTER(core.BNFirmwareNinjaDevice)()
-        count = core.BNFirmwareNinjaQueryCustomDevices(self._handle, ctypes.byref(devices))
+        count = core.BNFirmwareNinjaQueryCustomDevices(self._handle,
+                                                       ctypes.byref(devices))
         if count == -1:
             raise RuntimeError("BNFirmwareNinjaQueryCustomDevices")
 
@@ -204,8 +318,7 @@ class FirmwareNinja:
                         start=devices[i].start,
                         size=devices[i].end - devices[i].start,
                         info=devices[i].info,
-                    )
-                )
+                    ))
 
             return device_list
         finally:
@@ -221,8 +334,7 @@ class FirmwareNinja:
 
         boards = ctypes.POINTER(ctypes.c_char_p)()
         count = core.BNFirmwareNinjaQueryBoardNamesForArchitecture(
-            self._handle, self._view.arch.handle, ctypes.byref(boards)
-        )
+            self._handle, self._view.arch.handle, ctypes.byref(boards))
         if count == -1:
             raise RuntimeError("BNFirmwareNinjaQueryBoardNamesForArchitecture")
 
@@ -235,7 +347,8 @@ class FirmwareNinja:
         finally:
             core.BNFirmwareNinjaFreeBoardNames(boards, count)
 
-    def query_devices_by_board_name(self, name: str) -> list[FirmwareNinjaDevice]:
+    def query_devices_by_board_name(self,
+                                    name: str) -> list[FirmwareNinjaDevice]:
         """
         ``query_devices_by_board_name`` queries the hardware device information for a specific board
 
@@ -246,12 +359,15 @@ class FirmwareNinja:
             FirmwareNinjaDevice(name='nand@12f', start=303, size=1024, info='marvell,orion-nand')
 
         :param str name: Name of the board
-        :return: List of Firmware Ninja device objects
+        :return: List of Firmware Ninja devices
         :rtype: list[FirmwareNinjaDevice]
         """
 
         devices = ctypes.POINTER(core.BNFirmwareNinjaDevice)()
-        count = core.BNFirmwareNinjaQueryBoardDevices(self._handle, self._view.arch.handle, name, ctypes.byref(devices))
+        count = core.BNFirmwareNinjaQueryBoardDevices(self._handle,
+                                                      self._view.arch.handle,
+                                                      name,
+                                                      ctypes.byref(devices))
         if count == -1:
             raise RuntimeError("BNFirmwareNinjaQueryBoardDevices")
 
@@ -264,8 +380,7 @@ class FirmwareNinja:
                         start=devices[i].start,
                         size=devices[i].end - devices[i].start,
                         info=devices[i].info,
-                    )
-                )
+                    ))
 
             return device_list
         finally:
@@ -276,7 +391,8 @@ class FirmwareNinja:
         high_code_entropy_threshold: float = 0.910,
         low_code_entropy_threshold: float = 0.500,
         block_size: int = 4096,
-        mode: FirmwareNinjaSectionAnalysisMode = FirmwareNinjaSectionAnalysisMode.DetectStringsSectionAnalysisMode,
+        mode: FirmwareNinjaSectionAnalysisMode = FirmwareNinjaSectionAnalysisMode
+        .DetectStringsSectionAnalysisMode,
     ) -> list[FirmwareNinjaSection]:
         """
         ``find_sections`` finds sections with Firmware Ninja entropy analysis and heuristics
@@ -318,36 +434,39 @@ class FirmwareNinja:
                         start=sections[i].start,
                         size=sections[i].end - sections[i].start,
                         entropy=sections[i].entropy,
-                    )
-                )
+                    ))
 
             return section_list
         finally:
             core.BNFirmwareNinjaFreeSections(sections, count)
 
-    def get_function_memory_accesses(self, progress_func: Callable = None) -> list[FirmwareNinjaFunctionMemoryAccesses]:
+    def get_function_memory_accesses(
+        self,
+        progress_func: Callable = None
+    ) -> list[FirmwareNinjaFunctionMemoryAccesses]:
         """
         ``get_function_memory_accesses`` runs analysis to find accesses to memory regions that are not file-backed, such
-        as memory-mapped I/O and RAM.
+        as memory-mapped I/O and RAM
 
         :param callback progress_func: optional function to be called with the current progress and total count.
-        :return: List of function memory accesses objects
+        :return: List of function memory accesses
         :rtype: list[FirmwareNinjaFunctionMemoryAccesses]
         """
 
-        fma_info = ctypes.POINTER((ctypes.POINTER(core.BNFirmwareNinjaFunctionMemoryAccesses)))()
+        fma_info = ctypes.POINTER(
+            (ctypes.POINTER(core.BNFirmwareNinjaFunctionMemoryAccesses)))()
         if progress_func is None:
-            progress_cfunc = ctypes.CFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_ulonglong, ctypes.c_ulonglong)(
-                lambda ctxt, cur, total: True
-            )
+            progress_cfunc = ctypes.CFUNCTYPE(
+                ctypes.c_bool, ctypes.c_void_p, ctypes.c_ulonglong,
+                ctypes.c_ulonglong)(lambda ctxt, cur, total: True)
         else:
-            progress_cfunc = ctypes.CFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_ulonglong, ctypes.c_ulonglong)(
-                lambda ctxt, cur, total: progress_func(cur, total)
-            )
+            progress_cfunc = ctypes.CFUNCTYPE(
+                ctypes.c_bool, ctypes.c_void_p, ctypes.c_ulonglong,
+                ctypes.c_ulonglong)(
+                    lambda ctxt, cur, total: progress_func(cur, total))
 
         count = core.BNFirmwareNinjaGetFunctionMemoryAccesses(
-            self._handle, ctypes.byref(fma_info), progress_cfunc, None
-        )
+            self._handle, ctypes.byref(fma_info), progress_cfunc, None)
         if count == -1:
             raise RuntimeError("BNFirmwareNinjaGetFunctionMemoryAccesses")
 
@@ -355,33 +474,41 @@ class FirmwareNinja:
             fma_info_list = []
             for i in range(count):
                 fma_info_list.append(
-                    FirmwareNinjaFunctionMemoryAccesses.from_BNFirmwareNinjaFunctionMemoryAccesses(
-                        fma_info[i].contents, self._view
-                    )
-                )
+                    FirmwareNinjaFunctionMemoryAccesses.
+                    from_BNFirmwareNinjaFunctionMemoryAccesses(
+                        fma_info[i].contents, self._view))
 
             return fma_info_list
         finally:
             core.BNFirmwareNinjaFreeFunctionMemoryAccesses(fma_info, count)
 
-    def _fma_info_list_to_array(self, fma: list[FirmwareNinjaFunctionMemoryAccesses]) -> ctypes.POINTER:
-        fma_info_ptr_array = (ctypes.POINTER(core.BNFirmwareNinjaFunctionMemoryAccesses) * len(fma))()
+    def _fma_info_list_to_array(
+            self,
+            fma: list[FirmwareNinjaFunctionMemoryAccesses]) -> ctypes.POINTER:
+        fma_info_ptr_array = (
+            ctypes.POINTER(core.BNFirmwareNinjaFunctionMemoryAccesses) *
+            len(fma))()
         for i, info in enumerate(fma):
-            accesses_ptr_array = (ctypes.POINTER(core.BNFirmwareNinjaMemoryAccess) * len(info.accesses))()
+            accesses_ptr_array = (
+                ctypes.POINTER(core.BNFirmwareNinjaMemoryAccess) *
+                len(info.accesses))()
             for j, access in enumerate(info.accesses):
-                accesses_ptr_array[j] = ctypes.pointer(FirmwareNinjaMemoryAccess.to_BNFirmwareNinjaMemoryAccess(access))
+                accesses_ptr_array[j] = ctypes.pointer(
+                    FirmwareNinjaMemoryAccess.to_BNFirmwareNinjaMemoryAccess(
+                        access))
 
             fma_info_struct = core.BNFirmwareNinjaFunctionMemoryAccesses(
-                function=info.function.handle,
-                accesses=accesses_ptr_array,
+                start=info.function.start,
                 count=len(info.accesses),
+                accesses=accesses_ptr_array,
             )
 
             fma_info_ptr_array[i] = ctypes.pointer(fma_info_struct)
 
         return fma_info_ptr_array
 
-    def store_function_memory_accesses(self, fma: list[FirmwareNinjaFunctionMemoryAccesses]) -> None:
+    def store_function_memory_accesses(
+            self, fma: list[FirmwareNinjaFunctionMemoryAccesses]) -> None:
         """
         ``store_function_memory_accesses`` saves information on function memory accesses to binary view metadata
 
@@ -391,24 +518,28 @@ class FirmwareNinja:
             >>> fma = fwn.get_function_memory_accesses()
             >>> fwn.store_function_memory_accesses(fma)
 
-        :param list[FirmwareNinjaFunctionMemoryAccesses] fma: List of function memory accesses objects
+        :param list[FirmwareNinjaFunctionMemoryAccesses] fma: List of function memory accesses
         :return: None
         :rtype: None
         """
 
         fma_info_ptr_array = self._fma_info_list_to_array(fma)
-        core.BNFirmwareNinjaStoreFunctionMemoryAccessesToMetadata(self._handle, fma_info_ptr_array, len(fma))
+        core.BNFirmwareNinjaStoreFunctionMemoryAccessesToMetadata(
+            self._handle, fma_info_ptr_array, len(fma))
 
-    def query_function_memory_accesses(self) -> list[FirmwareNinjaFunctionMemoryAccesses]:
+    def query_function_memory_accesses(
+            self) -> list[FirmwareNinjaFunctionMemoryAccesses]:
         """
         ``query_function_memory_accesses`` queries information on function memory accesses from binary view metadata
 
-        :return: List of function memory accesses objects
+        :return: List of function memory accesses
         :rtype: list[FirmwareNinjaFunctionMemoryAccesses]
         """
 
-        fma = ctypes.POINTER((ctypes.POINTER(core.BNFirmwareNinjaFunctionMemoryAccesses)))()
-        count = core.BNFirmwareNinjaQueryFunctionMemoryAccessesFromMetadata(self._handle, ctypes.byref(fma))
+        fma = ctypes.POINTER(
+            (ctypes.POINTER(core.BNFirmwareNinjaFunctionMemoryAccesses)))()
+        count = core.BNFirmwareNinjaQueryFunctionMemoryAccessesFromMetadata(
+            self._handle, ctypes.byref(fma))
         if count == -1:
             return None
 
@@ -416,10 +547,9 @@ class FirmwareNinja:
             fma_info_list = []
             for i in range(count):
                 fma_info_list.append(
-                    FirmwareNinjaFunctionMemoryAccesses.from_BNFirmwareNinjaFunctionMemoryAccesses(
-                        fma[i].contents, self._view
-                    )
-                )
+                    FirmwareNinjaFunctionMemoryAccesses.
+                    from_BNFirmwareNinjaFunctionMemoryAccesses(
+                        fma[i].contents, self._view))
 
             return fma_info_list
         finally:
@@ -439,16 +569,16 @@ class FirmwareNinja:
             >>> fwn.get_board_device_accesses(fma)[0]
             FirmwareNinjaDeviceAccesses(board_name='stm32mp157c-dhcom-picoitx', total=414, unique=2)
 
-        :param list[FirmwareNinjaFunctionMemoryAccesses] fma: List of function memory accesses objects
-        :return: List of device accesses objects
+        :param list[FirmwareNinjaFunctionMemoryAccesses] fma: List of function memory accesses
+        :return: List of device accesses
         :rtype: list[FirmwareNinjaDeviceAccesses]
         """
 
         fma_info_ptr_array = self._fma_info_list_to_array(fma)
         device_accesses = ctypes.POINTER(core.BNFirmwareNinjaDeviceAccesses)()
         count = core.BNFirmwareNinjaGetBoardDeviceAccesses(
-            self._handle, fma_info_ptr_array, len(fma), ctypes.byref(device_accesses), self._view.arch.handle
-        )
+            self._handle, fma_info_ptr_array, len(fma),
+            ctypes.byref(device_accesses), self._view.arch.handle)
         if count == -1:
             raise RuntimeError("BNFirmwareNinjaGetBoardDeviceAccesses")
 
@@ -460,9 +590,62 @@ class FirmwareNinja:
                         board_name=device_accesses[i].name,
                         total=device_accesses[i].total,
                         unique=device_accesses[i].unique,
-                    )
-                )
+                    ))
 
             return device_accesses_list
         finally:
             core.BNFirmwareNinjaFreeBoardDeviceAccesses(device_accesses, count)
+
+    def get_reference_tree(
+            self,
+            location: Union[Section, FirmwareNinjaDevice, Function, DataVariable, int],
+            fma: list[FirmwareNinjaFunctionMemoryAccesses],
+            value: Optional[int] = None) -> FirmwareNinjaReferenceNode:
+        """
+        ``get_reference_tree`` returns a tree of references for a memory region, function, or data location
+
+        :param Union[Section, FirmwareNinjaDevice, DataVariable, Function, int] location: Memory location to build the
+        reference tree for
+        :param list[FirmwareNinjaFunctionMemoryAccesses] fma: List of function memory accesses or None to use cross
+        references. None should only be supplied if location is a Function, DataVariable, or address.
+        :param Optional[int] value: Only include the node in the tree if this value is written to the location
+        :return: Root reference node containing the reference tree
+        :rtype: FirmwareNinjaReferenceNode
+        """
+
+        if fma is None and (isinstance(location, Section) or isinstance(location, FirmwareNinjaDevice)):
+            raise ValueError("Function memory accesses cannot be None for location type Section or FirmwareNinjaDevice")
+
+        value = ctypes.pointer(
+            ctypes.c_uint64(value)) if value is not None else None
+
+        fma_info_ptr_array = None
+        if fma is not None and len(fma) > 0:
+            fma_info_ptr_array = self._fma_info_list_to_array(fma)
+
+        if isinstance(location, FirmwareNinjaDevice):
+            bn_node = core.BNFirmwareNinjaGetMemoryRegionReferenceTree(
+                self._handle, location.start, location.start + location.size,
+                fma_info_ptr_array, len(fma), value)
+        elif isinstance(location, Function):
+            bn_node = core.BNFirmwareNinjaGetAddressReferenceTree(
+                self._handle, location.start, fma_info_ptr_array, len(fma),
+                value)
+        elif isinstance(location, Section):
+            bn_node = core.BNFirmwareNinjaGetMemoryRegionReferenceTree(
+                self._handle, location.start, location.start + location.length,
+                fma_info_ptr_array, len(fma), value)
+        elif isinstance(location, DataVariable):
+            bn_node = core.BNFirmwareNinjaGetAddressReferenceTree(
+                self._handle, location.address, fma_info_ptr_array, len(fma),
+                value)
+        elif isinstance(location, int):
+            bn_node = core.BNFirmwareNinjaGetAddressReferenceTree(
+                self._handle, location, fma_info_ptr_array, len(fma), value)
+        else:
+            raise ValueError("Invalid location type")
+
+        if not bn_node:
+            return None
+
+        return FirmwareNinjaReferenceNode(handle=bn_node, view=self._view)

@@ -58,10 +58,83 @@ static void FreeMemoryInfoArray(BNFirmwareNinjaFunctionMemoryAccesses** fma, siz
 }
 
 
+FirmwareNinjaReferenceNode::FirmwareNinjaReferenceNode(BNFirmwareNinjaReferenceNode* node)
+{
+	m_object = node;
+}
+
+
+FirmwareNinjaReferenceNode::~FirmwareNinjaReferenceNode()
+{
+	BNFreeFirmwareNinjaReferenceNode(m_object);
+}
+
+
+bool FirmwareNinjaReferenceNode::IsFunction()
+{
+	return BNFirmwareNinjaReferenceNodeIsFunction(m_object);
+}
+
+
+bool FirmwareNinjaReferenceNode::IsDataVariable()
+{
+	return BNFirmwareNinjaReferenceNodeIsDataVariable(m_object);
+}
+
+
+bool FirmwareNinjaReferenceNode::HasChildren()
+{
+	return BNFirmwareNinjaReferenceNodeHasChildren(m_object);
+}
+
+
+bool FirmwareNinjaReferenceNode::GetFunction(Ref<Function>& function)
+{
+	auto bnFunction = BNFirmwareNinjaReferenceNodeGetFunction(m_object);
+	if (!bnFunction)
+		return false;
+
+	function = new Function(BNNewFunctionReference(bnFunction));
+	return true;
+}
+
+
+bool FirmwareNinjaReferenceNode::GetDataVariable(DataVariable& variable)
+{
+	auto bnVariable = BNFirmwareNinjaReferenceNodeGetDataVariable(m_object);
+	if (!bnVariable)
+		return false;
+
+	variable.address = bnVariable->address;
+	variable.type = Confidence(new Type(BNNewTypeReference(bnVariable->type)), bnVariable->typeConfidence);
+	variable.autoDiscovered = bnVariable->autoDiscovered;
+	BNFreeDataVariable(bnVariable);
+	return true;
+}
+
+
+std::vector<Ref<FirmwareNinjaReferenceNode>> FirmwareNinjaReferenceNode::GetChildren()
+{
+	std::vector<Ref<FirmwareNinjaReferenceNode>> result;
+	size_t count = 0;
+	auto bnChildren = BNFirmwareNinjaReferenceNodeGetChildren(m_object, &count);
+	result.reserve(count);
+	for (size_t i = 0; i < count; ++i)
+	{
+		result.push_back(new FirmwareNinjaReferenceNode(
+			BNNewFirmwareNinjaReferenceNodeReference(bnChildren[i])));
+	}
+
+	if (count)
+		BNFreeFirmwareNinjaReferenceNodes(bnChildren, count);
+	return result;
+}
+
+
 FirmwareNinja::FirmwareNinja(Ref<BinaryView> view)
 {
 	m_view = view;
-    m_object = BNCreateFirmwareNinja(view->GetObject());
+	m_object = BNCreateFirmwareNinja(view->GetObject());
 }
 
 
@@ -218,6 +291,9 @@ std::vector<FirmwareNinjaFunctionMemoryAccesses> FirmwareNinja::GetFunctionMemor
 
 void FirmwareNinja::StoreFunctionMemoryAccesses(const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma)
 {
+	if (fma.empty())
+		return;
+
 	BNFirmwareNinjaFunctionMemoryAccesses** fmaArray = MemoryInfoVectorToArray(fma);
 	BNFirmwareNinjaStoreFunctionMemoryAccessesToMetadata(m_object, fmaArray, fma.size());
 	FreeMemoryInfoArray(fmaArray, fma.size());
@@ -262,6 +338,9 @@ std::vector<FirmwareNinjaDeviceAccesses> FirmwareNinja::GetBoardDeviceAccesses(
 	const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma)
 {
 	std::vector<FirmwareNinjaDeviceAccesses> result;
+	if (fma.empty())
+		return result;
+
 	auto platform = m_view->GetDefaultPlatform();
 	if (!platform)
 		return result;
@@ -273,11 +352,9 @@ std::vector<FirmwareNinjaDeviceAccesses> FirmwareNinja::GetBoardDeviceAccesses(
 	BNFirmwareNinjaFunctionMemoryAccesses** fmaArray = MemoryInfoVectorToArray(fma);
 	BNFirmwareNinjaDeviceAccesses* accesses;
 	int count = BNFirmwareNinjaGetBoardDeviceAccesses(m_object, fmaArray, fma.size(), &accesses, arch->GetObject());
+	FreeMemoryInfoArray(fmaArray, fma.size());
 	if (count <= 0)
-	{
-		FreeMemoryInfoArray(fmaArray, fma.size());
 		return result;
-	}
 
 	result.reserve(count);
 	for (size_t i = 0; i < count; i++)
@@ -289,4 +366,57 @@ std::vector<FirmwareNinjaDeviceAccesses> FirmwareNinja::GetBoardDeviceAccesses(
 	});
 
 	return result;
+}
+
+
+Ref<FirmwareNinjaReferenceNode> FirmwareNinja::GetReferenceTree(
+	FirmwareNinjaDevice& device, const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma, uint64_t* value)
+{
+	BNFirmwareNinjaFunctionMemoryAccesses** fmaArray = nullptr;
+	if (!fma.empty())
+		fmaArray = MemoryInfoVectorToArray(fma);
+
+	auto bnReferenceTree = BNFirmwareNinjaGetMemoryRegionReferenceTree(
+		m_object, device.start, device.end, fmaArray, fma.size(), value);
+
+	FreeMemoryInfoArray(fmaArray, fma.size());
+	if (!bnReferenceTree)
+		return nullptr;
+
+	return new FirmwareNinjaReferenceNode(bnReferenceTree);
+}
+
+
+Ref<FirmwareNinjaReferenceNode> FirmwareNinja::GetReferenceTree(
+	Section& section, const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma, uint64_t* value)
+{
+	BNFirmwareNinjaFunctionMemoryAccesses** fmaArray = nullptr;
+	if (!fma.empty())
+		fmaArray = MemoryInfoVectorToArray(fma);
+
+	auto bnReferenceTree = BNFirmwareNinjaGetMemoryRegionReferenceTree(
+		m_object, section.GetStart(), section.GetStart() + section.GetLength(), fmaArray, fma.size(), value);
+
+	FreeMemoryInfoArray(fmaArray, fma.size());
+	if (!bnReferenceTree)
+		return nullptr;
+
+	return new FirmwareNinjaReferenceNode(bnReferenceTree);
+}
+
+
+Ref<FirmwareNinjaReferenceNode> FirmwareNinja::GetReferenceTree(
+	uint64_t address, const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma, uint64_t* value)
+{
+	BNFirmwareNinjaFunctionMemoryAccesses** fmaArray = nullptr;
+	if (!fma.empty())
+		fmaArray = MemoryInfoVectorToArray(fma);
+
+	auto bnReferenceTree = BNFirmwareNinjaGetAddressReferenceTree(m_object, address, fmaArray, fma.size(), value);
+
+	FreeMemoryInfoArray(fmaArray, fma.size());
+	if (!bnReferenceTree)
+		return nullptr;
+
+	return new FirmwareNinjaReferenceNode(bnReferenceTree);
 }

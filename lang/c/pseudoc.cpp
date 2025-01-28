@@ -6,9 +6,9 @@ using namespace std;
 using namespace BinaryNinja;
 
 
-PseudoCFunction::PseudoCFunction(
-	Architecture* arch, Function* owner, HighLevelILFunction* highLevelILFunction) :
-	LanguageRepresentationFunction(arch, owner, highLevelILFunction), m_highLevelIL(highLevelILFunction)
+PseudoCFunction::PseudoCFunction(LanguageRepresentationFunctionType* type, Architecture* arch, Function* owner,
+	HighLevelILFunction* highLevelILFunction) :
+	LanguageRepresentationFunction(type, arch, owner, highLevelILFunction), m_highLevelIL(highLevelILFunction)
 {
 }
 
@@ -2766,7 +2766,7 @@ PseudoCFunctionType::PseudoCFunctionType(): LanguageRepresentationFunctionType("
 Ref<LanguageRepresentationFunction> PseudoCFunctionType::Create(Architecture* arch, Function* owner,
 	HighLevelILFunction* highLevelILFunction)
 {
-	return new PseudoCFunction(arch, owner, highLevelILFunction);
+	return new PseudoCFunction(this, arch, owner, highLevelILFunction);
 }
 
 

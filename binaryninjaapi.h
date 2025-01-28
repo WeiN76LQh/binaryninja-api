@@ -4057,6 +4057,10 @@ namespace BinaryNinja {
 		DisassemblyTextLineTypeInfo typeInfo;
 
 		DisassemblyTextLine();
+
+		size_t GetTotalWidth() const;
+		size_t GetAddressAndIndentationWidth() const;
+		std::vector<InstructionTextToken> GetAddressAndIndentationTokens() const;
 	};
 
 	/*!
@@ -9943,15 +9947,19 @@ namespace BinaryNinja {
 	{
 	  protected:
 		std::function<void(Ref<AnalysisContext> analysisContext)> m_action;
+		std::function<bool(Ref<Activity>, Ref<AnalysisContext>)> m_eligibility;
 
-		static void Run(void* ctxt, BNAnalysisContext* analysisContext);
+		static void RunAction(void* ctxt, BNAnalysisContext* analysisContext);
+		static bool CheckEligibility(void* ctxt, BNActivity* activity, BNAnalysisContext* analysisContext);
 
 	  public:
 		/*!
 			\param configuration a JSON representation of the activity configuration
 			\param action Workflow action, a function taking a Ref<AnalysisContext> as an argument.
+			\param eligibility A function that determines whether the activity is eligible to run
 		*/
-		Activity(const std::string& configuration, const std::function<void(Ref<AnalysisContext>)>& action);
+		Activity(const std::string& configuration, const std::function<void(Ref<AnalysisContext>)>& action,
+			const std::function<bool(Ref<Activity>, Ref<AnalysisContext>)>& eligibility = nullptr);
 		Activity(BNActivity* activity);
 		virtual ~Activity();
 
@@ -10170,6 +10178,10 @@ namespace BinaryNinja {
 		DisassemblySettings();
 		DisassemblySettings(BNDisassemblySettings* settings);
 		DisassemblySettings* Duplicate();
+
+		static Ref<DisassemblySettings> GetDefaultSettings();
+		static Ref<DisassemblySettings> GetDefaultGraphSettings();
+		static Ref<DisassemblySettings> GetDefaultLinearSettings();
 
 		bool IsOptionSet(BNDisassemblyOption option) const;
 		void SetOption(BNDisassemblyOption option, bool state = true);
@@ -13694,6 +13706,82 @@ namespace BinaryNinja {
 		std::set<SSAVariable> GetSSAVariables();
 	};
 
+	struct LineFormatterSettings
+	{
+		Ref<HighLevelILFunction> highLevelIL;
+		size_t desiredLineLength;
+		size_t minimumContentLength;
+		size_t tabWidth;
+		std::string languageName;
+		std::string commentStartString;
+		std::string commentEndString;
+		std::string annotationStartString;
+		std::string annotationEndString;
+
+		/*! Gets the default line formatter settings for High Level IL code.
+
+		    \param settings The settings for reformatting.
+		    \param func High Level IL function to be reformatted.
+		    \return Settings for reformatting.
+		*/
+		static LineFormatterSettings GetDefault(DisassemblySettings* settings, HighLevelILFunction* func);
+
+		/*! Gets the default line formatter settings for a language representation function.
+
+		    \param settings The settings for reformatting.
+		    \param func Language representation function to be reformatted.
+		    \return Settings for reformatting.
+		*/
+		static LineFormatterSettings GetLanguageRepresentationSettings(
+			DisassemblySettings* settings, LanguageRepresentationFunction* func);
+
+		static LineFormatterSettings FromAPIObject(const BNLineFormatterSettings* settings);
+		BNLineFormatterSettings ToAPIObject() const;
+	};
+
+	class LineFormatter : public StaticCoreRefCountObject<BNLineFormatter>
+	{
+		std::string m_nameForRegister;
+
+		static BNDisassemblyTextLine* FormatLinesCallback(void* ctxt, BNDisassemblyTextLine* inLines, size_t inCount,
+			const BNLineFormatterSettings* settings, size_t* outCount);
+		static void FreeLinesCallback(void* ctxt, BNDisassemblyTextLine* lines, size_t count);
+
+	public:
+		LineFormatter(const std::string& name);
+		LineFormatter(BNLineFormatter* formatter);
+
+		/*! Registers the line formatter.
+
+		    \param formatter The line formatter to register.
+		*/
+		static void Register(LineFormatter* formatter);
+
+		static std::vector<Ref<LineFormatter>> GetList();
+		static Ref<LineFormatter> GetByName(const std::string& name);
+		static Ref<LineFormatter> GetDefault();
+
+		/*! Reformats the given list of lines. Returns a new list of lines containing the reformatted code.
+
+		    \param lines The lines to reformat.
+		    \param settings The settings for reformatting.
+		    \return A new list of reformatted lines.
+		*/
+		virtual std::vector<DisassemblyTextLine> FormatLines(
+			const std::vector<DisassemblyTextLine>& lines, const LineFormatterSettings& settings) = 0;
+	};
+
+	class CoreLineFormatter : public LineFormatter
+	{
+	public:
+		CoreLineFormatter(BNLineFormatter* formatter);
+
+		std::vector<DisassemblyTextLine> FormatLines(
+			const std::vector<DisassemblyTextLine>& lines, const LineFormatterSettings& settings) override;
+	};
+
+	class LanguageRepresentationFunctionType;
+
 	/*! LanguageRepresentationFunction represents a single function in a registered high level language.
 
 	    \ingroup highlevelil
@@ -13703,7 +13791,8 @@ namespace BinaryNinja {
 	        BNFreeLanguageRepresentationFunction>
 	{
 	public:
-		LanguageRepresentationFunction(Architecture* arch, Function* func, HighLevelILFunction* highLevelIL);
+		LanguageRepresentationFunction(LanguageRepresentationFunctionType* type, Architecture* arch, Function* func,
+			HighLevelILFunction* highLevelIL);
 		LanguageRepresentationFunction(BNLanguageRepresentationFunction* func);
 
 		/*! Gets the lines of tokens for a given High Level IL instruction.
@@ -13742,6 +13831,7 @@ namespace BinaryNinja {
 		*/
 		BNHighlightColor GetHighlight(BasicBlock* block);
 
+		Ref<LanguageRepresentationFunctionType> GetLanguage() const;
 		Ref<Architecture> GetArchitecture() const;
 		Ref<Function> GetFunction() const;
 		Ref<HighLevelILFunction> GetHighLevelILFunction() const;
@@ -13890,6 +13980,13 @@ namespace BinaryNinja {
 		*/
 		virtual Ref<TypeParser> GetTypeParser() { return nullptr; }
 
+		/*! Returns the line formatter for formatting code in this language. If NULL is returned, the default
+		    formatter will be used.
+
+		    \return The optional formatter for formatting code in this language.
+		*/
+		virtual Ref<LineFormatter> GetLineFormatter() { return nullptr; }
+
 		/*! Returns a list of lines representing a function prototype in this language. If no lines are returned, the
 		    default C-style prototype will be used.
 
@@ -13916,6 +14013,7 @@ namespace BinaryNinja {
 		static bool IsValidCallback(void* ctxt, BNBinaryView* view);
 		static BNTypePrinter* GetTypePrinterCallback(void* ctxt);
 		static BNTypeParser* GetTypeParserCallback(void* ctxt);
+		static BNLineFormatter* GetLineFormatterCallback(void* ctxt);
 		static BNDisassemblyTextLine* GetFunctionTypeTokensCallback(
 			void* ctxt, BNFunction* func, BNDisassemblySettings* settings, size_t* count);
 		static void FreeLinesCallback(void* ctxt, BNDisassemblyTextLine* lines, size_t count);
@@ -13930,6 +14028,7 @@ namespace BinaryNinja {
 		bool IsValid(BinaryView* view) override;
 		Ref<TypePrinter> GetTypePrinter() override;
 		Ref<TypeParser> GetTypeParser() override;
+		Ref<LineFormatter> GetLineFormatter() override;
 		std::vector<DisassemblyTextLine> GetFunctionTypeTokens(
 			Function* func, DisassemblySettings* settings = nullptr) override;
 	};
@@ -18397,6 +18496,59 @@ namespace BinaryNinja {
 		size_t unique;
 	};
 
+
+	/*! FirmwareNinjaReferenceNode is a class used to build reference trees to memory regions, functions, and data
+		variables. This class is only available in the Ultimate Edition of Binary Ninja.
+
+		\ingroup firmwareninja
+	*/
+	class FirmwareNinjaReferenceNode : public CoreRefCountObject<BNFirmwareNinjaReferenceNode, BNNewFirmwareNinjaReferenceNodeReference, BNFreeFirmwareNinjaReferenceNode>
+	{
+		BNFirmwareNinjaReferenceNode* m_object;
+	public:
+		FirmwareNinjaReferenceNode(BNFirmwareNinjaReferenceNode* node);
+		~FirmwareNinjaReferenceNode();
+
+		/*! Determine if the reference tree node is for a function
+
+			\return true if the reference tree node is for a function, false otherwise
+		 */
+		bool IsFunction();
+
+		/*! Determine if the reference tree node is for a data variable
+
+			\return true if the reference tree node is for a data variable, false otherwise
+		 */
+		bool IsDataVariable();
+
+		/*! Determine if the reference tree node contains child nodes
+
+			\return true if the reference tree node contains child nodes, false otherwise
+		 */
+		bool HasChildren();
+
+		/*! Query the function contained in the reference tree node
+
+			\param function Output function object
+			\return true if the function was queried successfully, false otherwise
+		 */
+		bool GetFunction(Ref<Function>& function);
+
+		/*! Query the data variable contained in the reference tree node
+
+			\param function Output data variable object
+			\return true if the data variable was queried successfully, false otherwise
+		 */
+		bool GetDataVariable(DataVariable& variable);
+
+		/*! Query the child nodes contained in the reference tree node
+
+			\return Vector of child reference tree nodes
+		 */
+		std::vector<Ref<FirmwareNinjaReferenceNode>> GetChildren();
+	};
+
+
 	/*! FirmwareNinja is a class containing features specific to embedded firmware analysis. This class is only
 		available in the Ultimate Edition of Binary Ninja.
 
@@ -18485,6 +18637,47 @@ namespace BinaryNinja {
 		 */
 		std::vector<FirmwareNinjaDeviceAccesses> GetBoardDeviceAccesses(
 			const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma);
+
+
+		/*! Returns a tree of reference nodes that reference the memory region represented by the given device
+
+			\param device Firmware Ninja device
+			\param fma Vector of Firmware Ninja function memory accesses information
+			\param value (Optional) only include components that originate with a write of this value to the device
+			\return Root reference node of tree
+		 */
+		Ref<FirmwareNinjaReferenceNode> GetReferenceTree(
+			FirmwareNinjaDevice& device,
+			const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma,
+			uint64_t* value = nullptr
+		);
+
+		/*! Returns a tree of reference nodes that reference the memory region represented by the given section
+
+			\param device Firmware Ninja device
+			\param fma Vector of Firmware Ninja function memory accesses information
+			\param value (Optional) only include components that originate with a write of this value to the device
+			\return Root reference node of tree
+		 */
+		Ref<FirmwareNinjaReferenceNode> GetReferenceTree(
+			Section& section,
+			const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma,
+			uint64_t* value = nullptr
+		);
+
+
+		/*! Returns a tree of reference nodes that reference the given address
+
+			\param device Firmware Ninja device
+			\param fma Vector of Firmware Ninja function memory accesses information
+			\param value (Optional) only include components that originate with a write of this value to the device
+			\return Root reference node of tree
+		 */
+		Ref<FirmwareNinjaReferenceNode> GetReferenceTree(
+			uint64_t address,
+			const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma,
+			uint64_t* value = nullptr
+		);
 	};
 
 

@@ -530,6 +530,7 @@ protected:
 	void moveToStartOfView();
 	void moveToEndOfView();
 	void selectNone();
+	void selectAll();
 	void navigateToHighlightedToken();
 	void splitToNewTabAndNavigateFromCursorPosition();
 	void splitToNewWindowAndNavigateFromCursorPosition();

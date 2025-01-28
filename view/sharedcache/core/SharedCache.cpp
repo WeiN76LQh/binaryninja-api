@@ -1726,21 +1726,6 @@ bool SharedCache::LoadImageContainingAddress(uint64_t address, bool skipObjC)
 	return false;
 }
 
-// No locks are required to call the function but it will acquire a lock to the 
-// `m_viewSpecificState->viewEndBufferWriterMutex` to prevent simultaneous 
-// writes to the same location.
-uint64_t SharedCache::WriteBufferToViewEnd(DataBuffer& buff)
-{
-	std::unique_lock<std::mutex> lock(m_viewSpecificState->viewEndBufferWriterMutex);
-	
-	const auto rawViewEnd = m_dscView->GetParentView()->GetParentView()->GetEnd();
-	
-	m_dscView->GetParentView()->GetParentView()->WriteBuffer(rawViewEnd, buff);
-	m_dscView->GetParentView()->WriteBuffer(rawViewEnd, buff);
-
-	return rawViewEnd;
-}
-
 // This is for loading a memory region that is not found within an image in 
 // the `State()->images` vector. The use of this function prevents repetitive 
 // coding in `SharedCache::LoadSectionAtAddress`. No locks should be held on 
@@ -1842,19 +1827,14 @@ bool SharedCache::LoadNonImageSectionAtAddress(uint64_t regionStart, MemoryRegio
 
 	auto reader = VMReader(vm);
 	auto buff = reader.ReadBuffer(region.start, region.size);
-	auto rawViewEnd = WriteBufferToViewEnd(buff);
-
-	m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, region.size, rawViewEnd, region.size, region.flags);
-	m_dscView->AddUserSegment(region.start, region.size, rawViewEnd, region.size, region.flags);
+	m_dscView->GetMemoryMap()->AddDataMemoryRegion(region.prettyName, region.start, buff, region.flags);
 	m_dscView->AddUserSection(region.prettyName, region.start, region.size, semantics);
-	m_dscView->WriteBuffer(region.start, buff);
 
 	{
 		StateLockUpdateScope lock(this);
 
 		MemoryRegion newRegion(region);
 		newRegion.loaded = true;
-		newRegion.rawViewOffsetIfLoaded = rawViewEnd;
 		MutableState().regionsMappedIntoMemory = MutableState().regionsMappedIntoMemory.push_back(newRegion);
 		switch (regionType)
 		{
@@ -2020,20 +2000,13 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 	}
 
 	auto buff = reader.ReadBuffer(region.start, region.size);
-	auto rawViewEnd = WriteBufferToViewEnd(buff);
-
-	m_dscView->GetParentView()->AddAutoSegment(
-		rawViewEnd, region.size, rawViewEnd, region.size, SegmentReadable);
-	m_dscView->AddUserSegment(
-		region.start, region.size, rawViewEnd, region.size, region.flags);
-	m_dscView->WriteBuffer(region.start, buff);
+	m_dscView->GetMemoryMap()->AddDataMemoryRegion(region.prettyName, region.start, buff, region.flags);
 
 	{
 		StateLockUpdateScope lock(this);
 
 		MemoryRegion newTargetSegment(region);
 		newTargetSegment.loaded = true;
-		newTargetSegment.rawViewOffsetIfLoaded = rawViewEnd;
 		MutableState().regionsMappedIntoMemory = State()->regionsMappedIntoMemory.push_back(newTargetSegment);
 
 		images = State()->images;
@@ -2259,12 +2232,8 @@ bool SharedCache::LoadImagesWithInstallNames(std::vector<std::string_view> insta
 					continue;
 				}
 
-				auto buff = reader.ReadBuffer(region.start, region.size);
-				auto rawViewEnd = WriteBufferToViewEnd(buff);
-
 				MemoryRegion newRegion(region);
 				newRegion.loaded = true;
-				newRegion.rawViewOffsetIfLoaded = rawViewEnd;
 				newRegionsMappedIntoMemory.push_back(newRegion);
 				newTargetImageRegions.set(it.index(), std::move(newRegion));
 				regionsToLoad.push_back(it.index());
@@ -2275,9 +2244,8 @@ bool SharedCache::LoadImagesWithInstallNames(std::vector<std::string_view> insta
 					ParseAndApplySlideInfoForFile(targetFile.get());
 				}
 
-				m_dscView->GetParentView()->AddAutoSegment(rawViewEnd, region.size, rawViewEnd, region.size, region.flags);
-				m_dscView->AddUserSegment(region.start, region.size, rawViewEnd, region.size, region.flags);
-				m_dscView->WriteBuffer(region.start, buff);
+				auto buff = reader.ReadBuffer(region.start, region.size);
+				m_dscView->GetMemoryMap()->AddDataMemoryRegion(region.prettyName, region.start, buff, region.flags);
 			}
 
 			if (regionsToLoad.empty())
@@ -3768,7 +3736,7 @@ bool SharedCache::SaveToDSCView()
 		// Serialize the state and write to the binary view's metadata storage
 		auto data = AsMetadata();
 		m_dscView->StoreMetadata(SharedCacheMetadataTag, data);
-		m_dscView->GetParentView()->GetParentView()->StoreMetadata(SharedCacheMetadataTag, data);
+		m_dscView->GetParentView()->StoreMetadata(SharedCacheMetadataTag, data);
 
 		return true;
 	}
@@ -4162,19 +4130,15 @@ extern "C"
 }
 
 [[maybe_unused]] DSCViewType* g_dscViewType;
-[[maybe_unused]] DSCRawViewType* g_dscRawViewType;
 
 void InitDSCViewType()
 {
 	MMappedFileAccessor::InitialVMSetup();
 	std::atexit(VMShutdown);
 
-	static DSCRawViewType rawType;
-	BinaryViewType::Register(&rawType);
 	static DSCViewType type;
 	BinaryViewType::Register(&type);
 	g_dscViewType = &type;
-	g_dscRawViewType = &rawType;
 }
 
 namespace SharedCacheCore {

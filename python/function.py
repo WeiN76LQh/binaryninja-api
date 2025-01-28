@@ -135,6 +135,18 @@ class DisassemblySettings:
 			option = DisassemblyOption[option]
 		core.BNSetDisassemblySettingsOption(self.handle, option, state)
 
+	@staticmethod
+	def default_settings() -> 'DisassemblySettings':
+		return DisassemblySettings(core.BNDefaultDisassemblySettings())
+
+	@staticmethod
+	def default_graph_settings() -> 'DisassemblySettings':
+		return DisassemblySettings(core.BNDefaultGraphDisassemblySettings())
+
+	@staticmethod
+	def default_linear_settings() -> 'DisassemblySettings':
+		return DisassemblySettings(core.BNDefaultLinearDisassemblySettings())
+
 
 @dataclass
 class ILReferenceSource:
@@ -3354,6 +3366,52 @@ class DisassemblyTextLine:
 		if self.address is None:
 			return f"<disassemblyTextLine {self}>"
 		return f"<disassemblyTextLine {self.address:#x}: {self}>"
+
+	@property
+	def total_width(self):
+		return sum(token.width for token in self.tokens)
+
+	def _find_address_and_indentation_tokens(self, callback):
+		start_token = 0
+		for i in range(len(self.tokens)):
+			if self.tokens[i].type == InstructionTextTokenType.AddressSeparatorToken:
+				start_token = i + 1
+				break
+
+		for token in self.tokens[:start_token]:
+			callback(token)
+
+		for token in self.tokens[start_token:]:
+			if token.type in [InstructionTextTokenType.AddressDisplayToken,
+							  InstructionTextTokenType.AddressSeparatorToken,
+							  InstructionTextTokenType.CollapseStateIndicatorToken]:
+				callback(token)
+				continue
+			if len(token.text) != 0 and not token.text.isspace():
+				break
+			callback(token)
+
+	@property
+	def address_and_indentation_width(self):
+		result = 0
+
+		def sum_width(token):
+			nonlocal result
+			result += token.width
+
+		self._find_address_and_indentation_tokens(sum_width)
+		return result
+
+	@property
+	def address_and_indentation_tokens(self):
+		result = []
+
+		def collect_tokens(token):
+			nonlocal result
+			result.append(token)
+
+		self._find_address_and_indentation_tokens(collect_tokens)
+		return result
 
 
 class DisassemblyTextRenderer:

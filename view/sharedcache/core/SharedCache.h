@@ -36,7 +36,6 @@ namespace SharedCacheCore {
 		uint64_t start;
 		uint64_t size;
 		bool loaded = false;
-		uint64_t rawViewOffsetIfLoaded = 0;
 		bool headerInitialized = false;
 		BNSegmentFlag flags;
 
@@ -46,7 +45,6 @@ namespace SharedCacheCore {
 			MSS(start);
 			MSS(size);
 			MSS(loaded);
-			MSS(rawViewOffsetIfLoaded);
 			MSS_CAST(flags, uint64_t);
 		}
 
@@ -56,7 +54,6 @@ namespace SharedCacheCore {
 			MSL(start);
 			MSL(size);
 			MSL(loaded);
-			MSL(rawViewOffsetIfLoaded);
 			MSL_CAST(flags, uint64_t, BNSegmentFlag);
 		}
 	};
@@ -636,7 +633,6 @@ namespace SharedCacheCore {
 		void ParseAndApplySlideInfoForFile(MMappedFileAccessor* file);
 		std::optional<uint64_t> GetImageStart(std::string installName);
 		const SharedCacheMachOHeader* HeaderForAddress(uint64_t);
-		uint64_t WriteBufferToViewEnd(BinaryNinja::DataBuffer& buff);
 		bool LoadImagesWithInstallNames(std::vector<std::string_view> installNames, bool skipObjC);
 		bool LoadImageWithInstallName(std::string_view installName, bool skipObjC);
 		bool LoadNonImageSectionAtAddress(uint64_t regionStart, MemoryRegionType regionType, size_t regionIndexInVector);

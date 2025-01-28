@@ -51,7 +51,7 @@ namespace BinaryNinja {
 		uint32_t offset;
 		uint32_t cdOffset;
 		int32_t pTypeDescriptor;
-		int32_t pClassHeirarchyDescriptor;
+		int32_t pClassHierarchyDescriptor;
 		// Only on 64 bit
 		int32_t pSelf;
 
@@ -100,6 +100,8 @@ namespace BinaryNinja {
 		bool virtualFunctionTableSweep;
 
 		std::map<uint64_t, ClassInfo> m_classInfo;
+
+		std::set<uint64_t> m_visitedClassHierarchyDescAddrs;
 
 		void DeserializedMetadata(const Ref<Metadata> &metadata);
 

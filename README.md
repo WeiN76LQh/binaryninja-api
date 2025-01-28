@@ -13,7 +13,7 @@ Online documentation is available for the following APIs:
 - [Python API, Stable Branch](https://api.binary.ninja/)
 - [Python API, Dev Branch](https://dev-api.binary.ninja/)
 - [Rust API, Stable Branch](https://rust.binary.ninja/)
-- [Rust API, Dev Branch](https://rust-dev.binary.ninja/)
+- [Rust API, Dev Branch](https://dev-rust.binary.ninja/)
 
 ## Usage and Build Instructions
 
@@ -115,9 +115,9 @@ This repository contains all of our Binary View Type plugins available here:
 
 ## DebugInfo
 
-* [DWARF Import](https://github.com/Vector35/binaryninja-api/tree/dev/rust/examples/dwarf/dwarf_import)
-* [PDB Import](https://github.com/Vector35/binaryninja-api/tree/dev/rust/examples/pdb-ng)
-* [IDB Import](https://github.com/Vector35/binaryninja-api/tree/dev/rust/examples/idb_import)
+* [DWARF Import](https://github.com/Vector35/binaryninja-api/tree/dev/plugins/dwarf/dwarf_import)
+* [PDB Import](https://github.com/Vector35/binaryninja-api/tree/dev/plugins/pdb-ng)
+* [IDB Import](https://github.com/Vector35/binaryninja-api/tree/dev/plugins/idb_import)
 
 
 ## Related Repositories
