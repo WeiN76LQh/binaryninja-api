@@ -28,8 +28,6 @@ DSCView::DSCView(const std::string& typeName, BinaryView* data, bool parseOnly) 
 
 DSCView::~DSCView()
 {
-	if (!m_parseOnly)
-		MMappedFileAccessor::CloseAll(GetFile()->GetSessionId());
 }
 
 enum DSCPlatform {

@@ -50,16 +50,14 @@
 	#include <sys/resource.h>
 #endif
 
-void VMShutdown()
-{
-	std::unique_lock<std::mutex> lock2(fileAccessorsMutex);
-	std::unique_lock<std::mutex> lock(fileAccessorDequeMutex);
+static std::atomic<uint64_t> mmapCount = 0;
 
-	// This will trigger the deallocation logic for these.
-	// It is background threaded to avoid a deadlock on exit.
-	fileAccessorReferenceHolder.clear();
-	fileAccessors.clear();
+uint64_t MMapCount()
+{
+	return mmapCount;
 }
+
+void VMShutdown() {}
 
 
 std::string ResolveFilePath(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, const std::string& path)
@@ -203,92 +201,121 @@ void MMAP::Unmap()
 #endif
 }
 
-
-std::shared_ptr<LazyMappedFileAccessor> MMappedFileAccessor::Open(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, const uint64_t sessionID, const std::string &path, std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine)
+FileAccessorCache& FileAccessorCache::Shared()
 {
-	std::scoped_lock<std::mutex> lock(fileAccessorsMutex);
-	if (auto it = fileAccessors.find(path); it != fileAccessors.end()) {
+	static FileAccessorCache& shared = *new FileAccessorCache;
+	return shared;
+};
+
+FileAccessorCache::FileAccessorCache() = default;
+
+void FileAccessorCache::SetCacheSize(uint64_t cacheSize)
+{
+	m_cacheSize = cacheSize;
+	EvictFromCacheIfNeeded();
+}
+
+void FileAccessorCache::RecordAccess(const std::string& path)
+{
+	auto it = m_accessors.find(path);
+	if (it == m_accessors.end()) {
+		return;
+	}
+
+	// Move the entry for `path` to the end of `m_leastRecentlyOpened`.
+	m_leastRecentlyOpened.splice(m_leastRecentlyOpened.end(), m_leastRecentlyOpened, it->second.second);
+}
+
+void FileAccessorCache::EvictFromCacheIfNeeded()
+{
+	std::lock_guard lock(m_mutex);
+	while (m_accessors.size() > m_cacheSize) {
+		m_accessors.erase(m_leastRecentlyOpened.front());
+		m_leastRecentlyOpened.pop_front();
+	}
+}
+
+std::shared_ptr<LazyMappedFileAccessor> FileAccessorCache::OpenLazily(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView,
+	const uint64_t sessionID, const std::string& path,
+	std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine)
+{
+	std::lock_guard lock(m_mutex);
+	if (auto it = m_lazyAccessors.find(path); it != m_lazyAccessors.end()) {
+		RecordAccess(path);
 		return it->second;
 	}
 
-	auto fileAcccessor = std::make_shared<LazyMappedFileAccessor>(
-		path,
-		// Allocator logic for the SelfAllocatingWeakPtr
-		[path=path, sessionID=sessionID, dscView](){
-			std::unique_lock<std::mutex> _lock(fileAccessorDequeMutex);
-
-			// Iterate through held references and start removing them until we can get a file pointer
-			// FIXME: This could clear all currently used file pointers and still not get one. FIX!
-			// 		We should probably use a condition variable here to wait for a file pointer to be released!!!
-			for (auto& [_, fileAccessorDeque] : fileAccessorReferenceHolder)
-			{
-				if (fileAccessorSemaphore.try_acquire())
-					break;
-				fileAccessorDeque.pop_front();
+	auto accessor = std::make_shared<LazyMappedFileAccessor>(path,
+		[=, dscView = std::move(dscView), postAllocationRoutine = std::move(postAllocationRoutine)](
+			const std::string& path) {
+			auto accessor = Open(dscView, sessionID, path);
+			if (postAllocationRoutine) {
+				postAllocationRoutine(accessor);
 			}
-
-			mmapCount++;
-			_lock.unlock();
-			auto accessor = std::shared_ptr<MMappedFileAccessor>(new MMappedFileAccessor(ResolveFilePath(dscView, path)), [](MMappedFileAccessor* accessor){
-				// worker thread or we can deadlock on exit here.
-				BinaryNinja::WorkerEnqueue([accessor](){
-					fileAccessorSemaphore.release();
-					mmapCount--;
-					if (fileAccessors.count(accessor->m_path))
-					{
-						std::scoped_lock<std::mutex> lock(fileAccessorsMutex);
-						fileAccessors.erase(accessor->m_path);
-					}
-					delete accessor;
-				}, "MMappedFileAccessor Destructor");
-			});
-			_lock.lock();
-			// If some background thread has managed to try and open a file when the BV was already closed,
-			// 		we can still give them the file they want so they dont crash, but as soon as they let go it's gone.
-			if (!blockedSessionIDs.count(sessionID))
-				fileAccessorReferenceHolder[sessionID].push_back(accessor);
 			return accessor;
-		},
-		[postAllocationRoutine=postAllocationRoutine](std::shared_ptr<MMappedFileAccessor> accessor){
-			if (postAllocationRoutine)
-				postAllocationRoutine(std::move(accessor));
 		});
-	fileAccessors.insert_or_assign(path, fileAcccessor);
-	return fileAcccessor;
+
+	m_lazyAccessors.insert_or_assign(path, accessor);
+	return accessor;
 }
 
-
-void MMappedFileAccessor::CloseAll(const uint64_t sessionID)
+std::shared_ptr<MMappedFileAccessor> FileAccessorCache::Open(
+	BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, const uint64_t sessionID, const std::string& path)
 {
-	blockedSessionIDs.insert(sessionID);
-	if (fileAccessorReferenceHolder.count(sessionID) == 0)
-		return;
-	fileAccessorReferenceHolder.erase(sessionID);
+	EvictFromCacheIfNeeded();
+
+	mmapCount++;
+	auto accessor = std::shared_ptr<MMappedFileAccessor>(new MMappedFileAccessor(ResolveFilePath(dscView, path)),
+		[this](MMappedFileAccessor* accessor) { Close(accessor); });
+
+	std::lock_guard lock(m_mutex);
+	auto [it, inserted] = m_accessors.insert({path, {accessor, m_leastRecentlyOpened.end()}});
+	if (inserted) {
+		m_leastRecentlyOpened.push_back(path);
+		it->second.second = std::prev(it->second.second);
+	} else {
+		RecordAccess(path);
+	}
+
+	return accessor;
 }
 
+void FileAccessorCache::Close(MMappedFileAccessor* accessor)
+{
+	mmapCount--;
+	delete accessor;
+}
+
+std::shared_ptr<LazyMappedFileAccessor> MMappedFileAccessor::Open(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView,
+	const uint64_t sessionID, const std::string& path,
+	std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine)
+{
+	return FileAccessorCache::Shared().OpenLazily(dscView, sessionID, path, std::move(postAllocationRoutine));
+}
 
 void MMappedFileAccessor::InitialVMSetup()
 {
-	// check for BN_SHAREDCACHE_FP_MAX
-	// if it exists, set maxFPLimit to that value
-	maxFPLimit = 0;
-	if (auto env = getenv("BN_SHAREDCACHE_FP_MAX"); env)
-	{
-		// FIXME behav on 0 here is unintuitive, '0123' will interpret as octal and be 83 according to manpage. meh.
-		maxFPLimit = strtoull(env, nullptr, 0);
-		if (maxFPLimit < 10)
+	static std::once_flag once;
+	std::call_once(once, []{
+		// check for BN_SHAREDCACHE_FP_MAX
+		// if it exists, set maxFPLimit to that value
+		unsigned long long maxFPLimit = 0;
+		if (auto env = getenv("BN_SHAREDCACHE_FP_MAX"); env)
 		{
-			BinaryNinja::LogWarn("BN_SHAREDCACHE_FP_MAX set to below 10. A value of at least 10 is recommended for performant analysis on SharedCache Binaries.");
+			// FIXME behav on 0 here is unintuitive, '0123' will interpret as octal and be 83 according to manpage. meh.
+			maxFPLimit = strtoull(env, nullptr, 0);
+			if (maxFPLimit < 10)
+			{
+				BinaryNinja::LogWarn("BN_SHAREDCACHE_FP_MAX set to below 10. A value of at least 10 is recommended for performant analysis on SharedCache Binaries.");
+			}
+			if (maxFPLimit == 0)
+			{
+				BinaryNinja::LogError("BN_SHAREDCACHE_FP_MAX set to 0. Adjusting to 1");
+				maxFPLimit = 1;
+			}
 		}
-		if (maxFPLimit == 0)
+		else
 		{
-			BinaryNinja::LogError("BN_SHAREDCACHE_FP_MAX set to 0. Adjusting to 1");
-			maxFPLimit = 1;
-		}
-	}
-	else
-	{
-		if (maxFPLimit < 10) {
 #ifdef _MSC_VER
 			// It is not _super_ clear what the max file pointer limit is on windows,
 			// 	but to my understanding, we are using the windows API to map files,
@@ -297,15 +324,30 @@ void MMappedFileAccessor::InitialVMSetup()
 			// parallelize sharedcache processing on in terms of FP usage concerns
 			maxFPLimit = 0x1000000;
 #else
-			// unix in comparison will likely have a very small limit, especially mac, necessitating all of this consideration
+			// The soft file descriptor limit on Linux and Mac is a lot lower than
+			// on Windows (1024 for Linux, 256 for Mac). Recent iOS shared caches
+			// have 60+ files which may not leave much headroom if a user opens
+			// more than one at a time. Attempt to increase the file descriptor
+			// limit to 1024, and limit ourselves to caching half of them as a
+			// memory vs performance trade-off (closing and re-opening a file
+			// requires parsing and applying the slide information again).
+			constexpr rlim_t TargetFileDescriptorLimit = 1024;
 			struct rlimit rlim;
 			getrlimit(RLIMIT_NOFILE, &rlim);
+			unsigned long long previousLimit = rlim.rlim_cur;
+			if (rlim.rlim_cur < TargetFileDescriptorLimit) {
+				rlim.rlim_cur = std::min(TargetFileDescriptorLimit, rlim.rlim_max);
+				if (setrlimit(RLIMIT_NOFILE, &rlim) < 0) {
+					perror("setrlimit(RLIMIT_NOFILE)");
+					rlim.rlim_cur = previousLimit;
+				}
+			}
 			maxFPLimit = rlim.rlim_cur / 2;
 #endif
 		}
-	}
-	BinaryNinja::LogInfo("Shared Cache processing initialized with a max file pointer limit of 0x%llx", maxFPLimit);
-	fileAccessorSemaphore.set_count(maxFPLimit);
+		BinaryNinja::LogInfo("Shared Cache processing initialized with a max file descriptor limit of %lld", maxFPLimit);
+		FileAccessorCache::Shared().SetCacheSize(maxFPLimit);
+	});
 }
 
 
@@ -486,7 +528,8 @@ void VM::MapPages(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, uint64_t se
 		throw MappingPageAlignmentException();
 	}
 
-	auto accessor = MMappedFileAccessor::Open(std::move(dscView), sessionID, filePath, postAllocationRoutine);
+	auto accessor =
+		MMappedFileAccessor::Open(std::move(dscView), sessionID, filePath, std::move(postAllocationRoutine));
 	auto [it, inserted] = m_map.insert_or_assign({vm_address, vm_address + size}, PageMapping(std::move(accessor), fileoff));
 	if (m_safe && !inserted)
 	{

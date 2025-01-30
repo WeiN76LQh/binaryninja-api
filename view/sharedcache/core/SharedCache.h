@@ -588,13 +588,14 @@ namespace SharedCacheCore {
 		void DeserializeFromRawView();
 
 	public:
-		std::shared_ptr<VM> GetVMMap(bool mapPages = true);
+		std::shared_ptr<VM> GetVMMap();
 
 		static SharedCache* GetFromDSCView(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView);
 		static uint64_t FastGetBackingCacheCount(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView);
 		bool SaveToDSCView();
 
 		void ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAccessor> file);
+
 		std::optional<uint64_t> GetImageStart(std::string installName);
 		std::optional<SharedCacheMachOHeader> HeaderForAddress(uint64_t);
 		bool LoadImageWithInstallName(std::string installName, bool skipObjC);
@@ -655,6 +656,9 @@ private:
 		// Must be called before first access to `MutableState()` after the state
 		// is loaded from the cache. Can safely be called multiple times.
 		void WillMutateState();
+
+		std::shared_ptr<MMappedFileAccessor> MapFile(const std::string& path);
+		static std::shared_ptr<MMappedFileAccessor> MapFileWithoutApplyingSlide(const std::string& path);
 	};
 
 }

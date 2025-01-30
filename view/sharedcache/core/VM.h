@@ -4,62 +4,26 @@
 
 #ifndef SHAREDCACHE_VM_H
 #define SHAREDCACHE_VM_H
+
 #include <binaryninjaapi.h>
-#include <condition_variable>
+
+#include <list>
+#include <mutex>
+#include <unordered_map>
 
 void VMShutdown();
 
 std::string ResolveFilePath(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, const std::string& path);
 
-class counting_semaphore {
-public:
-	explicit counting_semaphore(int count = 0) : count_(count) {}
-
-	void release(int update = 1) {
-		std::unique_lock<std::mutex> lock(mutex_);
-		count_ += update;
-		cv_.notify_all();
-	}
-
-	void acquire() {
-		std::unique_lock<std::mutex> lock(mutex_);
-		cv_.wait(lock, [this]() { return count_ > 0; });
-		--count_;
-	}
-
-	bool try_acquire() {
-		std::unique_lock<std::mutex> lock(mutex_);
-		if (count_ > 0) {
-			--count_;
-			return true;
-		}
-		return false;
-	}
-
-	void set_count(int new_count) {
-		std::unique_lock<std::mutex> lock(mutex_);
-		count_ = new_count;
-		cv_.notify_all();
-	}
-
-private:
-	std::mutex mutex_;
-	std::condition_variable cv_;
-	int count_;
-};
-
-
 template <typename T>
 class SelfAllocatingWeakPtr {
 public:
-	SelfAllocatingWeakPtr(std::function<std::shared_ptr<T>()> allocator, std::function<void(std::shared_ptr<T>)> postAlloc)
-		: allocator(allocator), postAlloc(postAlloc) {}
+	SelfAllocatingWeakPtr(std::function<std::shared_ptr<T>()> allocator) : allocator(allocator) {}
 
 	std::shared_ptr<T> lock() {
 		std::shared_ptr<T> sharedPtr = weakPtr.lock();
 		if (!sharedPtr) {
 			sharedPtr = allocator();
-			postAlloc(sharedPtr);
 			weakPtr = sharedPtr;
 		}
 		return sharedPtr;
@@ -71,8 +35,7 @@ public:
 
 private:
 	std::weak_ptr<T> weakPtr;                       // Weak reference to the object
-	std::function<std::shared_ptr<T>()> allocator;  // Function to recreate the object
-	std::function<void(std::shared_ptr<T>)> postAlloc;  // Function to call after the object is allocated
+	std::function<std::shared_ptr<T>()> allocator;	// Function to recreate the object
 };
 
 
@@ -106,26 +69,20 @@ class MMAP {
 
 class LazyMappedFileAccessor : public SelfAllocatingWeakPtr<MMappedFileAccessor> {
 public:
-    LazyMappedFileAccessor(std::string filePath, std::function<std::shared_ptr<MMappedFileAccessor>()> allocator,
-            std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAlloc)
-        : SelfAllocatingWeakPtr(std::move(allocator), std::move(postAlloc)), m_filePath(std::move(filePath)) {
-    }
+	LazyMappedFileAccessor(
+		std::string filePath, std::function<std::shared_ptr<MMappedFileAccessor>(const std::string&)> allocator) :
+		SelfAllocatingWeakPtr([this, allocator = std::move(allocator)] { return allocator(m_filePath); }),
+		m_filePath(std::move(filePath))
+	{}
+	~LazyMappedFileAccessor() = default;
 
-    std::string_view filePath() const { return m_filePath; }
+	std::string_view filePath() const { return m_filePath; }
 
 private:
     std::string m_filePath;
 };
 
-static uint64_t maxFPLimit;
-static std::mutex fileAccessorDequeMutex;
-static std::unordered_map<uint64_t, std::deque<std::shared_ptr<MMappedFileAccessor>>> fileAccessorReferenceHolder;
-static std::set<uint64_t> blockedSessionIDs;
-static std::mutex fileAccessorsMutex;
-static std::unordered_map<std::string, std::shared_ptr<LazyMappedFileAccessor>> fileAccessors;
-static counting_semaphore fileAccessorSemaphore(0);
-
-static std::atomic<uint64_t> mmapCount = 0;
+uint64_t MMapCount();
 
 class MMappedFileAccessor {
     std::string m_path;
@@ -142,9 +99,9 @@ public:
 
 	static void InitialVMSetup();
 
-    std::string Path() const { return m_path; };
+	const std::string& Path() const { return m_path; };
 
-    size_t Length() const { return m_mmap.len; };
+	size_t Length() const { return m_mmap.len; };
 
     void *Data() const { return m_mmap._mmap; };
 
@@ -199,6 +156,39 @@ public:
 
     template <typename T>
     T Read(size_t address);
+};
+
+class FileAccessorCache
+{
+public:
+	static FileAccessorCache& Shared();
+
+	std::shared_ptr<LazyMappedFileAccessor> OpenLazily(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView,
+		const uint64_t sessionID, const std::string& path,
+		std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine);
+
+	void SetCacheSize(uint64_t size);
+
+private:
+	FileAccessorCache();
+
+	std::shared_ptr<MMappedFileAccessor> Open(
+		BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, const uint64_t sessionID, const std::string& path);
+
+	void Close(MMappedFileAccessor* accessor);
+
+	void RecordAccess(const std::string& path);
+	void EvictFromCacheIfNeeded();
+
+	std::mutex m_mutex;
+	std::unordered_map<std::string, std::shared_ptr<LazyMappedFileAccessor>> m_lazyAccessors;
+
+	// Ordered from least recently opened (front) to most recently opened (end).
+	std::list<std::string> m_leastRecentlyOpened;
+	std::unordered_map<std::string, std::pair<std::shared_ptr<MMappedFileAccessor>, std::list<std::string>::iterator>>
+		m_accessors;
+
+	uint64_t m_cacheSize = 8;
 };
 
 struct PageMapping {
