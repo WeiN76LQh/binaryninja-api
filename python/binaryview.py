@@ -7621,7 +7621,7 @@ class BinaryView:
 		view, while those two APIs do not.
 
 		:param str text: C source code string of type to create
-		:param import_dependencies: If Type Library / Type Archive types should be imported during parsing
+		:param import_dependencies: If Type Library types should be imported during parsing
 		:return: A tuple of a :py:class:`Type` and type name
 		:rtype: tuple(Type, QualifiedName)
 		:Example:
@@ -7658,7 +7658,7 @@ class BinaryView:
 		:param str text: C source code string of types, variables, and function types, to create
 		:param options: Optional list of string options to be passed into the type parser
 		:param include_dirs: Optional list of header search directories
-		:param import_dependencies: If Type Library / Type Archive types should be imported during parsing
+		:param import_dependencies: If Type Library types should be imported during parsing
 		:return: :py:class:`~binaryninja.typeparser.TypeParserResult` (a SyntaxError is thrown on parse error)
 		:rtype: TypeParserResult
 		:Example:
