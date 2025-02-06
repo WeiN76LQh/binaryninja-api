@@ -1,6 +1,9 @@
+use binaryninja::binary_view::{BinaryView, BinaryViewExt};
 use binaryninja::confidence::Conf;
+use binaryninja::file_metadata::FileMetadata;
 use binaryninja::headless::Session;
 use binaryninja::platform::Platform;
+use binaryninja::rc::Ref;
 use binaryninja::types::{MemberAccess, MemberScope, StructureBuilder, StructureMember, Type};
 use rstest::*;
 
@@ -8,6 +11,12 @@ use rstest::*;
 #[once]
 fn session() -> Session {
     Session::new().expect("Failed to initialize session")
+}
+
+#[fixture]
+#[once]
+fn empty_view() -> Ref<BinaryView> {
+    BinaryView::from_data(&FileMetadata::new(), &[]).expect("Failed to create view")
 }
 
 #[rstest]
@@ -57,4 +66,12 @@ fn test_structure_builder(_session: &Session) {
             scope: MemberScope::FriendScope,
         }
     );
+}
+
+#[rstest]
+fn add_type_to_view(_session: &Session, empty_view: &BinaryView) {
+    let test_type = Type::int(4, true);
+    empty_view.define_auto_type("test", "me", &test_type);
+    assert!(empty_view.type_by_name("test").is_some());
+    assert!(empty_view.type_by_id("me").is_some());
 }
