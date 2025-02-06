@@ -14,13 +14,16 @@
 
 //! Interfaces for creating and displaying pretty CFGs in Binary Ninja.
 
+use crate::architecture::CoreArchitecture;
 use crate::disassembly::DisassemblyTextLine;
-use binaryninjacore_sys::*;
-
 use crate::rc::*;
+use binaryninjacore_sys::*;
 
 use crate::basic_block::{BasicBlock, BlockContext};
 use crate::function::HighlightColor;
+use crate::high_level_il::HighLevelILFunction;
+use crate::low_level_il::RegularLowLevelILFunction;
+use crate::medium_level_il::MediumLevelILFunction;
 use crate::render_layer::CoreRenderLayer;
 
 pub type BranchType = BNBranchType;
@@ -50,6 +53,40 @@ impl FlowGraph {
         let mut count: usize = 0;
         let nodes_ptr = unsafe { BNGetFlowGraphNodes(self.handle, &mut count as *mut usize) };
         unsafe { Array::new(nodes_ptr, count, ()) }
+    }
+
+    pub fn low_level_il(&self) -> Result<Ref<RegularLowLevelILFunction<CoreArchitecture>>, ()> {
+        unsafe {
+            let llil_ptr = BNGetFlowGraphLowLevelILFunction(self.handle);
+            let func_ptr = BNGetLowLevelILOwnerFunction(llil_ptr);
+            let arch_ptr = BNGetFunctionArchitecture(func_ptr);
+            let arch = CoreArchitecture::from_raw(arch_ptr);
+            BNFreeFunction(func_ptr);
+            match llil_ptr.is_null() {
+                false => Ok(RegularLowLevelILFunction::ref_from_raw(arch, llil_ptr)),
+                true => Err(()),
+            }
+        }
+    }
+
+    pub fn medium_level_il(&self) -> Result<Ref<MediumLevelILFunction>, ()> {
+        unsafe {
+            let mlil_ptr = BNGetFlowGraphMediumLevelILFunction(self.handle);
+            match mlil_ptr.is_null() {
+                false => Ok(MediumLevelILFunction::ref_from_raw(mlil_ptr)),
+                true => Err(()),
+            }
+        }
+    }
+
+    pub fn high_level_il(&self, full_ast: bool) -> Result<Ref<HighLevelILFunction>, ()> {
+        unsafe {
+            let hlil_ptr = BNGetFlowGraphHighLevelILFunction(self.handle);
+            match hlil_ptr.is_null() {
+                false => Ok(HighLevelILFunction::ref_from_raw(hlil_ptr, full_ast)),
+                true => Err(()),
+            }
+        }
     }
 
     pub fn get_node(&self, i: usize) -> Option<Ref<FlowGraphNode>> {
