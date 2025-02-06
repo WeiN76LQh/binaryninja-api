@@ -1358,6 +1358,23 @@ bool Function::GetStackVariableAtFrameOffset(
 }
 
 
+bool Function::GetStackVariableAtFrameOffsetAfterInstruction(
+    Architecture* arch, uint64_t addr, int64_t offset, VariableNameAndType& result)
+{
+	BNVariableNameAndType var;
+	if (!BNGetStackVariableAtFrameOffsetAfterInstruction(m_object, arch->GetObject(), addr, offset, &var))
+		return false;
+
+	result.type = Confidence<Ref<Type>>(new Type(BNNewTypeReference(var.type)), var.typeConfidence);
+	result.name = var.name;
+	result.var = var.var;
+	result.autoDefined = var.autoDefined;
+
+	BNFreeVariableNameAndType(&var);
+	return true;
+}
+
+
 map<Variable, VariableNameAndType> Function::GetVariables()
 {
 	size_t count;

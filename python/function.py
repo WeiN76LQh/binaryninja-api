@@ -2638,6 +2638,18 @@ class Function:
 		core.BNFreeVariableNameAndType(found_var)
 		return result
 
+	def get_stack_var_at_frame_offset_after_instruction(
+	    self, offset: int, addr: int, arch: Optional['architecture.Architecture'] = None
+	) -> Optional['variable.Variable']:
+		if arch is None:
+			arch = self.arch
+		found_var = core.BNVariableNameAndType()
+		if not core.BNGetStackVariableAtFrameOffsetAfterInstruction(self.handle, arch.handle, addr, offset, found_var):
+			return None
+		result = variable.Variable.from_BNVariable(self, found_var.var)
+		core.BNFreeVariableNameAndType(found_var)
+		return result
+
 	def get_type_tokens(self, settings: Optional['DisassemblySettings'] = None) -> List['DisassemblyTextLine']:
 		_settings = None
 		if settings is not None:

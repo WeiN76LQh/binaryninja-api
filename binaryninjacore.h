@@ -37,7 +37,7 @@
 // Current ABI version for linking to the core. This is incremented any time
 // there are changes to the API that affect linking, including new functions,
 // new types, or modifications to existing functions or types.
-#define BN_CURRENT_CORE_ABI_VERSION 92
+#define BN_CURRENT_CORE_ABI_VERSION 93
 
 // Minimum ABI version that is supported for loading of plugins. Plugins that
 // are linked to an ABI version less than this will not be able to load and
@@ -4922,6 +4922,8 @@ extern "C"
 	BINARYNINJACOREAPI void BNDeleteUserStackVariable(BNFunction* func, int64_t offset);
 	BINARYNINJACOREAPI bool BNGetStackVariableAtFrameOffset(
 	    BNFunction* func, BNArchitecture* arch, uint64_t addr, int64_t offset, BNVariableNameAndType* var);
+	BINARYNINJACOREAPI bool BNGetStackVariableAtFrameOffsetAfterInstruction(
+	    BNFunction* func, BNArchitecture* arch, uint64_t addr, int64_t offset, BNVariableNameAndType* var);
 	BINARYNINJACOREAPI void BNFreeVariableNameAndType(BNVariableNameAndType* var);
 
 	BINARYNINJACOREAPI BNVariableNameAndType* BNGetFunctionVariables(BNFunction* func, size_t* count);
@@ -5962,13 +5964,23 @@ extern "C"
 
 	BINARYNINJACOREAPI size_t BNGetMediumLevelILSSAVarVersionAtILInstruction(
 	    BNMediumLevelILFunction* func, const BNVariable* var, size_t instr);
+	BINARYNINJACOREAPI size_t BNGetMediumLevelILSSAVarVersionAfterILInstruction(
+	    BNMediumLevelILFunction* func, const BNVariable* var, size_t instr);
 	BINARYNINJACOREAPI size_t BNGetMediumLevelILSSAMemoryVersionAtILInstruction(
+	    BNMediumLevelILFunction* func, size_t instr);
+	BINARYNINJACOREAPI size_t BNGetMediumLevelILSSAMemoryVersionAfterILInstruction(
 	    BNMediumLevelILFunction* func, size_t instr);
 	BINARYNINJACOREAPI BNVariable BNGetMediumLevelILVariableForRegisterAtInstruction(
 	    BNMediumLevelILFunction* func, uint32_t reg, size_t instr);
+	BINARYNINJACOREAPI BNVariable BNGetMediumLevelILVariableForRegisterAfterInstruction(
+	    BNMediumLevelILFunction* func, uint32_t reg, size_t instr);
 	BINARYNINJACOREAPI BNVariable BNGetMediumLevelILVariableForFlagAtInstruction(
 	    BNMediumLevelILFunction* func, uint32_t flag, size_t instr);
+	BINARYNINJACOREAPI BNVariable BNGetMediumLevelILVariableForFlagAfterInstruction(
+	    BNMediumLevelILFunction* func, uint32_t flag, size_t instr);
 	BINARYNINJACOREAPI BNVariable BNGetMediumLevelILVariableForStackLocationAtInstruction(
+	    BNMediumLevelILFunction* func, int64_t offset, size_t instr);
+	BINARYNINJACOREAPI BNVariable BNGetMediumLevelILVariableForStackLocationAfterInstruction(
 	    BNMediumLevelILFunction* func, int64_t offset, size_t instr);
 
 	BINARYNINJACOREAPI BNRegisterValue BNGetMediumLevelILRegisterValueAtInstruction(

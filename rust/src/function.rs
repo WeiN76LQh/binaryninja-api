@@ -1944,6 +1944,35 @@ impl Function {
         Some((var, name, var_type))
     }
 
+    pub fn stack_var_at_frame_offset_after_instruction(
+        &self,
+        addr: u64,
+        offset: i64,
+        arch: Option<CoreArchitecture>,
+    ) -> Option<(Variable, BnString, Conf<Ref<Type>>)> {
+        let arch = arch.unwrap_or_else(|| self.arch());
+        let mut found_value = BNVariableNameAndType::default();
+        let found = unsafe {
+            BNGetStackVariableAtFrameOffsetAfterInstruction(
+                self.handle,
+                arch.handle,
+                addr,
+                offset,
+                &mut found_value,
+            )
+        };
+        if !found {
+            return None;
+        }
+        let var = Variable::from(found_value.var);
+        let name = unsafe { BnString::from_raw(found_value.name) };
+        let var_type = Conf::new(
+            unsafe { Type::ref_from_raw(found_value.type_) },
+            found_value.typeConfidence,
+        );
+        Some((var, name, var_type))
+    }
+
     pub fn stack_variables_referenced_by(
         &self,
         addr: u64,

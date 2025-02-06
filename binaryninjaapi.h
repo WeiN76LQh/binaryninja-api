@@ -10956,6 +10956,7 @@ namespace BinaryNinja {
 		void DeleteAutoStackVariable(int64_t offset);
 		void DeleteUserStackVariable(int64_t offset);
 		bool GetStackVariableAtFrameOffset(Architecture* arch, uint64_t addr, int64_t offset, VariableNameAndType& var);
+		bool GetStackVariableAtFrameOffsetAfterInstruction(Architecture* arch, uint64_t addr, int64_t offset, VariableNameAndType& var);
 
 		/*! List of Function Variables
 
@@ -13407,10 +13408,15 @@ namespace BinaryNinja {
 		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 
 		size_t GetSSAVarVersionAtInstruction(const Variable& var, size_t instr) const;
+		size_t GetSSAVarVersionAfterInstruction(const Variable& var, size_t instr) const;
 		size_t GetSSAMemoryVersionAtInstruction(size_t instr) const;
+		size_t GetSSAMemoryVersionAfterInstruction(size_t instr) const;
 		Variable GetVariableForRegisterAtInstruction(uint32_t reg, size_t instr) const;
+		Variable GetVariableForRegisterAfterInstruction(uint32_t reg, size_t instr) const;
 		Variable GetVariableForFlagAtInstruction(uint32_t flag, size_t instr) const;
+		Variable GetVariableForFlagAfterInstruction(uint32_t flag, size_t instr) const;
 		Variable GetVariableForStackLocationAtInstruction(int64_t offset, size_t instr) const;
+		Variable GetVariableForStackLocationAfterInstruction(int64_t offset, size_t instr) const;
 
 		RegisterValue GetRegisterValueAtInstruction(uint32_t reg, size_t instr);
 		RegisterValue GetRegisterValueAfterInstruction(uint32_t reg, size_t instr);

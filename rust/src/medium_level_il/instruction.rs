@@ -1029,6 +1029,19 @@ impl MediumLevelILInstruction {
         SSAVariable::new(var, version)
     }
 
+    /// Return the ssa version of a [`Variable`] after the given instruction.
+    pub fn ssa_variable_version_after(&self, var: Variable) -> SSAVariable {
+        let raw_var = BNVariable::from(var);
+        let version = unsafe {
+            BNGetMediumLevelILSSAVarVersionAfterILInstruction(
+                self.function.handle,
+                &raw_var,
+                self.expr_index.0,
+            )
+        };
+        SSAVariable::new(var, version)
+    }
+
     /// Set of branching instructions that must take the true or false path to reach this instruction
     pub fn branch_dependencies(&self) -> Array<BranchDependence> {
         let mut count = 0;
@@ -1067,6 +1080,16 @@ impl MediumLevelILInstruction {
         }
     }
 
+    /// Version of active memory contents in SSA form for this instruction
+    pub fn ssa_memory_version_after(&self) -> usize {
+        unsafe {
+            BNGetMediumLevelILSSAMemoryVersionAfterILInstruction(
+                self.function.handle,
+                self.expr_index.0,
+            )
+        }
+    }
+
     /// Type of expression
     pub fn expr_type(&self) -> Option<Conf<Ref<Type>>> {
         let result = unsafe { BNGetMediumLevelILExprType(self.function.handle, self.expr_index.0) };
@@ -1095,6 +1118,17 @@ impl MediumLevelILInstruction {
         Variable::from(result)
     }
 
+    pub fn variable_for_register_after(&self, reg_id: RegisterId) -> Variable {
+        let result = unsafe {
+            BNGetMediumLevelILVariableForRegisterAfterInstruction(
+                self.function.handle,
+                reg_id.0,
+                self.expr_index.0,
+            )
+        };
+        Variable::from(result)
+    }
+
     pub fn variable_for_flag(&self, flag_id: FlagId) -> Variable {
         let result = unsafe {
             BNGetMediumLevelILVariableForFlagAtInstruction(
@@ -1106,9 +1140,31 @@ impl MediumLevelILInstruction {
         Variable::from(result)
     }
 
+    pub fn variable_for_flag_after(&self, flag_id: FlagId) -> Variable {
+        let result = unsafe {
+            BNGetMediumLevelILVariableForFlagAfterInstruction(
+                self.function.handle,
+                flag_id.0,
+                self.expr_index.0,
+            )
+        };
+        Variable::from(result)
+    }
+
     pub fn variable_for_stack_location(&self, offset: i64) -> Variable {
         let result = unsafe {
             BNGetMediumLevelILVariableForStackLocationAtInstruction(
+                self.function.handle,
+                offset,
+                self.expr_index.0,
+            )
+        };
+        Variable::from(result)
+    }
+
+    pub fn variable_for_stack_location_after(&self, offset: i64) -> Variable {
+        let result = unsafe {
+            BNGetMediumLevelILVariableForStackLocationAfterInstruction(
                 self.function.handle,
                 offset,
                 self.expr_index.0,
