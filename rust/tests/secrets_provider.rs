@@ -3,16 +3,17 @@ use binaryninja::secrets_provider::{CoreSecretsProvider, SecretsProvider};
 use rstest::*;
 
 #[fixture]
+#[once]
 fn session() -> Session {
     Session::new().expect("Failed to initialize session")
 }
 
 #[rstest]
-fn list_secrets_provider(_session: Session) {
+fn list_secrets_provider(_session: &Session) {
     let providers = CoreSecretsProvider::all();
-    for provider in &providers {
-        println!("{}", provider.name());
-    }
+    assert!(providers.len() > 0);
+    let providers_again = CoreSecretsProvider::all();
+    assert_eq!(providers.len(), providers_again.len());
 }
 
 struct MySecretsProvider {}
@@ -36,7 +37,7 @@ impl SecretsProvider for MySecretsProvider {
 }
 
 #[rstest]
-fn custom_secrets_provider(_session: Session) {
+fn custom_secrets_provider(_session: &Session) {
     let my_provider = CoreSecretsProvider::new("MySecretsProvider", MySecretsProvider {});
     assert!(my_provider.has_data("my_key"));
     assert!(!my_provider.has_data("not_my_key"));
