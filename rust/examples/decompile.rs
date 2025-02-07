@@ -22,7 +22,7 @@ fn decompile_to_c(view: &BinaryView, func: &Function) {
     let lines = first.into_iter().chain(&last);
 
     for line in lines {
-        println!("{}", line.as_ref());
+        println!("{}", line);
     }
 }
 
