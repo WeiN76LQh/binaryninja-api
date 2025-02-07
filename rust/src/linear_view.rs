@@ -469,7 +469,12 @@ impl LinearDisassemblyLine {
     }
 
     pub(crate) fn free_raw(value: BNLinearDisassemblyLine) {
-        let _ = unsafe { Function::ref_from_raw(value.function) };
+        if !value.function.is_null() {
+            let _ = unsafe { Function::ref_from_raw(value.function) };
+        }
+        if !value.block.is_null() {
+            let _ = unsafe { BasicBlock::ref_from_raw(value.block, NativeBlock::new()) };
+        }
         DisassemblyTextLine::free_raw(value.contents);
     }
 }
