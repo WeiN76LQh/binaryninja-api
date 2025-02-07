@@ -15,8 +15,8 @@ pub enum EnterpriseCheckoutError {
     NoPassword,
     #[error("failed to authenticate with username and password")]
     NotAuthenticated,
-    #[error("failed to refresh expired license")]
-    RefreshExpiredLicenseFailed,
+    #[error("failed to refresh expired license: {0}")]
+    RefreshExpiredLicenseFailed(String),
 }
 
 /// Initialize the enterprise server connection to check out a floating license.
@@ -67,7 +67,10 @@ pub fn checkout_license(duration: Duration) -> Result<(), EnterpriseCheckoutErro
     {
         // If the license is expired we should refresh the license.
         if !update_server_license(duration) {
-            return Err(EnterpriseCheckoutError::RefreshExpiredLicenseFailed);
+            let last_error = server_last_error().to_string();
+            return Err(EnterpriseCheckoutError::RefreshExpiredLicenseFailed(
+                last_error,
+            ));
         }
     }
 
