@@ -21,6 +21,7 @@ fn session() -> Session {
 fn test_llil_info(_session: &Session) {
     let out_dir = env!("OUT_DIR").parse::<PathBuf>().unwrap();
     let view = binaryninja::load(out_dir.join("atox.obj")).expect("Failed to create view");
+    let image_base = view.original_image_base();
 
     let entry_function = view.entry_point_function().unwrap();
     let llil_function = entry_function.low_level_il().unwrap();
@@ -32,7 +33,7 @@ fn test_llil_info(_session: &Session) {
     // 0 @ 00025f10  (LLIL_SET_REG.d edi = (LLIL_REG.d edi))
     let instr_0 = llil_instr_iter.next().unwrap();
     assert_eq!(instr_0.index, LowLevelInstructionIndex(0));
-    assert_eq!(instr_0.address(), 0x00025f10);
+    assert_eq!(instr_0.address(), image_base + 0x00025f10);
     println!("{:?}", instr_0);
     println!("{:?}", instr_0.kind());
     match instr_0.kind() {
@@ -49,7 +50,7 @@ fn test_llil_info(_session: &Session) {
     // 1 @ 00025f12  (LLIL_PUSH.d push((LLIL_REG.d ebp)))
     let instr_1 = llil_instr_iter.next().unwrap();
     assert_eq!(instr_1.index, LowLevelInstructionIndex(1));
-    assert_eq!(instr_1.address(), 0x00025f12);
+    assert_eq!(instr_1.address(), image_base + 0x00025f12);
     println!("{:?}", instr_1.kind());
     match instr_1.kind() {
         LowLevelILInstructionKind::Push(op) => {
@@ -72,7 +73,7 @@ fn test_llil_info(_session: &Session) {
     // 2 @ 00025f13  (LLIL_SET_REG.d ebp = (LLIL_REG.d esp) {__saved_ebp})
     let instr_2 = llil_instr_iter.next().unwrap();
     assert_eq!(instr_2.index, LowLevelInstructionIndex(2));
-    assert_eq!(instr_2.address(), 0x00025f13);
+    assert_eq!(instr_2.address(), image_base + 0x00025f13);
     println!("{:?}", instr_2.kind());
     match instr_2.kind() {
         LowLevelILInstructionKind::SetReg(op) => {
@@ -88,7 +89,7 @@ fn test_llil_info(_session: &Session) {
     // 3 @ 00025f15  (LLIL_SET_REG.d eax = (LLIL_LOAD.d [(LLIL_ADD.d (LLIL_REG.d ebp) + (LLIL_CONST.d 8)) {arg1}].d))
     let instr_3 = llil_instr_iter.next().unwrap();
     assert_eq!(instr_3.index, LowLevelInstructionIndex(3));
-    assert_eq!(instr_3.address(), 0x00025f15);
+    assert_eq!(instr_3.address(), image_base + 0x00025f15);
     println!("{:?}", instr_3.kind());
     match instr_3.kind() {
         LowLevelILInstructionKind::SetReg(op) => {
@@ -104,7 +105,7 @@ fn test_llil_info(_session: &Session) {
     // 4 @ 00025f18  (LLIL_PUSH.d push((LLIL_REG.d eax)))
     let instr_4 = llil_instr_iter.next().unwrap();
     assert_eq!(instr_4.index, LowLevelInstructionIndex(4));
-    assert_eq!(instr_4.address(), 0x00025f18);
+    assert_eq!(instr_4.address(), image_base + 0x00025f18);
     println!("{:?}", instr_4.kind());
     match instr_4.kind() {
         LowLevelILInstructionKind::Push(op) => {
@@ -116,7 +117,7 @@ fn test_llil_info(_session: &Session) {
     // 5 @ 00025f19  (LLIL_CALL call((LLIL_CONST_PTR.d __crt_interlocked_read_32)))
     let instr_5 = llil_instr_iter.next().unwrap();
     assert_eq!(instr_5.index, LowLevelInstructionIndex(5));
-    assert_eq!(instr_5.address(), 0x00025f19);
+    assert_eq!(instr_5.address(), image_base + 0x00025f19);
     println!("{:?}", instr_5.kind());
     match instr_5.kind() {
         LowLevelILInstructionKind::Call(op) => {
@@ -127,7 +128,7 @@ fn test_llil_info(_session: &Session) {
     // 6 @ 00025f1e  (LLIL_SET_REG.d esp = (LLIL_ADD.d (LLIL_REG.d esp) + (LLIL_CONST.d 4)))
     let instr_6 = llil_instr_iter.next().unwrap();
     assert_eq!(instr_6.index, LowLevelInstructionIndex(6));
-    assert_eq!(instr_6.address(), 0x00025f1e);
+    assert_eq!(instr_6.address(), image_base + 0x00025f1e);
     println!("{:?}", instr_6.kind());
     match instr_6.kind() {
         LowLevelILInstructionKind::SetReg(op) => {
@@ -143,7 +144,7 @@ fn test_llil_info(_session: &Session) {
     // 7 @ 00025f21  (LLIL_SET_REG.d ebp = (LLIL_POP.d pop))
     let instr_7 = llil_instr_iter.next().unwrap();
     assert_eq!(instr_7.index, LowLevelInstructionIndex(7));
-    assert_eq!(instr_7.address(), 0x00025f21);
+    assert_eq!(instr_7.address(), image_base + 0x00025f21);
     println!("{:?}", instr_7.kind());
     match instr_7.kind() {
         LowLevelILInstructionKind::SetReg(op) => {
@@ -159,7 +160,7 @@ fn test_llil_info(_session: &Session) {
     // 8 @ 00025f22  (LLIL_RET <return> jump((LLIL_POP.d pop)))
     let instr_8 = llil_instr_iter.next().unwrap();
     assert_eq!(instr_8.index, LowLevelInstructionIndex(8));
-    assert_eq!(instr_8.address(), 0x00025f22);
+    assert_eq!(instr_8.address(), image_base + 0x00025f22);
     println!("{:?}", instr_8.kind());
     match instr_8.kind() {
         LowLevelILInstructionKind::Ret(op) => {
@@ -173,10 +174,11 @@ fn test_llil_info(_session: &Session) {
 fn test_llil_visitor(_session: &Session) {
     let out_dir = env!("OUT_DIR").parse::<PathBuf>().unwrap();
     let view = binaryninja::load(out_dir.join("atox.obj")).expect("Failed to create view");
+    let image_base = view.original_image_base();
     let platform = view.default_platform().unwrap();
 
     // Sample function: __crt_strtox::c_string_character_source<char>::validate
-    let sample_function = view.function_at(&platform, 0x2bd80).unwrap();
+    let sample_function = view.function_at(&platform, image_base + 0x2bd80).unwrap();
     let llil_function = sample_function.low_level_il().unwrap();
     let llil_basic_blocks = llil_function.basic_blocks();
     let llil_basic_block_iter = llil_basic_blocks.iter();

@@ -14,6 +14,7 @@ fn session() -> Session {
 fn test_hlil_info(_session: &Session) {
     let out_dir = env!("OUT_DIR").parse::<PathBuf>().unwrap();
     let view = binaryninja::load(out_dir.join("atox.obj")).expect("Failed to create view");
+    let image_base = view.original_image_base();
 
     let entry_function = view.entry_point_function().unwrap();
     let hlil_function = entry_function.high_level_il(false).unwrap();
@@ -29,7 +30,7 @@ fn test_hlil_info(_session: &Session) {
     // 00025f10        )
     let instr_0 = hlil_instr_iter.next().unwrap();
     assert_eq!(instr_0.expr_index, HighLevelInstructionIndex(5));
-    assert_eq!(instr_0.address, 0x00025f22);
+    assert_eq!(instr_0.address, image_base + 0x00025f22);
     println!("{:?}", instr_0.kind);
     match instr_0.kind {
         HighLevelILInstructionKind::Ret(op) => {

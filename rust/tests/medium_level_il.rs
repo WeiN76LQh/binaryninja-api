@@ -14,6 +14,7 @@ fn session() -> Session {
 fn test_mlil_info(_session: &Session) {
     let out_dir = env!("OUT_DIR").parse::<PathBuf>().unwrap();
     let view = binaryninja::load(out_dir.join("atox.obj")).expect("Failed to create view");
+    let image_base = view.original_image_base();
 
     let entry_function = view.entry_point_function().unwrap();
     let mlil_function = entry_function.medium_level_il().unwrap();
@@ -25,7 +26,7 @@ fn test_mlil_info(_session: &Session) {
     // 0 @ 00025f10  (MLIL_SET_VAR.d edi_1 = (MLIL_VAR.d edi))
     let instr_0 = mlil_instr_iter.next().unwrap();
     assert_eq!(instr_0.expr_index, MediumLevelInstructionIndex(1));
-    assert_eq!(instr_0.address, 0x00025f10);
+    assert_eq!(instr_0.address, image_base + 0x00025f10);
     println!("{:?}", instr_0.kind);
     match instr_0.kind {
         MediumLevelILInstructionKind::SetVar(op) => {
@@ -37,7 +38,7 @@ fn test_mlil_info(_session: &Session) {
     // 1 @ 00025f15  (MLIL_SET_VAR.d eax = (MLIL_VAR.d arg1))
     let instr_1 = mlil_instr_iter.next().unwrap();
     assert_eq!(instr_1.expr_index, MediumLevelInstructionIndex(3));
-    assert_eq!(instr_1.address, 0x00025f15);
+    assert_eq!(instr_1.address, image_base + 0x00025f15);
     println!("{:?}", instr_1.kind);
     match instr_1.kind {
         MediumLevelILInstructionKind::SetVar(op) => {
@@ -49,7 +50,7 @@ fn test_mlil_info(_session: &Session) {
     // 2 @ 00025f18  (MLIL_SET_VAR.d var_8 = (MLIL_VAR.d eax))
     let instr_2 = mlil_instr_iter.next().unwrap();
     assert_eq!(instr_2.expr_index, MediumLevelInstructionIndex(5));
-    assert_eq!(instr_2.address, 0x00025f18);
+    assert_eq!(instr_2.address, image_base + 0x00025f18);
     println!("{:?}", instr_2.kind);
     match instr_2.kind {
         MediumLevelILInstructionKind::SetVar(op) => {
@@ -61,7 +62,7 @@ fn test_mlil_info(_session: &Session) {
     // 3 @ 00025f19  (MLIL_CALL eax_1 = (MLIL_CONST_PTR.d __crt_interlocked_read_32)((MLIL_VAR.d var_8)))
     let instr_3 = mlil_instr_iter.next().unwrap();
     assert_eq!(instr_3.expr_index, MediumLevelInstructionIndex(10));
-    assert_eq!(instr_3.address, 0x00025f19);
+    assert_eq!(instr_3.address, image_base + 0x00025f19);
     println!("{:?}", instr_3.kind);
     match instr_3.kind {
         MediumLevelILInstructionKind::Call(op) => {
@@ -76,7 +77,7 @@ fn test_mlil_info(_session: &Session) {
     // 4 @ 00025f22  (MLIL_RET return (MLIL_VAR.d eax_1))
     let instr_4 = mlil_instr_iter.next().unwrap();
     assert_eq!(instr_4.expr_index, MediumLevelInstructionIndex(13));
-    assert_eq!(instr_4.address, 0x00025f22);
+    assert_eq!(instr_4.address, image_base + 0x00025f22);
     println!("{:?}", instr_4.kind);
     match instr_4.kind {
         MediumLevelILInstructionKind::Ret(op) => {

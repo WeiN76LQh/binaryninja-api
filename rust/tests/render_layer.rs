@@ -1,4 +1,5 @@
 use binaryninja::basic_block::BasicBlock;
+use binaryninja::binary_view::BinaryViewExt;
 use binaryninja::disassembly::{DisassemblyOption, DisassemblySettings, DisassemblyTextLine};
 use binaryninja::function::NativeBlock;
 use binaryninja::headless::Session;
@@ -51,7 +52,7 @@ fn test_render_layer_linear_view(_session: &Session) {
     let linear_view = LinearViewObject::disassembly(&view, &settings);
     let mut cursor = linear_view.create_cursor();
     // Seek to the start of the function `__crt_strtox::is_overflow_condition<uint64_t>`
-    cursor.seek_to_address(0x26240);
+    cursor.seek_to_address(view.original_image_base() + 0x26240);
     let current_object = cursor.current_object();
     let current_lines = cursor.lines().to_vec();
 

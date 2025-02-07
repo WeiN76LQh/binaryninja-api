@@ -26,11 +26,12 @@ fn test_binary_saving(_session: &Session) {
     let out_dir = env!("OUT_DIR").parse::<PathBuf>().unwrap();
     let view = binaryninja::load(out_dir.join("atox.obj")).expect("Failed to create view");
     // Verify the contents before we modify.
-    let original_contents = view.read_vec(0x1560, 4);
+    let contents_addr = view.original_image_base() + 0x1560;
+    let original_contents = view.read_vec(contents_addr, 4);
     assert_eq!(original_contents, [0x00, 0xf1, 0x00, 0x00]);
-    assert_eq!(view.write(0x1560, &[0xff, 0xff, 0xff, 0xff]), 4);
+    assert_eq!(view.write(contents_addr, &[0xff, 0xff, 0xff, 0xff]), 4);
     // Verify that we modified the binary
-    let modified_contents = view.read_vec(0x1560, 4);
+    let modified_contents = view.read_vec(contents_addr, 4);
     assert_eq!(modified_contents, [0xff, 0xff, 0xff, 0xff]);
 
     // HACK: To prevent us from deadlocking in save_to_path we wait for all main thread actions to finish.
@@ -41,7 +42,10 @@ fn test_binary_saving(_session: &Session) {
     // Verify that the file exists and is modified.
     let new_view =
         binaryninja::load(out_dir.join("atox.obj.new")).expect("Failed to load new view");
-    assert_eq!(new_view.read_vec(0x1560, 4), [0xff, 0xff, 0xff, 0xff]);
+    assert_eq!(
+        new_view.read_vec(contents_addr, 4),
+        [0xff, 0xff, 0xff, 0xff]
+    );
 }
 
 #[rstest]
