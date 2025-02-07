@@ -302,8 +302,11 @@ impl Session {
     pub fn new() -> Result<Self, InitializationError> {
         if license_location().is_some() {
             // We were able to locate a license, continue with initialization.
+            // Grab the session before initialization to prevent another thread from initializing
+            // and shutting down before this thread can increment the SESSION_COUNT.
+            let session = Self::registered_session();
             init()?;
-            Ok(Self::registered_session())
+            Ok(session)
         } else {
             // There was no license that could be automatically retrieved, you must call [Self::new_with_license].
             Err(InitializationError::NoLicenseFound)
