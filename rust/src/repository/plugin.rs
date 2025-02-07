@@ -101,35 +101,35 @@ impl RepositoryPlugin {
     pub fn version(&self) -> BnString {
         let result = unsafe { BNPluginGetVersion(self.handle.as_ptr()) };
         assert!(!result.is_null());
-        unsafe { BnString::from_raw(result as *mut i8) }
+        unsafe { BnString::from_raw(result as *mut c_char) }
     }
 
     /// String of the commit of this plugin git repository
     pub fn commit(&self) -> BnString {
         let result = unsafe { BNPluginGetCommit(self.handle.as_ptr()) };
         assert!(!result.is_null());
-        unsafe { BnString::from_raw(result as *mut i8) }
+        unsafe { BnString::from_raw(result as *mut c_char) }
     }
 
     /// Relative path from the base of the repository to the actual plugin
     pub fn path(&self) -> BnString {
         let result = unsafe { BNPluginGetPath(self.handle.as_ptr()) };
         assert!(!result.is_null());
-        unsafe { BnString::from_raw(result as *mut i8) }
+        unsafe { BnString::from_raw(result as *mut c_char) }
     }
 
     /// Optional sub-directory the plugin code lives in as a relative path from the plugin root
     pub fn subdir(&self) -> BnString {
         let result = unsafe { BNPluginGetSubdir(self.handle.as_ptr()) };
         assert!(!result.is_null());
-        unsafe { BnString::from_raw(result as *mut i8) }
+        unsafe { BnString::from_raw(result as *mut c_char) }
     }
 
     /// Dependencies required for installing this plugin
     pub fn dependencies(&self) -> BnString {
         let result = unsafe { BNPluginGetDependencies(self.handle.as_ptr()) };
         assert!(!result.is_null());
-        unsafe { BnString::from_raw(result as *mut i8) }
+        unsafe { BnString::from_raw(result as *mut c_char) }
     }
 
     /// true if the plugin is installed, false otherwise
@@ -193,7 +193,7 @@ impl RepositoryPlugin {
     pub fn repository(&self) -> BnString {
         let result = unsafe { BNPluginGetRepository(self.handle.as_ptr()) };
         assert!(!result.is_null());
-        unsafe { BnString::from_raw(result as *mut i8) }
+        unsafe { BnString::from_raw(result as *mut c_char) }
     }
 
     /// Boolean status indicating that the plugin is being deleted
