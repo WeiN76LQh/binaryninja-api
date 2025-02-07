@@ -17,7 +17,7 @@
 use binaryninjacore_sys::*;
 use std::fmt::Debug;
 
-use crate::binary_view::{BinaryView, BinaryViewBase};
+use crate::binary_view::{BinaryView, BinaryViewBase, BinaryViewExt};
 use crate::Endianness;
 
 use crate::rc::Ref;
@@ -85,14 +85,13 @@ impl Seek for BinaryWriter {
             SeekFrom::Current(offset) => self.seek_to_relative_offset(offset),
             SeekFrom::Start(offset) => self.seek_to_offset(offset),
             SeekFrom::End(end_offset) => {
-                let offset =
-                    self.view
-                        .len()
-                        .checked_add_signed(end_offset)
-                        .ok_or(std::io::Error::new(
-                            ErrorKind::Other,
-                            "Seeking from end overflowed",
-                        ))?;
+                let view_end = self.view.original_image_base() + self.view.len();
+                let offset = view_end
+                    .checked_add_signed(end_offset)
+                    .ok_or(std::io::Error::new(
+                        ErrorKind::Other,
+                        "Seeking from end overflowed",
+                    ))?;
                 self.seek_to_offset(offset);
             }
         };

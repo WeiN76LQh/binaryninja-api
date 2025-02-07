@@ -1,5 +1,5 @@
 use binaryninja::binary_reader::BinaryReader;
-use binaryninja::binary_view::BinaryViewBase;
+use binaryninja::binary_view::{BinaryViewBase, BinaryViewExt};
 use binaryninja::binary_writer::BinaryWriter;
 use binaryninja::headless::Session;
 use rstest::*;
@@ -17,7 +17,7 @@ fn test_binary_writer_seek(_session: &Session) {
     let out_dir = env!("OUT_DIR").parse::<PathBuf>().unwrap();
     let view = binaryninja::load(out_dir.join("atox.obj")).expect("Failed to create view");
     let mut writer = BinaryWriter::new(&view);
-    let end_offset = view.len();
+    let end_offset = view.original_image_base() + view.len();
 
     // Test seeking to a specific position
     writer

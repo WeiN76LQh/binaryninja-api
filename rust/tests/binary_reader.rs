@@ -1,5 +1,5 @@
 use binaryninja::binary_reader::BinaryReader;
-use binaryninja::binary_view::BinaryViewBase;
+use binaryninja::binary_view::{BinaryViewBase, BinaryViewExt};
 use binaryninja::headless::Session;
 use rstest::*;
 use std::io::{Read, Seek, SeekFrom};
@@ -54,6 +54,9 @@ fn test_binary_reader_read(_session: &Session) {
     let out_dir = env!("OUT_DIR").parse::<PathBuf>().unwrap();
     let view = binaryninja::load(out_dir.join("atox.obj")).expect("Failed to create view");
     let mut reader = BinaryReader::new(&view);
+
+    // We want to do seeks with the image base.
+    reader.set_virtual_base(view.original_image_base());
 
     reader
         .seek(SeekFrom::Start(0))

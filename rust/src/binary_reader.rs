@@ -105,6 +105,8 @@ impl Seek for BinaryReader {
             SeekFrom::Current(offset) => self.seek_to_relative_offset(offset),
             SeekFrom::Start(offset) => self.seek_to_offset(offset),
             SeekFrom::End(end_offset) => {
+                // We do NOT need to add the image base here as
+                // the reader (unlike the writer) can set the virtual base.
                 let offset =
                     self.view
                         .len()
