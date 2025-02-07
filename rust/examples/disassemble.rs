@@ -14,7 +14,7 @@ fn disassemble(func: &Function) {
     for basic_block in &func.basic_blocks() {
         for instr_addr in basic_block.iter() {
             // NOTE: If you want the annotations as well you can call text_renderer.disassembly_text
-            if let Some((text, len)) = text_renderer.instruction_text(instr_addr) {
+            if let Some((text, _len)) = text_renderer.instruction_text(instr_addr) {
                 // TODO: This only ever appears to return a single string?
                 let text_string: Vec<_> = text.iter().map(|t| t.to_string()).collect();
                 println!("{}", text_string.join(""));
