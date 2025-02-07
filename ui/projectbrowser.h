@@ -54,7 +54,7 @@ class BINARYNINJAUIAPI ProjectItemModel: public QStandardItemModel, public Binar
 
 	QFileSystemWatcher* m_fsWatcher;
 
-	std::unordered_map<std::string, QPersistentModelIndex> m_idIndexMap;
+	std::unordered_map<std::string, QStandardItem*> m_itemsById;
 
 	QHash<QString, QString> m_pathMimeTypeCache;
 	QHash<QString, size_t> m_pathSizeCache;
