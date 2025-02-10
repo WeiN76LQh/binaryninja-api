@@ -19650,6 +19650,7 @@ namespace BinaryNinja::Collaboration
 		std::string GetUsername();
 		std::string GetToken();
 		int GetServerVersion();
+		std::string GetServerBuildVersion();
 		std::string GetServerBuildId();
 		std::vector<std::pair<std::string, std::string>> GetAuthBackends();
 		bool HasPulledProjects();
