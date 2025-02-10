@@ -349,6 +349,7 @@ void SharedCache::PerformInitialLoad()
 		if (primaryCacheHeader.branchPoolsCount)
 		{
 			std::vector<uint64_t> addresses;
+			addresses.reserve(primaryCacheHeader.branchPoolsCount);
 			for (size_t i = 0; i < primaryCacheHeader.branchPoolsCount; i++)
 			{
 				addresses.push_back(baseFile->ReadULong(primaryCacheHeader.branchPoolsOffset + (i * m_dscView->GetAddressSize())));
@@ -410,7 +411,6 @@ void SharedCache::PerformInitialLoad()
 
 		if (primaryCacheHeader.branchPoolsCount)
 		{
-			std::vector<uint64_t> pool {};
 			for (size_t i = 0; i < primaryCacheHeader.branchPoolsCount; i++)
 			{
 				MutableState().imageStarts["dyld_shared_cache_branch_islands_" + std::to_string(i)] =
@@ -424,6 +424,7 @@ void SharedCache::PerformInitialLoad()
 
 		dyld_subcache_entry2 _entry {};
 		std::vector<dyld_subcache_entry2> subCacheEntries;
+		subCacheEntries.reserve(subCacheCount);
 		for (size_t i = 0; i < subCacheCount; i++)
 		{
 			baseFile->Read(&_entry, primaryCacheHeader.subCacheArrayOffset + (i * sizeof(dyld_subcache_entry2)),
@@ -514,7 +515,6 @@ void SharedCache::PerformInitialLoad()
 
 		if (primaryCacheHeader.branchPoolsCount)
 		{
-			std::vector<uint64_t> pool {};
 			for (size_t i = 0; i < primaryCacheHeader.branchPoolsCount; i++)
 			{
 				MutableState().imageStarts["dyld_shared_cache_branch_islands_" + std::to_string(i)] =
@@ -635,7 +635,6 @@ void SharedCache::PerformInitialLoad()
 
 		if (primaryCacheHeader.branchPoolsCount)
 		{
-			std::vector<uint64_t> pool {};
 			for (size_t i = 0; i < primaryCacheHeader.branchPoolsCount; i++)
 			{
 				MutableState().imageStarts["dyld_shared_cache_branch_islands_" + std::to_string(i)] =
@@ -651,6 +650,7 @@ void SharedCache::PerformInitialLoad()
 		dyld_subcache_entry2 _entry {};
 
 		std::vector<dyld_subcache_entry2> subCacheEntries;
+		subCacheEntries.reserve(subCacheCount);
 		for (size_t i = 0; i < subCacheCount; i++)
 		{
 			baseFile->Read(&_entry, primaryCacheHeader.subCacheArrayOffset + (i * sizeof(dyld_subcache_entry2)),
@@ -1037,7 +1037,6 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 		return;
 
 	WillMutateState();
-	std::vector<std::pair<uint64_t, uint64_t>> rewrites;
 
 	dyld_cache_header baseHeader;
 	file->Read(&baseHeader, 0, sizeof(dyld_cache_header));
@@ -1195,7 +1194,7 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 									value += slideAmount;
 								}
 								pageOffset += delta;
-								rewrites.emplace_back(loc, value);
+								file->WritePointer(loc, value);
 							}
 							catch (MappingReadException& ex)
 							{
@@ -1273,7 +1272,7 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 							{
 								uint64_t value = slideInfo.auth.offsetFromSharedCacheBase;
 								value += mapping.slideInfoV3.auth_value_add;
-								rewrites.emplace_back(loc, value);
+								file->WritePointer(loc, value);
 							}
 							else
 							{
@@ -1281,7 +1280,7 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 								uint64_t top8Bits = value51 & 0x0007F80000000000;
 								uint64_t bottom43Bits = value51 & 0x000007FFFFFFFFFF;
 								uint64_t value = (uint64_t)top8Bits << 13 | bottom43Bits;
-								rewrites.emplace_back(loc, value);
+								file->WritePointer(loc, value);
 							}
 						}
 						catch (MappingReadException& ex)
@@ -1326,12 +1325,12 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 							if (slideInfo.auth.auth)
 							{
 								uint64_t value = mapping.slideInfoV5.value_add + slideInfo.auth.runtimeOffset;
-								rewrites.emplace_back(loc, value);
+								file->WritePointer(loc, value);
 							}
 							else
 							{
 								uint64_t value = mapping.slideInfoV5.value_add + slideInfo.regular.runtimeOffset;
-								rewrites.emplace_back(loc, value);
+								file->WritePointer(loc, value);
 							}
 						}
 						catch (MappingReadException& ex)
@@ -1348,33 +1347,7 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 			}
 		}
 	}
-	for (const auto& [loc, value] : rewrites)
-	{
-		file->WritePointer(loc, value);
-#ifdef SLIDEINFO_DEBUG_TAGS
-		uint64_t vmAddr = 0;
-		{
-			for (uint64_t off = baseHeader.mappingOffset; off < baseHeader.mappingOffset + baseHeader.mappingCount * sizeof(dyld_cache_mapping_info); off += sizeof(dyld_cache_mapping_info))
-			{
-				dyld_cache_mapping_info mapping;
-				file->Read(&mapping, off, sizeof(dyld_cache_mapping_info));
-				if (mapping.fileOffset <= loc && loc < mapping.fileOffset + mapping.size)
-				{
-					vmAddr = mapping.address + (loc - mapping.fileOffset);
-					break;
-				}
-			}
-		}
-		Ref<TagType> type = m_dscView->GetTagType("slideinfo");
-		if (!type)
-		{
-			m_dscView->AddTagType(new TagType(m_dscView, "slideinfo", "\xF0\x9F\x9A\x9E"));
-			type = m_dscView->GetTagType("slideinfo");
-		}
-		m_dscView->AddAutoDataTag(vmAddr, new Tag(type, "0x" + to_hex_string(file->ReadULong(loc)) + " => 0x" + to_hex_string(value)));
-#endif
-	}
-	m_logger->LogDebug("Applied slide info for %s (0x%llx rewrites)", file->Path().c_str(), rewrites.size());
+	// m_logger->LogDebug("Applied slide info for %s (0x%llx rewrites)", file->Path().c_str(), rewrites.size());
 	file->SetSlideInfoWasApplied(true);
 }
 
@@ -1808,6 +1781,7 @@ bool SharedCache::LoadImageWithInstallName(std::string installName, bool skipObj
 	reader.Seek(targetImage->headerLocation);
 
 	std::vector<MemoryRegion*> regionsToLoad;
+	regionsToLoad.reserve(targetImage->regions.size());
 
 	for (auto& region : targetImage->regions)
 	{
@@ -1852,13 +1826,7 @@ bool SharedCache::LoadImageWithInstallName(std::string installName, bool skipObj
 		return false;
 	}
 
-	std::vector<MemoryRegion*> regions;
-	for (auto& region : regionsToLoad)
-	{
-		regions.push_back(region);
-	}
-
-	SharedCache::InitializeHeader(m_dscView, vm.get(), *h, regions);
+	SharedCache::InitializeHeader(m_dscView, vm.get(), *h, regionsToLoad);
 
 	if (!skipObjC)
 	{
@@ -2594,6 +2562,8 @@ void SharedCache::InitializeHeader(
 		memset(&sym, 0, sizeof(sym));
 		auto N_TYPE = 0xE;	// idk
 		std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> symbolInfos;
+		symbolInfos.reserve(header.symtab.nsyms);
+
 		for (size_t i = 0; i < header.symtab.nsyms; i++)
 		{
 			reader->Read(&sym, header.symtab.symoff + i * sizeof(nlist_64), sizeof(nlist_64));
@@ -2658,9 +2628,9 @@ void SharedCache::InitializeHeader(
 			}
 			else
 				view->DefineAutoSymbol(symbolObj);
-			symbolInfos.push_back({sym.n_value, {type, symbol}});
+			symbolInfos.emplace_back(sym.n_value, std::make_pair(type, std::move(symbol)));
 		}
-		MutableState().symbolInfos[header.textBase] = symbolInfos;
+		MutableState().symbolInfos[header.textBase] = std::move(symbolInfos);
 	}
 
 	if (header.exportTriePresent && header.linkeditPresent && vm->AddressIsMapped(header.linkeditSegment.vmaddr))
@@ -2797,7 +2767,6 @@ std::vector<Ref<Symbol>> SharedCache::ParseExportTrie(std::shared_ptr<MMappedFil
 
 	try
 	{
-		// FIXME we can absolutely predict this size
 		std::vector<Ref<Symbol>> symbols;
 		auto [begin, end] = linkeditFile->ReadSpan(header.exportTrie.dataoff, header.exportTrie.datasize);
 		ReadExportNode(symbols, header, begin, end, begin, header.textBase, "");
@@ -2821,7 +2790,6 @@ std::shared_ptr<std::unordered_map<uint64_t, Ref<Symbol>>> SharedCache::GetExpor
 	}
 	else
 	{
-		// TODO does this have to be a functor? can't we just pass the accessor? if not, why?
 		std::shared_ptr<MMappedFileAccessor> linkeditFile = provideLinkeditFile();
 		if (!linkeditFile)
 		{
@@ -2830,11 +2798,12 @@ std::shared_ptr<std::unordered_map<uint64_t, Ref<Symbol>>> SharedCache::GetExpor
 			return nullptr;
 		}
 
-		auto exportList = SharedCache::ParseExportTrie(linkeditFile, header);
+		// FIXME: This is the only place ParseExportTrie is used, it can be optimized for the output we need here.
+		std::vector<Ref<Symbol>> exportList = SharedCache::ParseExportTrie(linkeditFile, header);
 		auto exportMapping = std::make_shared<std::unordered_map<uint64_t, Ref<Symbol>>>(exportList.size());
-		for (const auto& sym : exportList)
+		for (auto& sym : exportList)
 		{
-			exportMapping->insert_or_assign(sym->GetAddress(), sym);
+			exportMapping->insert_or_assign(sym->GetAddress(), std::move(sym));
 		}
 		MutableState().exportInfos.emplace(header.textBase, exportMapping);
 		if (didModifyExportList)
@@ -2847,6 +2816,7 @@ std::shared_ptr<std::unordered_map<uint64_t, Ref<Symbol>>> SharedCache::GetExpor
 std::vector<std::string> SharedCache::GetAvailableImages()
 {
 	std::vector<std::string> installNames;
+	installNames.reserve(State().headers.size());
 	for (const auto& header : State().headers)
 	{
 		installNames.push_back(header.second.installName);
@@ -2862,26 +2832,51 @@ std::vector<std::pair<std::string, Ref<Symbol>>> SharedCache::LoadAllSymbolsAndW
 	std::lock_guard initialLoadBlock(m_viewSpecificState->viewOperationsThatInfluenceMetadataMutex);
 
 	bool doSave = false;
-	std::vector<std::pair<std::string, Ref<Symbol>>> symbols;
+	std::vector<std::shared_ptr<std::unordered_map<uint64_t, Ref<Symbol>>>> exportLists;
+	exportLists.reserve(State().images.size());
+
+	size_t totalSymbolCount = 0;
+
 	for (const auto& img : State().images)
 	{
 		auto header = HeaderForAddress(img.headerLocation);
 		auto exportList = GetExportListForHeader(*header, [&]() {
-			try {
-				auto mapping = MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), header->exportTriePath)->lock();
-				return mapping;
-			}
-			catch (...)
-			{
-				m_logger->LogWarn("Serious Error: Failed to open export trie %s for %s", header->exportTriePath.c_str(), header->installName.c_str());
-				return std::shared_ptr<MMappedFileAccessor>(nullptr);
-			}
-		}, &doSave);
-		if (!exportList)
-			continue;
-		for (const auto& [_, symbol] : *exportList)
+				try {
+					auto mapping = MMappedFileAccessor::Open(
+						m_dscView,
+						m_dscView->GetFile()->GetSessionId(),
+						header->exportTriePath
+						)->lock();
+					return mapping;
+				}
+				catch (...)
+				{
+					m_logger->LogWarn("Serious Error: Failed to open export trie %s for %s",
+						header->exportTriePath.c_str(),
+						header->installName.c_str());
+					return std::shared_ptr<MMappedFileAccessor>(nullptr);
+				}
+			}, &doSave);
+
+		exportLists.push_back(exportList);
+		if (exportList)
 		{
-			symbols.push_back({img.installName, symbol});
+			totalSymbolCount += exportList->size();
+		}
+	}
+
+	std::vector<std::pair<std::string, Ref<Symbol>>> symbols;
+	symbols.reserve(totalSymbolCount);
+
+	for (size_t i = 0; i < exportLists.size(); ++i)
+	{
+		if (!exportLists[i])
+			continue;
+
+		const auto& img = State().images[i];
+		for (const auto& [name, symbol] : *exportLists[i])
+		{
+			symbols.emplace_back(img.installName, symbol);
 		}
 	}
 
@@ -3144,6 +3139,7 @@ extern "C"
 			*count = value.size();
 
 			std::vector<const char*> cstrings;
+			cstrings.reserve(value.size());
 			for (size_t i = 0; i < value.size(); i++)
 			{
 				cstrings.push_back(value[i].c_str());
@@ -3567,7 +3563,9 @@ void SharedCache::Load(DeserializationContext& context)
 	{
 		std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>
 			symbolInfos;
-		for (auto& si : symbolInfo["value"].GetArray())
+		auto symbolInfoArray = symbolInfo["value"].GetArray();
+		symbolInfos.reserve(symbolInfoArray.Size());
+		for (auto& si : symbolInfoArray)
 		{
 			symbolInfos.push_back({si["key"].GetUint64(),
 				{static_cast<BNSymbolType>(si["val1"].GetUint64()), si["val2"].GetString()}});
