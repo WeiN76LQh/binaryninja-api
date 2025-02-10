@@ -236,6 +236,8 @@ where
     FlagBit(Operation<'func, A, M, F, operation::FlagBit>),
     ExternPtr(Operation<'func, A, M, F, operation::Extern>),
 
+    RegStackPop(Operation<'func, A, M, F, operation::RegStackPop>),
+
     Add(Operation<'func, A, M, F, operation::BinaryOp>),
     Adc(Operation<'func, A, M, F, operation::BinaryOpCarry>),
     Sub(Operation<'func, A, M, F, operation::BinaryOp>),
@@ -356,6 +358,10 @@ where
                 LowLevelILExpressionKind::FlagBit(Operation::new(function, op))
             }
             LLIL_EXTERN_PTR => LowLevelILExpressionKind::ExternPtr(Operation::new(function, op)),
+
+            LLIL_REG_STACK_POP => {
+                LowLevelILExpressionKind::RegStackPop(Operation::new(function, op))
+            }
 
             LLIL_ADD => LowLevelILExpressionKind::Add(Operation::new(function, op)),
             LLIL_ADC => LowLevelILExpressionKind::Adc(Operation::new(function, op)),
@@ -597,7 +603,8 @@ where
             }
             // Do not have any sub expressions.
             Pop(_) | Reg(_) | RegSplit(_) | Const(_) | ConstPtr(_) | Flag(_) | FlagBit(_)
-            | ExternPtr(_) | FlagCond(_) | FlagGroup(_) | Unimpl(_) | Undef(_) => {}
+            | ExternPtr(_) | FlagCond(_) | FlagGroup(_) | Unimpl(_) | Undef(_) | RegStackPop(_) => {
+            }
         }
 
         VisitorAction::Sibling
@@ -634,6 +641,8 @@ where
             Const(ref op) | ConstPtr(ref op) => &op.op,
 
             ExternPtr(ref op) => &op.op,
+
+            RegStackPop(ref op) => &op.op,
 
             Adc(ref op) | Sbb(ref op) | Rlc(ref op) | Rrc(ref op) => &op.op,
 
@@ -691,6 +700,8 @@ where
             Const(ref op) | ConstPtr(ref op) => op.flag_write(),
 
             ExternPtr(ref op) => op.flag_write(),
+
+            RegStackPop(ref op) => op.flag_write(),
 
             Adc(ref op) | Sbb(ref op) | Rlc(ref op) | Rrc(ref op) => op.flag_write(),
 

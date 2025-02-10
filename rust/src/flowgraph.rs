@@ -14,13 +14,14 @@
 
 //! Interfaces for creating and displaying pretty CFGs in Binary Ninja.
 
-use binaryninjacore_sys::*;
-
 use crate::disassembly::DisassemblyTextLine;
+use binaryninjacore_sys::*;
 
 use crate::rc::*;
 
-use std::marker::PhantomData;
+use crate::basic_block::{BasicBlock, BlockContext};
+use crate::function::HighlightColor;
+use crate::render_layer::CoreRenderLayer;
 
 pub type BranchType = BNBranchType;
 pub type EdgePenStyle = BNEdgePenStyle;
@@ -37,12 +38,47 @@ impl FlowGraph {
         Self { handle: raw }
     }
 
+    pub(crate) unsafe fn ref_from_raw(raw: *mut BNFlowGraph) -> Ref<Self> {
+        Ref::new(Self { handle: raw })
+    }
+
     pub fn new() -> Ref<Self> {
-        unsafe { Ref::new(FlowGraph::from_raw(BNCreateFlowGraph())) }
+        unsafe { FlowGraph::ref_from_raw(BNCreateFlowGraph()) }
+    }
+
+    pub fn nodes(&self) -> Array<FlowGraphNode> {
+        let mut count: usize = 0;
+        let nodes_ptr = unsafe { BNGetFlowGraphNodes(self.handle, &mut count as *mut usize) };
+        unsafe { Array::new(nodes_ptr, count, ()) }
+    }
+
+    pub fn get_node(&self, i: usize) -> Option<Ref<FlowGraphNode>> {
+        let node_ptr = unsafe { BNGetFlowGraphNode(self.handle, i) };
+        if node_ptr.is_null() {
+            None
+        } else {
+            Some(unsafe { FlowGraphNode::ref_from_raw(node_ptr) })
+        }
+    }
+
+    pub fn get_node_count(&self) -> usize {
+        unsafe { BNGetFlowGraphNodeCount(self.handle) }
+    }
+
+    pub fn has_nodes(&self) -> bool {
+        unsafe { BNFlowGraphHasNodes(self.handle) }
     }
 
     pub fn append(&self, node: &FlowGraphNode) -> usize {
         unsafe { BNAddFlowGraphNode(self.handle, node.handle) }
+    }
+
+    pub fn replace(&self, index: usize, node: &FlowGraphNode) {
+        unsafe { BNReplaceFlowGraphNode(self.handle, index, node.handle) }
+    }
+
+    pub fn clear(&self) {
+        unsafe { BNClearFlowGraphNodes(self.handle) }
     }
 
     pub fn set_option(&self, option: FlowGraphOption, value: bool) {
@@ -51,6 +87,27 @@ impl FlowGraph {
 
     pub fn is_option_set(&self, option: FlowGraphOption) -> bool {
         unsafe { BNIsFlowGraphOptionSet(self.handle, option) }
+    }
+
+    /// A list of the currently applied [`CoreRenderLayer`]'s
+    pub fn render_layers(&self) -> Array<CoreRenderLayer> {
+        let mut count: usize = 0;
+        unsafe {
+            let handles = BNGetFlowGraphRenderLayers(self.handle, &mut count);
+            Array::new(handles, count, ())
+        }
+    }
+
+    /// Add a Render Layer to be applied to this [`FlowGraph`].
+    ///
+    /// NOTE: Layers will be applied in the order in which they are added.
+    pub fn add_render_layer(&self, layer: &CoreRenderLayer) {
+        unsafe { BNAddFlowGraphRenderLayer(self.handle, layer.handle.as_ptr()) };
+    }
+
+    /// Remove a Render Layer from being applied to this [`FlowGraph`].
+    pub fn remove_render_layer(&self, layer: &CoreRenderLayer) {
+        unsafe { BNRemoveFlowGraphRenderLayer(self.handle, layer.handle.as_ptr()) };
     }
 }
 
@@ -75,21 +132,43 @@ impl ToOwned for FlowGraph {
 }
 
 #[derive(PartialEq, Eq, Hash)]
-pub struct FlowGraphNode<'a> {
+pub struct FlowGraphNode {
     pub(crate) handle: *mut BNFlowGraphNode,
-    _data: PhantomData<&'a ()>,
 }
 
-impl<'a> FlowGraphNode<'a> {
+impl FlowGraphNode {
     pub(crate) unsafe fn from_raw(raw: *mut BNFlowGraphNode) -> Self {
-        Self {
-            handle: raw,
-            _data: PhantomData,
+        Self { handle: raw }
+    }
+
+    pub(crate) unsafe fn ref_from_raw(raw: *mut BNFlowGraphNode) -> Ref<Self> {
+        Ref::new(Self { handle: raw })
+    }
+
+    pub fn new(graph: &FlowGraph) -> Ref<Self> {
+        unsafe { FlowGraphNode::ref_from_raw(BNCreateFlowGraphNode(graph.handle)) }
+    }
+
+    pub fn basic_block<C: BlockContext>(&self, context: C) -> Option<Ref<BasicBlock<C>>> {
+        let block_ptr = unsafe { BNGetFlowGraphBasicBlock(self.handle) };
+        if block_ptr.is_null() {
+            return None;
+        }
+        Some(unsafe { BasicBlock::ref_from_raw(block_ptr, context) })
+    }
+
+    pub fn set_basic_block<C: BlockContext>(&self, block: Option<&BasicBlock<C>>) {
+        match block {
+            Some(block) => unsafe { BNSetFlowGraphBasicBlock(self.handle, block.handle) },
+            None => unsafe { BNSetFlowGraphBasicBlock(self.handle, std::ptr::null_mut()) },
         }
     }
 
-    pub fn new(graph: &FlowGraph) -> Self {
-        unsafe { FlowGraphNode::from_raw(BNCreateFlowGraphNode(graph.handle)) }
+    pub fn lines(&self) -> Array<DisassemblyTextLine> {
+        let mut count = 0;
+        let result = unsafe { BNGetFlowGraphNodeLines(self.handle, &mut count) };
+        assert!(!result.is_null());
+        unsafe { Array::new(result, count, ()) }
     }
 
     pub fn set_lines(&self, lines: impl IntoIterator<Item = DisassemblyTextLine>) {
@@ -106,10 +185,34 @@ impl<'a> FlowGraphNode<'a> {
         }
     }
 
+    /// Returns the graph position of the node in X, Y form.
+    pub fn position(&self) -> (i32, i32) {
+        let pos_x = unsafe { BNGetFlowGraphNodeX(self.handle) };
+        let pos_y = unsafe { BNGetFlowGraphNodeY(self.handle) };
+        (pos_x, pos_y)
+    }
+
+    /// Sets the graph position of the node.
+    pub fn set_position(&self, x: i32, y: i32) {
+        unsafe { BNFlowGraphNodeSetX(self.handle, x) };
+        unsafe { BNFlowGraphNodeSetX(self.handle, y) };
+    }
+
+    pub fn highlight_color(&self) -> HighlightColor {
+        let raw = unsafe { BNGetFlowGraphNodeHighlight(self.handle) };
+        HighlightColor::from(raw)
+    }
+
+    pub fn set_highlight_color(&self, highlight: HighlightColor) {
+        unsafe { BNSetFlowGraphNodeHighlight(self.handle, highlight.into()) };
+    }
+
+    // TODO: Add getters and setters for edges
+
     pub fn add_outgoing_edge(
         &self,
         type_: BranchType,
-        target: &'a FlowGraphNode,
+        target: &FlowGraphNode,
         edge_style: EdgeStyle,
     ) {
         unsafe {
@@ -118,11 +221,10 @@ impl<'a> FlowGraphNode<'a> {
     }
 }
 
-unsafe impl RefCountable for FlowGraphNode<'_> {
+unsafe impl RefCountable for FlowGraphNode {
     unsafe fn inc_ref(handle: &Self) -> Ref<Self> {
         Ref::new(Self {
             handle: BNNewFlowGraphNodeReference(handle.handle),
-            _data: PhantomData,
         })
     }
 
@@ -131,11 +233,27 @@ unsafe impl RefCountable for FlowGraphNode<'_> {
     }
 }
 
-impl ToOwned for FlowGraphNode<'_> {
+impl ToOwned for FlowGraphNode {
     type Owned = Ref<Self>;
 
     fn to_owned(&self) -> Self::Owned {
         unsafe { RefCountable::inc_ref(self) }
+    }
+}
+
+impl CoreArrayProvider for FlowGraphNode {
+    type Raw = *mut BNFlowGraphNode;
+    type Context = ();
+    type Wrapped<'a> = Guard<'a, FlowGraphNode>;
+}
+
+unsafe impl CoreArrayProviderInner for FlowGraphNode {
+    unsafe fn free(raw: *mut Self::Raw, count: usize, _: &Self::Context) {
+        BNFreeFlowGraphNodeList(raw, count);
+    }
+
+    unsafe fn wrap_raw<'a>(raw: &'a Self::Raw, context: &'a Self::Context) -> Self::Wrapped<'a> {
+        Guard::new(Self::from_raw(*raw), context)
     }
 }
 

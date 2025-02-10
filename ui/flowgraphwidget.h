@@ -88,6 +88,7 @@ class BINARYNINJAUIAPI FlowGraphWidget :
 
 		bool operator==(const CursorPosition& other) const;
 		bool operator<(const CursorPosition& other) const;
+		bool operator<=(const CursorPosition& other) const;
 	};
 
 	BinaryViewRef m_data;
@@ -181,7 +182,7 @@ class BINARYNINJAUIAPI FlowGraphWidget :
 
 	virtual void contextMenuEvent(QContextMenuEvent*) override;
 	void bindActions();
-	void bindDynamicActions();
+	virtual void bindDynamicActions();
 
 	void navigateToAddress(uint64_t addr);
 	void navigateToGotoLabel(uint64_t label);

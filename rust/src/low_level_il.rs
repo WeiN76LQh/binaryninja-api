@@ -24,7 +24,7 @@ use crate::architecture::Register as ArchReg;
 use crate::architecture::{Architecture, RegisterId};
 use crate::function::Location;
 
-mod block;
+pub mod block;
 pub mod expression;
 pub mod function;
 pub mod instruction;

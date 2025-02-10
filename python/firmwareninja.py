@@ -31,13 +31,219 @@ from .enums import (
     FirmwareNinjaSectionType,
 )
 from .function import Function
+from .project import ProjectFile
 from . import _binaryninjacore as core
+
+
+class FirmwareNinjaRelationship:
+    """
+    ``class FirmwareNinjaRelationship`` is a class for representing inter-binary and cross-binary relationships. This
+    class is only available in the Ultimate Edition of Binary Ninja.
+    """
+
+    def __init__(self, view: BinaryView, handle=None) -> None:
+        if handle is None:
+            self.handle = core.BNCreateFirmwareNinjaRelationship(view.handle)
+        else:
+            self.handle = handle
+        self._view = view
+
+    def __del__(self):
+        if core is not None:
+            core.BNFreeFirmwareNinjaRelationship(self.handle)
+
+    @property
+    def _primary_data_variable(self) -> DataVariable:
+        bn_data_var = core.BNDataVariable()
+        if not core.BNFirmwareNinjaRelationshipGetPrimaryDataVariable(self.handle, ctypes.byref(bn_data_var)):
+            return None
+
+        result = None
+        try:
+            result = DataVariable.from_core_struct(bn_data_var, self._view)
+        finally:
+            core.BNFreeDataVariable(ctypes.byref(bn_data_var))
+
+        return result
+
+    @property
+    def _primary_function(self) -> Function:
+        bn_function = core.BNFirmwareNinjaRelationshipGetPrimaryFunction(self.handle)
+        if not bn_function:
+            return None
+
+        return Function(handle=bn_function)
+
+    @property
+    def _primary_address(self) -> int:
+        result = ctypes.c_uint64()
+        if not core.BNFirmwareNinjaRelationshipGetPrimaryAddress(self.handle, ctypes.byref(result)):
+            return None
+
+        return result.value
+
+    @property
+    def primary(self) -> Union[DataVariable, Function, int]:
+        """
+        ``primary`` returns the primary function, data variable, or address of the relationship
+
+        :return: Primary object of the relationship
+        :rtype: Union[DataVariable, Function, int]
+        """
+
+        if core.BNFirmwareNinjaRelationshipPrimaryIsDataVariable(self.handle):
+            return self._primary_data_variable
+        elif core.BNFirmwareNinjaRelationshipPrimaryIsFunction(self.handle):
+            return self._primary_function
+        elif core.BNFirmwareNinjaRelationshipPrimaryIsAddress(self.handle):
+            return self._primary_address
+        else:
+            return None
+
+    @primary.setter
+    def primary(self, obj: Union[DataVariable, Function, int]) -> None:
+        if isinstance(obj, DataVariable):
+            core.BNFirmwareNinjaRelationshipSetPrimaryDataVariable(self.handle, obj.address)
+        elif isinstance(obj, Function):
+            core.BNFirmwareNinjaRelationshipSetPrimaryFunction(self.handle, obj.handle)
+        elif isinstance(obj, int):
+            core.BNFirmwareNinjaRelationshipSetPrimaryAddress(self.handle, obj)
+        else:
+            raise ValueError("Primary object must be a DataVariable, Function, or integer address")
+
+    @property
+    def _secondary_data_variable(self) -> DataVariable:
+        bn_data_var = core.BNDataVariable()
+        if not core.BNFirmwareNinjaRelationshipGetSecondaryDataVariable(self.handle, ctypes.byref(bn_data_var)):
+            return None
+
+        result = None
+        try:
+            result = DataVariable.from_core_struct(bn_data_var, self._view)
+        finally:
+            core.BNFreeDataVariable(ctypes.byref(bn_data_var))
+
+        return result
+
+    @property
+    def _secondary_function(self) -> Function:
+        bn_function = core.BNFirmwareNinjaRelationshipGetSecondaryFunction(self.handle)
+        if not bn_function:
+            return None
+
+        return Function(handle=bn_function)
+
+    @property
+    def _secondary_address(self) -> int:
+        result = ctypes.c_uint64()
+        if not core.BNFirmwareNinjaRelationshipGetSecondaryAddress(self.handle, ctypes.byref(result)):
+            return None
+
+        return result.value
+
+    @property
+    def _secondary_external_symbol(self) -> str:
+        return core.BNFirmwareNinjaRelationshipGetSecondaryExternalSymbol(self.handle)
+
+    @property
+    def _secondary_external_project_file(self) -> ProjectFile:
+        bn_project_file = core.BNFirmwareNinjaRelationshipGetSecondaryExternalProjectFile(self.handle)
+        if not bn_project_file:
+            return None
+
+        return ProjectFile(bn_project_file)
+
+    @property
+    def secondary(self) -> Union[DataVariable, Function, int, tuple[int, ProjectFile], tuple[str, ProjectFile]]:
+        """
+        ``secondary`` returns the secondary function, data variable, address, external address, or external symbol of
+        the relationship
+
+        :return: Secondary object of the relationship
+        :rtype: Union[DataVariable, Function, int, tuple[int, ProjectFile], tuple[str, ProjectFile]]
+        """
+
+        if core.BNFirmwareNinjaRelationshipSecondaryIsDataVariable(self.handle):
+            return self._secondary_data_variable
+        elif core.BNFirmwareNinjaRelationshipSecondaryIsFunction(self.handle):
+            return self._secondary_function
+        elif core.BNFirmwareNinjaRelationshipSecondaryIsAddress(self.handle):
+            return self._secondary_address
+        elif core.BNFirmwareNinjaRelationshipSecondaryIsExternalAddress(self.handle):
+            return self._secondary_address, self._secondary_external_project_file
+        elif core.BNFirmwareNinjaRelationshipSecondaryIsExternalSymbol(self.handle):
+            return self._secondary_external_symbol, self._secondary_external_project_file
+        else:
+            return None
+
+    @secondary.setter
+    def secondary(
+        self, obj: Union[DataVariable, Function, int, str], project_file: Optional[ProjectFile] = None
+    ) -> None:
+        if isinstance(obj, str) and not project_file:
+            raise ValueError("Secondary object can only be a symbol string if external project file is provided")
+
+        if project_file and not (isinstance(obj, int) or isinstance(obj, str)):
+            raise ValueError("Secondary object must be an integer address or symbol if external project file is provided")
+
+        if isinstance(obj, DataVariable):
+            core.BNFirmwareNinjaRelationshipSetSecondaryDataVariable(self.handle, obj.address)
+        elif isinstance(obj, Function):
+            core.BNFirmwareNinjaRelationshipSetSecondaryFunction(self.handle, obj.handle)
+        elif isinstance(obj, int):
+            if project_file:
+                core.BNFirmwareNinjaRelationshipSetSecondaryExternalAddress(self.handle, project_file._handle, obj)
+            else:
+                core.BNFirmwareNinjaRelationshipSetSecondaryAddress(self.handle, obj)
+        elif isinstance(obj, str):
+            core.BNFirmwareNinjaRelationshipSetSecondaryExternalSymbol(self.handle, project_file._handle, obj)
+
+    @property
+    def description(self) -> str:
+        """
+        ``description`` returns the description of the relationship
+
+        :return: Description of the relationship
+        :rtype: str
+        """
+
+        return core.BNFirmwareNinjaRelationshipGetDescription(self.handle)
+
+    @description.setter
+    def description(self, description: str) -> None:
+        core.BNFirmwareNinjaRelationshipSetDescription(self.handle, description)
+
+    @property
+    def provenance(self) -> str:
+        """
+        ``provenance`` returns the provenance of the relationship
+
+        :return: Provenance of the relationship
+        :rtype: str
+        """
+
+        return core.BNFirmwareNinjaRelationshipGetProvenance(self.handle)
+
+    @provenance.setter
+    def provenance(self, provenance: str) -> None:
+        core.BNFirmwareNinjaRelationshipSetProvenance(self.handle, provenance)
+
+    @property
+    def guid(self) -> str:
+        """
+        ``guid`` returns the GUID of the relationship
+
+        :return: GUID of the relationship
+        :rtype: str
+        """
+
+        return core.BNFirmwareNinjaRelationshipGetGuid(self.handle)
 
 
 class FirmwareNinjaReferenceNode:
     """
     ``class FirmwareNinjaReferenceNode`` is a class for building reference trees for functions, data variables, and
-    memory regions.
+    memory regions. This class is only available in the Ultimate Edition of Binary Ninja.
     """
 
     def __init__(self, handle=None, view=None):
@@ -49,45 +255,8 @@ class FirmwareNinjaReferenceNode:
         if core is not None:
             core.BNFreeFirmwareNinjaReferenceNode(self._handle)
 
-    def is_function(self) -> bool:
-        """
-        ``is_function`` determines if the reference tree node is for a function
-
-        :return: True if the reference tree node is for a function, False otherwise
-        :rtype: bool
-        """
-
-        return core.BNFirmwareNinjaReferenceNodeIsFunction(self._handle)
-
-    def is_data_variable(self) -> bool:
-        """
-        ``is_data_variable`` determines if the reference tree node is for a data variable
-
-        :return: True if the reference tree node is for a data variable, False otherwise
-        :rtype: bool
-        """
-
-        return core.BNFirmwareNinjaReferenceNodeIsDataVariable(self._handle)
-
-    def has_children(self) -> bool:
-        """
-        ``has_children`` determines if the reference tree node contains child reference tree nodes
-
-        :return: True if the reference tree node contains children, False otherwise
-        :rtype: bool
-        """
-
-        return core.BNFirmwareNinjaReferenceNodeHasChildren(self._handle)
-
     @property
-    def function(self) -> Function:
-        """
-        ``function`` query the function from the reference tree node
-
-        :return: Function contained in the reference tree node
-        :rtype: Function
-        """
-
+    def _function(self) -> Function:
         bn_function = core.BNFirmwareNinjaReferenceNodeGetFunction(self._handle)
         if not bn_function:
             return None
@@ -95,44 +264,56 @@ class FirmwareNinjaReferenceNode:
         return Function(handle=bn_function)
 
     @property
-    def data_variable(self) -> DataVariable:
-        """
-        ``data_variable`` query the data variable from the reference tree node
+    def _data_variable(self) -> DataVariable:
+        bn_data_var = core.BNDataVariable()
+        if not core.BNFirmwareNinjaReferenceNodeGetDataVariable(self._handle, ctypes.byref(bn_data_var)):
+            return None
 
-        :return: Data variable contained in the reference tree node
-        :rtype: DataVariable
-        """
-
+        result = None
         try:
-            bn_data_var = core.BNFirmwareNinjaReferenceNodeGetDataVariable(
-                self._handle)
-            if not bn_data_var:
-                return None
-
-            data_var = DataVariable.from_core_struct(bn_data_var.contents, self._view)
+            result = DataVariable.from_core_struct(bn_data_var, self._view)
         finally:
-            core.BNFreeDataVariable(bn_data_var)
-        return data_var
+            core.BNFreeDataVariable(ctypes.byref(bn_data_var))
+
+        return result;
 
     @property
-    def children(self) -> list['FirmwareNinjaReferenceNode']:
+    def object(self) -> Union[Function, DataVariable]:
         """
-        ``children`` query the child reference tree nodes
+        ``object`` returns the function or data variable contained in the reference tree node, or None if the object is
+        a root node and only contains children
+
+        :return: Object contained in the reference tree node
+        :rtype: Union[Function, DataVariable]
+        """
+
+        if core.BNFirmwareNinjaReferenceNodeIsFunction(self._handle):
+            return self._function
+        elif core.BNFirmwareNinjaReferenceNodeIsDataVariable(self._handle):
+            return self._data_variable
+        else:
+            return None
+
+    @property
+    def children(self) -> list["FirmwareNinjaReferenceNode"]:
+        """
+        ``children`` returns the child nodes contained in the reference tree node
 
         :return: Child nodes contained in the reference tree node
         :rtype: list[FirmwareNinjaReferenceNode]
         """
 
+        if not core.BNFirmwareNinjaReferenceNodeHasChildren(self._handle):
+            return []
+
         count = ctypes.c_ulonglong(0)
         nodes = []
         try:
-            bn_nodes = core.BNFirmwareNinjaReferenceNodeGetChildren(
-                self._handle, count)
+            bn_nodes = core.BNFirmwareNinjaReferenceNodeGetChildren(self._handle, count)
             for i in range(count.value):
                 nodes.append(
-                    FirmwareNinjaReferenceNode(
-                        core.BNNewFirmwareNinjaReferenceNodeReference(
-                            bn_nodes[i]), self._view))
+                    FirmwareNinjaReferenceNode(core.BNNewFirmwareNinjaReferenceNodeReference(bn_nodes[i]), self._view)
+                )
         finally:
             core.BNFreeFirmwareNinjaReferenceNodes(bn_nodes, count.value)
 
@@ -143,7 +324,8 @@ class FirmwareNinjaReferenceNode:
 class FirmwareNinjaDevice:
     """
     ``class FirmwareNinjaDevice`` is a class that stores information about a hardware device, including the device
-    name, start address, size, and information about the device.
+    name, start address, size, and information about the device. This class is only available in the Ultimate Edition
+    of Binary Ninja.
     """
 
     name: str
@@ -156,7 +338,8 @@ class FirmwareNinjaDevice:
 class FirmwareNinjaSection:
     """
     ``class FirmwareNinjaSection`` is a class that stores information about a section identified with Firmware Ninja
-    analysis, including the section type, start address, size, and entropy of the section.
+    analysis, including the section type, start address, size, and entropy. This class is only available in the
+    Ultimate Edition of Binary Ninja.
     """
 
     type: FirmwareNinjaSectionType
@@ -169,7 +352,8 @@ class FirmwareNinjaSection:
 class FirmwareNinjaMemoryAccess:
     """
     ``class FirmwareNinjaMemoryAccess`` is a class that stores information on instructions that access regions of
-    memory that are not file-backed, such as memory-mapped I/O and RAM.
+    memory that are not file-backed, such as memory-mapped I/O and RAM. This class is only available in the Ultimate
+    Edition of Binary Ninja.
     """
 
     instr_address: int
@@ -207,7 +391,8 @@ class FirmwareNinjaMemoryAccess:
 class FirmwareNinjaFunctionMemoryAccesses:
     """
     ``class FirmwareNinjaFunctionMemoryAccesses`` is a class that stores information on accesses made by a function
-    to memory regions that are not file-backed, such as memory-mapped I/O and RAM.
+    to memory regions that are not file-backed, such as memory-mapped I/O and RAM. This class is only available in the
+    Ultimate Edition of Binary Ninja.
     """
 
     function: Function
@@ -237,7 +422,8 @@ class FirmwareNinjaDeviceAccesses:
     """
     ``class FirmwareNinjaDeviceAccesses`` is a class that stores information on the number of accesses to hardware
     devices for each board that is compatible with the current architecture. This information can be used to identify
-    a board based on the number of accesses to hardware devices.
+    a board based on the number of accesses to hardware devices. This class is only available in the Ultimate Edition
+    of Binary Ninja.
     """
 
     board_name: str
@@ -247,8 +433,8 @@ class FirmwareNinjaDeviceAccesses:
 
 class FirmwareNinja:
     """
-    ``class FirmwareNinja`` is a class that aids in analysis of embedded firmware images. This class is only available
-    in the Ultimate Edition of Binary Ninja.
+    ``class FirmwareNinja`` is a class that aids in analysis of firmware binaries. This class is only available in the
+    Ultimate Edition of Binary Ninja.
 
     :Example:
 
@@ -295,9 +481,10 @@ class FirmwareNinja:
 
         return core.BNFirmwareNinjaRemoveCustomDevice(self._handle, name)
 
-    def query_custom_devices(self) -> list[FirmwareNinjaDevice]:
+    @property
+    def user_devices(self) -> list[FirmwareNinjaDevice]:
         """
-        ``query_custom_devices`` queries user-defined Firmware Ninja devices from the binary view metadata
+        ``user_devices`` queries user-defined Firmware Ninja devices from the binary view metadata
 
         :return: List of Firmware Ninja devices
         :rtype: list[FirmwareNinjaDevice]
@@ -324,9 +511,10 @@ class FirmwareNinja:
         finally:
             core.BNFirmwareNinjaFreeDevices(devices, count)
 
-    def query_board_names(self) -> list[str]:
+    @property
+    def boards(self) -> list[str]:
         """
-        ``query_board_names`` queries the name of all boards that are compatible with the current architecture
+        ``boards`` queries the name of all boards that are compatible with the current architecture
 
         :return: List of board names
         :rtype: list[str]
@@ -347,15 +535,14 @@ class FirmwareNinja:
         finally:
             core.BNFirmwareNinjaFreeBoardNames(boards, count)
 
-    def query_devices_by_board_name(self,
-                                    name: str) -> list[FirmwareNinjaDevice]:
+    def get_devices_for_board(self, name: str) -> list[FirmwareNinjaDevice]:
         """
-        ``query_devices_by_board_name`` queries the hardware device information for a specific board
+        ``get_devices_for_board`` queries the hardware device information for a specific board
 
         :Example:
 
             >>> fwn = FirmwareNinja(bv)
-            >>> fwn.query_devices_by_board_name(fwn.query_board_names()[0])[0]
+            >>> fwn.get_devices_for_board(fwn.boards[0])[0]
             FirmwareNinjaDevice(name='nand@12f', start=303, size=1024, info='marvell,orion-nand')
 
         :param str name: Name of the board
@@ -386,7 +573,7 @@ class FirmwareNinja:
         finally:
             core.BNFirmwareNinjaFreeDevices(devices, count)
 
-    def find_sections(
+    def get_sections_from_entropy(
         self,
         high_code_entropy_threshold: float = 0.910,
         low_code_entropy_threshold: float = 0.500,
@@ -395,20 +582,21 @@ class FirmwareNinja:
         .DetectStringsSectionAnalysisMode,
     ) -> list[FirmwareNinjaSection]:
         """
-        ``find_sections`` finds sections with Firmware Ninja entropy analysis and heuristics
+        ``get_sections_from_entropy`` uses entropy analysis and heuristics to identify code, data, padding, and
+        compressed sections in the file-backed regions of the binary view
 
         :Example:
 
             >>> fwn = FirmwareNinja(bv)
-            >>> fwn.find_sections(block_size=2048)[0].entropy
+            >>> fwn.get_sections_from_entropy(block_size=2048)[0].entropy
             0.48716872930526733
-            >>> fwn.find_sections(block_size=2048)[0].type
+            >>> fwn.get_sections_from_entropy(block_size=2048)[0].type
             <FirmwareNinjaSectionType.DataSectionType: 1>
 
         :param float high_code_entropy_threshold: High code entropy threshold
         :param float low_code_entropy_threshold: Low code entropy threshold
         :param int block_size: Block size
-        :param str mode: Analysis mode
+        :param FirmwareNinjaSectionAnalysisMode mode: Analysis mode
         :return: List of sections
         :rtype: list[FirmwareNinjaSection]
         """
@@ -519,8 +707,6 @@ class FirmwareNinja:
             >>> fwn.store_function_memory_accesses(fma)
 
         :param list[FirmwareNinjaFunctionMemoryAccesses] fma: List of function memory accesses
-        :return: None
-        :rtype: None
         """
 
         fma_info_ptr_array = self._fma_info_list_to_array(fma)
@@ -597,12 +783,13 @@ class FirmwareNinja:
             core.BNFirmwareNinjaFreeBoardDeviceAccesses(device_accesses, count)
 
     def get_reference_tree(
-            self,
-            location: Union[Section, FirmwareNinjaDevice, Function, DataVariable, int],
-            fma: list[FirmwareNinjaFunctionMemoryAccesses],
-            value: Optional[int] = None) -> FirmwareNinjaReferenceNode:
+        self,
+        location: Union[Section, FirmwareNinjaDevice, Function, DataVariable, int],
+        fma: list[FirmwareNinjaFunctionMemoryAccesses],
+        value: Optional[int] = None,
+    ) -> FirmwareNinjaReferenceNode:
         """
-        ``get_reference_tree`` returns a tree of references for a memory region, function, or data location
+        ``get_reference_tree`` returns a tree of reference nodes for a memory region, function, or address
 
         :param Union[Section, FirmwareNinjaDevice, DataVariable, Function, int] location: Memory location to build the
         reference tree for
@@ -616,8 +803,7 @@ class FirmwareNinja:
         if fma is None and (isinstance(location, Section) or isinstance(location, FirmwareNinjaDevice)):
             raise ValueError("Function memory accesses cannot be None for location type Section or FirmwareNinjaDevice")
 
-        value = ctypes.pointer(
-            ctypes.c_uint64(value)) if value is not None else None
+        value = ctypes.pointer(ctypes.c_uint64(value)) if value is not None else None
 
         fma_info_ptr_array = None
         if fma is not None and len(fma) > 0:
@@ -625,23 +811,24 @@ class FirmwareNinja:
 
         if isinstance(location, FirmwareNinjaDevice):
             bn_node = core.BNFirmwareNinjaGetMemoryRegionReferenceTree(
-                self._handle, location.start, location.start + location.size,
-                fma_info_ptr_array, len(fma), value)
+                self._handle, location.start, location.start + location.size, fma_info_ptr_array, len(fma), value
+            )
         elif isinstance(location, Function):
             bn_node = core.BNFirmwareNinjaGetAddressReferenceTree(
-                self._handle, location.start, fma_info_ptr_array, len(fma),
-                value)
+                self._handle, location.start, fma_info_ptr_array, len(fma), value
+            )
         elif isinstance(location, Section):
             bn_node = core.BNFirmwareNinjaGetMemoryRegionReferenceTree(
-                self._handle, location.start, location.start + location.length,
-                fma_info_ptr_array, len(fma), value)
+                self._handle, location.start, location.start + location.length, fma_info_ptr_array, len(fma), value
+            )
         elif isinstance(location, DataVariable):
             bn_node = core.BNFirmwareNinjaGetAddressReferenceTree(
-                self._handle, location.address, fma_info_ptr_array, len(fma),
-                value)
+                self._handle, location.address, fma_info_ptr_array, len(fma), value
+            )
         elif isinstance(location, int):
             bn_node = core.BNFirmwareNinjaGetAddressReferenceTree(
-                self._handle, location, fma_info_ptr_array, len(fma), value)
+                self._handle, location, fma_info_ptr_array, len(fma), value
+            )
         else:
             raise ValueError("Invalid location type")
 
@@ -649,3 +836,59 @@ class FirmwareNinja:
             return None
 
         return FirmwareNinjaReferenceNode(handle=bn_node, view=self._view)
+
+    @property
+    def relationships(self) -> list[FirmwareNinjaRelationship]:
+        """
+        ``relationships`` queries all Firmware Ninja relationships from the binary view metadata
+
+        :return: List of relationships
+        :rtype: list[FirmwareNinjaRelationship]
+        """
+
+        count = ctypes.c_ulonglong(0)
+        relationships = core.BNFirmwareNinjaQueryRelationships(self._handle, count)
+        relationship_list = []
+        for i in range(count.value):
+            relationship_list.append(FirmwareNinjaRelationship(self._view, handle=relationships[i]))
+
+        return relationship_list
+
+    def add_relationship(self, relationship: FirmwareNinjaRelationship) -> None:
+        """
+        ``add_relationship`` adds a relationship to the binary view metadata
+
+        :param FirmwareNinjaRelationship relationship: Relationship to add
+        """
+
+        if relationship.primary is None:
+            raise ValueError("Primary object must be set")
+
+        if relationship.secondary is None:
+            raise ValueError("Secondary object must be set")
+
+        core.BNFirmwareNinjaAddRelationship(self._handle, relationship.handle)
+
+    def get_relationship_by_guid(self, guid: str) -> FirmwareNinjaRelationship:
+        """
+        ``get_relationship_by_guid`` queries a relationship from the binary view metadata by GUID
+
+        :param str guid: GUID of the relationship
+        :return: Relationship
+        :rtype: FirmwareNinjaRelationship
+        """
+
+        relationship = core.BNFirmwareNinjaGetRelationshipByGuid(self._handle, guid)
+        if not relationship:
+            return None
+
+        return FirmwareNinjaRelationship(self._view, handle=relationship)
+
+    def remove_relationship_by_guid(self, guid: str) -> None:
+        """
+        ``remove_relationship_by_guid`` removes a relationship from the binary view metadata by GUID
+
+        :param str guid: GUID of the relationship
+        """
+
+        core.BNFirmwareNinjaRemoveRelationshipByGuid(self._handle, guid)

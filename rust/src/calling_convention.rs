@@ -574,7 +574,6 @@ impl CallingConvention for CoreCallingConvention {
         unsafe {
             let mut count = 0;
             let regs_ptr = BNGetCalleeSavedRegisters(self.handle, &mut count);
-            BNFreeRegisterList(regs_ptr);
             let regs: Vec<RegisterId> = std::slice::from_raw_parts(regs_ptr, count)
                 .iter()
                 .copied()

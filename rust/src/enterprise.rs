@@ -1,5 +1,6 @@
 use crate::rc::Array;
 use crate::string::{BnStrCompatible, BnString};
+use std::ffi::c_void;
 use std::marker::PhantomData;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use thiserror::Error;
@@ -24,6 +25,10 @@ pub fn checkout_license(duration: Duration) -> Result<(), EnterpriseCheckoutErro
         // We only need to check out a license if running headlessly.
         return Ok(());
     }
+
+    // The disparate core functions we call here might already have mutexes to guard.
+    static CHECKOUT_MUTEX: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    let _mtx = CHECKOUT_MUTEX.lock().unwrap();
 
     #[allow(clippy::collapsible_if)]
     if !is_server_initialized() {
@@ -241,14 +246,14 @@ pub fn register_license_changed_callback<'a, F: FnMut(bool) + 'a>(
     callback: F,
 ) -> EnterpriseServerCallback<'a> {
     unsafe extern "C" fn cb_license_status_changed<F: FnMut(bool)>(
-        ctxt: *mut ::std::os::raw::c_void,
+        ctxt: *mut c_void,
         still_valid: bool,
     ) {
         let ctxt: &mut F = &mut *(ctxt as *mut F);
         ctxt(still_valid)
     }
     let mut handle = binaryninjacore_sys::BNEnterpriseServerCallbacks {
-        context: Box::leak(Box::new(callback)) as *mut F as *mut core::ffi::c_void,
+        context: Box::leak(Box::new(callback)) as *mut F as *mut c_void,
         licenseStatusChanged: Some(cb_license_status_changed::<F>),
     };
     unsafe { binaryninjacore_sys::BNRegisterEnterpriseServerNotification(&mut handle) }

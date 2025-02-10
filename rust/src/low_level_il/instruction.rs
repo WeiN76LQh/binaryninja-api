@@ -227,6 +227,8 @@ where
     // TODO needs a real op
     Push(Operation<'func, A, M, F, operation::UnaryOp>),
 
+    RegStackPush(Operation<'func, A, M, F, operation::RegStackPush>),
+
     Jump(Operation<'func, A, M, F, operation::Jump>),
     JumpTo(Operation<'func, A, M, F, operation::JumpTo>),
 
@@ -277,6 +279,10 @@ where
                 LowLevelILInstructionKind::Store(Operation::new(function, op))
             }
             LLIL_PUSH => LowLevelILInstructionKind::Push(Operation::new(function, op)),
+
+            LLIL_REG_STACK_PUSH => {
+                LowLevelILInstructionKind::RegStackPush(Operation::new(function, op))
+            }
 
             LLIL_JUMP => LowLevelILInstructionKind::Jump(Operation::new(function, op)),
             LLIL_JUMP_TO => LowLevelILInstructionKind::JumpTo(Operation::new(function, op)),
@@ -330,6 +336,7 @@ where
                 visit!(&op.source_expr());
             }
             Push(ref op) => visit!(&op.operand()),
+            RegStackPush(ref op) => visit!(&op.source_expr()),
             Jump(ref op) => visit!(&op.target()),
             JumpTo(ref op) => visit!(&op.target()),
             Call(ref op) | TailCall(ref op) => visit!(&op.target()),

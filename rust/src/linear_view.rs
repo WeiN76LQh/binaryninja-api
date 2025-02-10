@@ -18,12 +18,16 @@ use binaryninjacore_sys::*;
 
 use crate::binary_view::BinaryView;
 use crate::disassembly::{DisassemblySettings, DisassemblyTextLine};
-use crate::function::Function;
+use crate::function::{Function, NativeBlock};
 
+use crate::basic_block::BasicBlock;
 use crate::rc::*;
+use crate::render_layer::CoreRenderLayer;
+use crate::string::{raw_to_string, BnString};
 use std::ops::Deref;
 
-use std::mem;
+pub type LinearDisassemblyLineType = BNLinearDisassemblyLineType;
+pub type LinearViewObjectIdentifierType = BNLinearViewObjectIdentifierType;
 
 pub type LinearDisassemblyLineType = BNLinearDisassemblyLineType;
 
@@ -33,9 +37,19 @@ pub struct LinearViewObject {
 }
 
 impl LinearViewObject {
+    pub(crate) unsafe fn from_raw(handle: *mut BNLinearViewObject) -> Self {
+        debug_assert!(!handle.is_null());
+        Self { handle }
+    }
+
     pub(crate) unsafe fn ref_from_raw(handle: *mut BNLinearViewObject) -> Ref<Self> {
         debug_assert!(!handle.is_null());
         Ref::new(Self { handle })
+    }
+
+    pub fn identifier(&self) -> LinearViewObjectIdentifier {
+        let raw = unsafe { BNGetLinearViewObjectIdentifier(self.handle) };
+        LinearViewObjectIdentifier::from_owned_raw(raw)
     }
 
     pub fn data_only(view: &BinaryView, settings: &DisassemblySettings) -> Ref<Self> {
@@ -214,6 +228,46 @@ impl ToOwned for LinearViewObject {
 unsafe impl Send for LinearViewObject {}
 unsafe impl Sync for LinearViewObject {}
 
+#[derive(Clone, PartialEq, Debug)]
+pub struct LinearViewObjectIdentifier {
+    pub name: String,
+    pub ty: LinearViewObjectIdentifierType,
+    pub start: u64,
+    pub end: u64,
+}
+
+impl LinearViewObjectIdentifier {
+    pub fn from_raw(value: &BNLinearViewObjectIdentifier) -> Self {
+        Self {
+            name: raw_to_string(value.name).unwrap(),
+            ty: value.type_,
+            start: value.start,
+            end: value.end,
+        }
+    }
+
+    pub fn from_owned_raw(value: BNLinearViewObjectIdentifier) -> Self {
+        let owned = Self::from_raw(&value);
+        Self::free_raw(value);
+        owned
+    }
+
+    pub fn into_raw(value: Self) -> BNLinearViewObjectIdentifier {
+        let bn_name = BnString::new(value.name);
+        BNLinearViewObjectIdentifier {
+            name: BnString::into_raw(bn_name),
+            type_: value.ty,
+            start: value.start,
+            end: value.end,
+        }
+    }
+
+    pub fn free_raw(value: BNLinearViewObjectIdentifier) {
+        let _ = unsafe { BnString::from_raw(value.name) };
+    }
+}
+
+// TODO: Impl iterator?
 #[derive(Eq)]
 pub struct LinearViewCursor {
     pub(crate) handle: *mut BNLinearViewCursor,
@@ -252,15 +306,15 @@ impl LinearViewCursor {
         !(self.before_begin() || self.after_end())
     }
 
-    pub fn seek_to_start(&self) {
+    pub fn seek_to_start(&mut self) {
         unsafe { BNSeekLinearViewCursorToBegin(self.handle) }
     }
 
-    pub fn seek_to_end(&self) {
+    pub fn seek_to_end(&mut self) {
         unsafe { BNSeekLinearViewCursorToEnd(self.handle) }
     }
 
-    pub fn seek_to_address(&self, address: u64) {
+    pub fn seek_to_address(&mut self, address: u64) {
         unsafe { BNSeekLinearViewCursorToAddress(self.handle, address) }
     }
 
@@ -275,15 +329,18 @@ impl LinearViewCursor {
         unsafe { BNGetLinearViewCursorOrderingIndexTotal(self.handle) }
     }
 
-    pub fn seek_to_ordering_index(&self, idx: u64) {
+    pub fn seek_to_ordering_index(&mut self, idx: u64) {
         unsafe { BNSeekLinearViewCursorToAddress(self.handle, idx) }
     }
 
-    pub fn previous(&self) -> bool {
+    pub fn previous(&mut self) -> bool {
         unsafe { BNLinearViewCursorPrevious(self.handle) }
     }
 
-    pub fn next(&self) -> bool {
+    // TODO: This clippy lint is probably right? Just a lot of work and it would
+    // TODO: make this API different from the python and C++ implementations.
+    #[allow(clippy::should_implement_trait)]
+    pub fn next(&mut self) -> bool {
         unsafe { BNLinearViewCursorNext(self.handle) }
     }
 
@@ -293,6 +350,27 @@ impl LinearViewCursor {
             let handles = BNGetLinearViewCursorLines(self.handle, &mut count);
             Array::new(handles, count, ())
         }
+    }
+
+    /// A list of the currently applied [`CoreRenderLayer`]'s
+    pub fn render_layers(&self) -> Array<CoreRenderLayer> {
+        let mut count: usize = 0;
+        unsafe {
+            let handles = BNGetLinearViewCursorRenderLayers(self.handle, &mut count);
+            Array::new(handles, count, ())
+        }
+    }
+
+    /// Add a Render Layer to be applied to this [`LinearViewCursor`].
+    ///
+    /// NOTE: Layers will be applied in the order in which they are added.
+    pub fn add_render_layer(&self, layer: &CoreRenderLayer) {
+        unsafe { BNAddLinearViewCursorRenderLayer(self.handle, layer.handle.as_ptr()) };
+    }
+
+    /// Remove a Render Layer from being applied to this [`LinearViewCursor`].
+    pub fn remove_render_layer(&self, layer: &CoreRenderLayer) {
+        unsafe { BNRemoveLinearViewCursorRenderLayer(self.handle, layer.handle.as_ptr()) };
     }
 }
 
@@ -341,55 +419,81 @@ impl ToOwned for LinearViewCursor {
 unsafe impl Send for LinearViewCursor {}
 unsafe impl Sync for LinearViewCursor {}
 
+#[derive(Clone, PartialEq, Debug, Eq)]
 pub struct LinearDisassemblyLine {
-    t: LinearDisassemblyLineType,
-
-    // These will be cleaned up by BNFreeLinearDisassemblyLines, so we
-    // don't drop them in the relevant deconstructors.
-    // TODO: This is insane!
-    function: mem::ManuallyDrop<Ref<Function>>,
-    contents: mem::ManuallyDrop<DisassemblyTextLine>,
+    pub ty: LinearDisassemblyLineType,
+    pub function: Option<Ref<Function>>,
+    pub basic_block: Option<Ref<BasicBlock<NativeBlock>>>,
+    pub contents: DisassemblyTextLine,
 }
 
 impl LinearDisassemblyLine {
-    pub(crate) unsafe fn from_raw(raw: &BNLinearDisassemblyLine) -> Self {
-        let linetype = raw.type_;
-        // TODO: We must remove this behavior.
-        let function = mem::ManuallyDrop::new(Function::ref_from_raw(raw.function));
-        let contents = mem::ManuallyDrop::new(DisassemblyTextLine::from_raw(&raw.contents));
+    pub(crate) unsafe fn from_raw(value: &BNLinearDisassemblyLine) -> Self {
+        let function = if !value.function.is_null() {
+            Some(unsafe { Function::from_raw(value.function).to_owned() })
+        } else {
+            None
+        };
+        let basic_block = if !value.block.is_null() {
+            Some(unsafe { BasicBlock::from_raw(value.block, NativeBlock::new()).to_owned() })
+        } else {
+            None
+        };
         Self {
-            t: linetype,
+            ty: value.type_,
             function,
-            contents,
+            basic_block,
+            contents: DisassemblyTextLine::from_raw(&value.contents),
         }
     }
 
-    pub fn function(&self) -> &Function {
-        self.function.as_ref()
+    #[allow(unused)]
+    pub(crate) unsafe fn from_owned_raw(value: BNLinearDisassemblyLine) -> Self {
+        let owned = Self::from_raw(&value);
+        Self::free_raw(value);
+        owned
     }
 
-    pub fn line_type(&self) -> LinearDisassemblyLineType {
-        self.t
+    pub(crate) fn into_raw(value: Self) -> BNLinearDisassemblyLine {
+        let function_ptr = value
+            .function
+            .map(|f| unsafe { Ref::into_raw(f) }.handle)
+            .unwrap_or(std::ptr::null_mut());
+        let block_ptr = value
+            .basic_block
+            .map(|b| unsafe { Ref::into_raw(b) }.handle)
+            .unwrap_or(std::ptr::null_mut());
+        BNLinearDisassemblyLine {
+            type_: value.ty,
+            function: function_ptr,
+            block: block_ptr,
+            contents: DisassemblyTextLine::into_raw(value.contents),
+        }
+    }
+
+    pub(crate) fn free_raw(value: BNLinearDisassemblyLine) {
+        let _ = unsafe { Function::ref_from_raw(value.function) };
+        DisassemblyTextLine::free_raw(value.contents);
     }
 }
 
 impl Deref for LinearDisassemblyLine {
     type Target = DisassemblyTextLine;
     fn deref(&self) -> &Self::Target {
-        self.contents.deref()
+        &self.contents
     }
 }
 
 impl std::fmt::Display for LinearDisassemblyLine {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.deref())
+        write!(f, "{}", self.contents)
     }
 }
 
 impl CoreArrayProvider for LinearDisassemblyLine {
     type Raw = BNLinearDisassemblyLine;
     type Context = ();
-    type Wrapped<'a> = Guard<'a, LinearDisassemblyLine>;
+    type Wrapped<'a> = LinearDisassemblyLine;
 }
 
 unsafe impl CoreArrayProviderInner for LinearDisassemblyLine {
@@ -397,8 +501,7 @@ unsafe impl CoreArrayProviderInner for LinearDisassemblyLine {
         BNFreeLinearDisassemblyLines(raw, count);
     }
 
-    unsafe fn wrap_raw<'a>(raw: &'a Self::Raw, context: &'a Self::Context) -> Self::Wrapped<'a> {
-        // TODO: Cant remove this guard until we remove those manual drops... INSANE!
-        Guard::new(Self::from_raw(raw), context)
+    unsafe fn wrap_raw<'a>(raw: &'a Self::Raw, _context: &'a Self::Context) -> Self::Wrapped<'a> {
+        Self::from_raw(raw)
     }
 }

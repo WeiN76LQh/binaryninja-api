@@ -9011,20 +9011,9 @@ to a the type "tagRECT" found in the typelibrary "winX64common"
 	def _LinearDisassemblyLine_convertor(
 	    self, lines: core.BNLinearDisassemblyLineHandle
 	) -> 'lineardisassembly.LinearDisassemblyLine':
-		func = None
-		block = None
-		line = lines[0]
-		if line.function:
-			func = _function.Function(self, core.BNNewFunctionReference(line.function))
-		if line.block:
-			block_handle = core.BNNewBasicBlockReference(line.block)
-			assert block_handle is not None, "core.BNNewBasicBlockReference returned None"
-			block = basicblock.BasicBlock(block_handle, self)
-		color = highlight.HighlightColor._from_core_struct(line.contents.highlight)
-		addr = line.contents.addr
-		tokens = _function.InstructionTextToken._from_core_struct(line.contents.tokens, line.contents.count)
-		contents = _function.DisassemblyTextLine(tokens, addr, color=color)
-		return lineardisassembly.LinearDisassemblyLine(line.type, func, block, contents)
+		line = lineardisassembly.LinearDisassemblyLine._from_core_struct(lines[0])
+		core.BNFreeLinearDisassemblyLines(lines, 1)
+		return line
 
 	def find_all_text(
 	    self, start: int, end: int, text: str, settings: Optional[_function.DisassemblySettings] = None,

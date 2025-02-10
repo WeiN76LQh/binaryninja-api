@@ -15,7 +15,7 @@
 use binaryninjacore_sys::{BNGetLowLevelILByIndex, BNLowLevelILInstruction};
 
 use super::*;
-use crate::architecture::{FlagGroupId, FlagId, FlagWriteId, IntrinsicId};
+use crate::architecture::{FlagGroupId, FlagId, FlagWriteId, IntrinsicId, RegisterStackId};
 use std::collections::BTreeMap;
 use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
@@ -533,6 +533,88 @@ where
             .field("size", &self.size())
             .field("low_reg", &self.low_reg())
             .field("high_reg", &self.high_reg())
+            .finish()
+    }
+}
+
+// LLIL_REG_STACK_PUSH
+pub struct RegStackPush;
+
+impl<'func, A, M, F> Operation<'func, A, M, F, RegStackPush>
+where
+    A: Architecture,
+    M: FunctionMutability,
+    F: FunctionForm,
+{
+    pub fn size(&self) -> usize {
+        self.op.size
+    }
+
+    pub fn dest_reg_stack(&self) -> A::RegisterStack {
+        let raw_id = self.op.operands[0] as u32;
+        self.function
+            .arch()
+            .register_stack_from_id(RegisterStackId(raw_id))
+            .expect("Bad register stack ID")
+    }
+
+    pub fn source_expr(&self) -> LowLevelILExpression<'func, A, M, F, ValueExpr> {
+        LowLevelILExpression::new(
+            self.function,
+            LowLevelExpressionIndex(self.op.operands[1] as usize),
+        )
+    }
+}
+
+impl<A, M, F> Debug for Operation<'_, A, M, F, RegStackPush>
+where
+    A: Architecture,
+    M: FunctionMutability,
+    F: FunctionForm,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("RegStackPush")
+            .field("address", &self.address())
+            .field("size", &self.size())
+            .field("dest_reg_stack", &self.dest_reg_stack())
+            .field("source_expr", &self.source_expr())
+            .finish()
+    }
+}
+
+// LLIL_REG_STACK_POP
+pub struct RegStackPop;
+
+impl<A, M, F> Operation<'_, A, M, F, RegStackPop>
+where
+    A: Architecture,
+    M: FunctionMutability,
+    F: FunctionForm,
+{
+    pub fn size(&self) -> usize {
+        self.op.size
+    }
+
+    pub fn source_reg_stack(&self) -> A::RegisterStack {
+        let raw_id = self.op.operands[0] as u32;
+        self.function
+            .arch()
+            .register_stack_from_id(RegisterStackId(raw_id))
+            .expect("Bad register stack ID")
+    }
+}
+
+impl<A, M, F> Debug for Operation<'_, A, M, F, RegStackPop>
+where
+    A: Architecture,
+    M: FunctionMutability,
+    F: FunctionForm,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("RegStackPop")
+            .field("address", &self.address())
+            .field("size", &self.size())
+            .field("source_reg_stack", &self.source_reg_stack())
             .finish()
     }
 }
@@ -1343,6 +1425,8 @@ impl OperationArguments for Load {}
 impl OperationArguments for Store {}
 impl OperationArguments for Reg {}
 impl OperationArguments for RegSplit {}
+impl OperationArguments for RegStackPush {}
+impl OperationArguments for RegStackPop {}
 impl OperationArguments for Flag {}
 impl OperationArguments for FlagBit {}
 impl OperationArguments for Jump {}

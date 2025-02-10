@@ -303,6 +303,8 @@ class PluginCommand(metaclass=_PluginCommandMetaClass):
 	@staticmethod
 	def _low_level_il_instruction_is_valid(view, func, instr, is_valid):
 		try:
+			if instr == 0xffffffffffffffff:
+				return False
 			if is_valid is None:
 				return True
 			file_metadata = filemetadata.FileMetadata(handle=core.BNGetFileForView(view))
@@ -333,6 +335,8 @@ class PluginCommand(metaclass=_PluginCommandMetaClass):
 	@staticmethod
 	def _medium_level_il_instruction_is_valid(view, func, instr, is_valid):
 		try:
+			if instr == 0xffffffffffffffff:
+				return False
 			if is_valid is None:
 				return True
 			file_metadata = filemetadata.FileMetadata(handle=core.BNGetFileForView(view))
@@ -363,6 +367,8 @@ class PluginCommand(metaclass=_PluginCommandMetaClass):
 	@staticmethod
 	def _high_level_il_instruction_is_valid(view, func, instr, is_valid):
 		try:
+			if instr == 0xffffffffffffffff:
+				return False
 			if is_valid is None:
 				return True
 			file_metadata = filemetadata.FileMetadata(handle=core.BNGetFileForView(view))

@@ -16,7 +16,7 @@ fn test_license_validation() {
     release_license();
     // Make sure we properly report invalid license.
     let options = InitializationOptions::default()
-        .with_checkout_license(false)
+        .with_license_checkout(false)
         .with_license("blah blag");
     match init_with_opts(options) {
         Ok(_) => panic!("Expected license validation to fail, but it succeeded!"),

@@ -7,20 +7,13 @@ name: Rust Testing
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - '**'
-    paths:
-      - '**.rs'
-      - '**.toml'
-      - 'rust/**'
   # Pull request target allows us to use the bn license and serial for PR's
   # to insure we do not leak the license the workflow is required to be approved manually.
   pull_request_target:
     paths:
-      - '**.rs'
-      - '**.toml'
-      - 'rust/**'
+      - "**.rs"
+      - "**.toml"
+      - "rust/**"
 
 jobs:
   # Check that code compiles and tests pass
@@ -41,9 +34,9 @@ jobs:
         id: setup-binja
         uses: Vector35/setup-binary-ninja@v1-beta
         with:
-          license: '${{ secrets.BN_SERIAL }}'
-          python-support: 'false'
-          dev-branch: 'true'
+          license: "${{ secrets.BN_SERIAL }}"
+          python-support: "false"
+          dev-branch: "true"
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       - name: Test
         # For now, we run the tests single threaded, there are some data races in core around platform types

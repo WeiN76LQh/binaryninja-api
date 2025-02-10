@@ -128,7 +128,7 @@ impl Iterator for NativeBlockIter {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NativeBlock {
     _priv: (),
 }
@@ -136,6 +136,12 @@ pub struct NativeBlock {
 impl NativeBlock {
     pub(crate) fn new() -> Self {
         NativeBlock { _priv: () }
+    }
+}
+
+impl Default for NativeBlock {
+    fn default() -> Self {
+        NativeBlock::new()
     }
 }
 
@@ -2346,7 +2352,7 @@ impl Function {
     /// Flow graph of unresolved stack adjustments
     pub fn unresolved_stack_adjustment_graph(&self) -> Option<Ref<FlowGraph>> {
         let graph = unsafe { BNGetUnresolvedStackAdjustmentGraph(self.handle) };
-        (!graph.is_null()).then(|| unsafe { Ref::new(FlowGraph::from_raw(graph)) })
+        (!graph.is_null()).then(|| unsafe { FlowGraph::ref_from_raw(graph) })
     }
 
     pub fn create_graph(
@@ -2358,7 +2364,7 @@ impl Function {
         let raw_view_type = FunctionViewType::into_raw(view_type);
         let result = unsafe { BNCreateFunctionGraph(self.handle, raw_view_type, settings_raw) };
         FunctionViewType::free_raw(raw_view_type);
-        unsafe { Ref::new(FlowGraph::from_raw(result)) }
+        unsafe { FlowGraph::ref_from_raw(result) }
     }
 
     pub fn parent_components(&self) -> Array<Component> {

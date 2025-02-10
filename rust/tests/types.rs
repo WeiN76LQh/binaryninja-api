@@ -1,4 +1,6 @@
+use binaryninja::confidence::Conf;
 use binaryninja::headless::Session;
+use binaryninja::platform::Platform;
 use binaryninja::types::{MemberAccess, MemberScope, StructureBuilder, StructureMember, Type};
 use rstest::*;
 
@@ -12,6 +14,14 @@ fn session() -> Session {
 fn test_type_to_string(_session: &Session) {
     let test_type = Type::int(4, true);
     assert_eq!(test_type.to_string(), "int32_t".to_string());
+
+    let platform = Platform::by_name("x86").expect("Failed to get platform");
+    let calling_conv = platform
+        .get_default_calling_convention()
+        .expect("Failed to get calling convention");
+    let test_fn_type =
+        Type::function_with_opts(&test_type, &[], false, calling_conv, Conf::new(0, 0));
+    assert_eq!(test_fn_type.to_string(), "int32_t()");
 }
 
 #[rstest]

@@ -32,9 +32,19 @@ DSCView::~DSCView()
 		MMappedFileAccessor::CloseAll(GetFile()->GetSessionId());
 }
 
-enum DSCPlatform {
+enum DSCPlatform
+{
 	DSCPlatformMacOS = 1,
 	DSCPlatformiOS = 2,
+	DSCPlatformTVOS = 3,
+	DSCPlatformWatchOS = 4,
+	DSCPlatformBridgeOS = 5,  // T1/T2 APL1023/T8012, this is your touchbar/touchid in intel macs. Similar to watchOS.
+	// DSCPlatformMacCatalyst = 6,
+	DSCPlatformiOSSimulator = 7,
+	DSCPlatformTVOSSimulator = 8,
+	DSCPlatformWatchOSSimulator = 9,
+	DSCPlatformVisionOS = 11,		   // Apple Vision Pro
+	DSCPlatformVisionOSSimulator = 12  // Apple Vision Pro Simulator
 };
 
 bool DSCView::Init()
@@ -47,11 +57,30 @@ bool DSCView::Init()
 	char magic[17];
 	GetParentView()->Read(&magic, 0, 16);
 	magic[16] = 0;
-	if (platform == DSCPlatformMacOS)
+	switch (platform)
 	{
+	case DSCPlatformMacOS:
+	case DSCPlatformTVOS:
+	case DSCPlatformTVOSSimulator:
 		os = "mac";
+		break;
+	case DSCPlatformiOS:
+	case DSCPlatformiOSSimulator:
+	case DSCPlatformVisionOS:
+	case DSCPlatformVisionOSSimulator:
+		os = "ios";
+		break;
+	// armv7 or slide info v1 (unsupported)
+	case DSCPlatformWatchOS:
+	case DSCPlatformWatchOSSimulator:
+	case DSCPlatformBridgeOS:
+	default:
+		LogError("Unknown platform: %d", platform);
+		return false;
 	}
-	else if (platform == DSCPlatformiOS)
+
+	if (std::string(magic) == "dyld_v1   arm64" || std::string(magic) == "dyld_v1  arm64e"
+		|| std::string(magic) == "dyld_v1arm64_32")
 	{
 		os = "ios";
 	}
@@ -81,14 +110,17 @@ bool DSCView::Init()
 	QualifiedNameAndType headerType;
 	std::string err;
 
-	ParseTypeString("\n"
+	ParseTypeString(
+		"\n"
 		"\tstruct dyld_cache_header\n"
 		"\t{\n"
 		"\t\tchar magic[16];\t\t\t\t\t // e.g. \"dyld_v0    i386\"\n"
 		"\t\tuint32_t mappingOffset;\t\t\t // file offset to first dyld_cache_mapping_info\n"
 		"\t\tuint32_t mappingCount;\t\t\t // number of dyld_cache_mapping_info entries\n"
-		"\t\tuint32_t imagesOffsetOld;\t\t // UNUSED: moved to imagesOffset to prevent older dsc_extarctors from crashing\n"
-		"\t\tuint32_t imagesCountOld;\t\t // UNUSED: moved to imagesCount to prevent older dsc_extarctors from crashing\n"
+		"\t\tuint32_t imagesOffsetOld;\t\t // UNUSED: moved to imagesOffset to prevent older dsc_extarctors from "
+		"crashing\n"
+		"\t\tuint32_t imagesCountOld;\t\t // UNUSED: moved to imagesCount to prevent older dsc_extarctors from "
+		"crashing\n"
 		"\t\tuint64_t dyldBaseAddress;\t\t // base address of dyld when cache was built\n"
 		"\t\tuint64_t codeSignatureOffset;\t // file offset of code signature blob\n"
 		"\t\tuint64_t codeSignatureSize;\t\t // size of code signature blob (zero means to end of file)\n"
@@ -105,7 +137,8 @@ bool DSCView::Init()
 		"\t\tuint64_t imagesTextOffset;\t\t // file offset to first dyld_cache_image_text_info\n"
 		"\t\tuint64_t imagesTextCount;\t\t // number of dyld_cache_image_text_info entries\n"
 		"\t\tuint64_t patchInfoAddr;\t\t\t // (unslid) address of dyld_cache_patch_info\n"
-		"\t\tuint64_t patchInfoSize;\t // Size of all of the patch information pointed to via the dyld_cache_patch_info\n"
+		"\t\tuint64_t patchInfoSize;\t // Size of all of the patch information pointed to via the "
+		"dyld_cache_patch_info\n"
 		"\t\tuint64_t otherImageGroupAddrUnused;\t // unused\n"
 		"\t\tuint64_t otherImageGroupSizeUnused;\t // unused\n"
 		"\t\tuint64_t progClosuresAddr;\t\t\t // (unslid) address of list of program launch closures\n"
@@ -114,10 +147,12 @@ bool DSCView::Init()
 		"\t\tuint64_t progClosuresTrieSize;\t\t // size of trie of indexes into program launch closures\n"
 		"\t\tuint32_t platform;\t\t\t\t\t // platform number (macOS=1, etc)\n"
 		"\t\tuint32_t formatVersion : 8,\t\t\t // dyld3::closure::kFormatVersion\n"
-		"\t\t\tdylibsExpectedOnDisk : 1,  // dyld should expect the dylib exists on disk and to compare inode/mtime to see if cache is valid\n"
+		"\t\t\tdylibsExpectedOnDisk : 1,  // dyld should expect the dylib exists on disk and to compare inode/mtime to "
+		"see if cache is valid\n"
 		"\t\t\tsimulator : 1,\t\t\t   // for simulator of specified platform\n"
 		"\t\t\tlocallyBuiltCache : 1,\t   // 0 for B&I built cache, 1 for locally built cache\n"
-		"\t\t\tbuiltFromChainedFixups : 1,\t // some dylib in cache was built using chained fixups, so patch tables must be used for overrides\n"
+		"\t\t\tbuiltFromChainedFixups : 1,\t // some dylib in cache was built using chained fixups, so patch tables "
+		"must be used for overrides\n"
 		"\t\t\tpadding : 20;\t\t\t\t // TBD\n"
 		"\t\tuint64_t sharedRegionStart;\t\t // base load address of cache if not slid\n"
 		"\t\tuint64_t sharedRegionSize;\t\t // overall size required to map the cache and all subCaches, if any\n"
@@ -126,9 +161,11 @@ bool DSCView::Init()
 		"\t\tuint64_t dylibsImageArraySize;\t // size of ImageArray for dylibs in this cache\n"
 		"\t\tuint64_t dylibsTrieAddr;\t\t // (unslid) address of trie of indexes of all cached dylibs\n"
 		"\t\tuint64_t dylibsTrieSize;\t\t // size of trie of cached dylib paths\n"
-		"\t\tuint64_t otherImageArrayAddr;\t // (unslid) address of ImageArray for dylibs and bundles with dlopen closures\n"
+		"\t\tuint64_t otherImageArrayAddr;\t // (unslid) address of ImageArray for dylibs and bundles with dlopen "
+		"closures\n"
 		"\t\tuint64_t otherImageArraySize;\t // size of ImageArray for dylibs and bundles with dlopen closures\n"
-		"\t\tuint64_t otherTrieAddr;\t // (unslid) address of trie of indexes of all dylibs and bundles with dlopen closures\n"
+		"\t\tuint64_t otherTrieAddr;\t // (unslid) address of trie of indexes of all dylibs and bundles with dlopen "
+		"closures\n"
 		"\t\tuint64_t otherTrieSize;\t // size of trie of dylibs and bundles with dlopen closures\n"
 		"\t\tuint32_t mappingWithSlideOffset;\t\t // file offset to first dyld_cache_mapping_and_slide_info\n"
 		"\t\tuint32_t mappingWithSlideCount;\t\t\t // number of dyld_cache_mapping_and_slide_info entries\n"
@@ -145,23 +182,36 @@ bool DSCView::Init()
 		"\t\tuint64_t swiftOptsSize;\t\t\t// size of Swift optimizations header\n"
 		"\t\tuint32_t subCacheArrayOffset;\t// file offset to first dyld_subcache_entry\n"
 		"\t\tuint32_t subCacheArrayCount;\t// number of subCache entries\n"
-		"\t\tuint8_t symbolFileUUID[16];\t\t// unique value for the shared cache file containing unmapped local symbols\n"
-		"\t\tuint64_t rosettaReadOnlyAddr;\t// (unslid) address of the start of where Rosetta can add read-only/executable data\n"
+		"\t\tuint8_t symbolFileUUID[16];\t\t// unique value for the shared cache file containing unmapped local "
+		"symbols\n"
+		"\t\tuint64_t rosettaReadOnlyAddr;\t// (unslid) address of the start of where Rosetta can add "
+		"read-only/executable data\n"
 		"\t\tuint64_t rosettaReadOnlySize;\t// maximum size of the Rosetta read-only/executable region\n"
-		"\t\tuint64_t rosettaReadWriteAddr;\t// (unslid) address of the start of where Rosetta can add read-write data\n"
+		"\t\tuint64_t rosettaReadWriteAddr;\t// (unslid) address of the start of where Rosetta can add read-write "
+		"data\n"
 		"\t\tuint64_t rosettaReadWriteSize;\t// maximum size of the Rosetta read-write region\n"
 		"\t\tuint32_t imagesOffset;\t\t\t// file offset to first dyld_cache_image_info\n"
 		"\t\tuint32_t imagesCount;\t\t\t// number of dyld_cache_image_info entries\n"
-		"\t\tuint32_t cacheSubType;           // 0 for development, 1 for production, when cacheType is multi-cache(2)\n"
+		"\t\tuint32_t cacheSubType;           // 0 for development, 1 for production, when cacheType is "
+		"multi-cache(2)\n"
 		"\t\tuint64_t objcOptsOffset;         // VM offset from cache_header* to ObjC optimizations header\n"
 		"\t\tuint64_t objcOptsSize;           // size of ObjC optimizations header\n"
-		"\t\tuint64_t cacheAtlasOffset;       // VM offset from cache_header* to embedded cache atlas for process introspection\n"
+		"\t\tuint64_t cacheAtlasOffset;       // VM offset from cache_header* to embedded cache atlas for process "
+		"introspection\n"
 		"\t\tuint64_t cacheAtlasSize;         // size of embedded cache atlas\n"
-		"\t\tuint64_t dynamicDataOffset;      // VM offset from cache_header* to the location of dyld_cache_dynamic_data_header\n"
+		"\t\tuint64_t dynamicDataOffset;      // VM offset from cache_header* to the location of "
+		"dyld_cache_dynamic_data_header\n"
 		"\t\tuint64_t dynamicDataMaxSize;     // maximum size of space reserved from dynamic data\n"
 		"\t\tuint32_t tproMappingsOffset;     // file offset to first dyld_cache_tpro_mapping_info\n"
 		"\t\tuint32_t tproMappingsCount;      // number of dyld_cache_tpro_mapping_info entries\n"
-		"\t};", headerType, err);
+		"\t};",
+		headerType, err);
+
+	if (!err.empty() || !headerType.type)
+	{
+		LogError("Failed to parse header type: %s", err.c_str());
+		return false;
+	}
 
 	Ref<Settings> settings = GetLoadSettings(GetTypeName());
 
@@ -622,25 +672,27 @@ bool DSCView::Init()
 			imageStartToInstallName[addr] = name;
 		}
 
-		std::vector<std::pair<uint64_t, std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>>> exportInfos;
+		std::vector<std::pair<uint64_t, std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>>>
+			exportInfos;
 
 		for (const auto& obj1 : result["exportInfos"].GetArray())
 		{
 			std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>> innerVec;
 			for (const auto& obj2 : obj1["value"].GetArray())
 			{
-				std::pair<BNSymbolType, std::string> innerPair = { (BNSymbolType)obj2["val1"].GetUint64(), obj2["val2"].GetString() };
-				innerVec.push_back({ obj2["key"].GetUint64(), innerPair });
+				std::pair<BNSymbolType, std::string> innerPair = {
+					(BNSymbolType)obj2["val1"].GetUint64(), obj2["val2"].GetString()};
+				innerVec.push_back({obj2["key"].GetUint64(), innerPair});
 			}
 
 			exportInfos.push_back({obj1["key"].GetUint64(), innerVec});
 		}
 
 		BeginBulkModifySymbols();
-		for (const auto & [imageBaseAddr, exportList] : exportInfos)
+		for (const auto& [imageBaseAddr, exportList] : exportInfos)
 		{
 			std::vector<Ref<Symbol>> symbolsList;
-			for (const auto & [exportAddr, exportTypeAndName] : exportList)
+			for (const auto& [exportAddr, exportTypeAndName] : exportList)
 			{
 				symbolsList.push_back(new Symbol(exportTypeAndName.first, exportTypeAndName.second, exportAddr));
 			}
@@ -693,15 +745,14 @@ bool DSCView::Init()
 	AddAutoSegment(primaryBase, headerSize, 0, headerSize, SegmentReadable);
 	AddAutoSection("__dsc_header", primaryBase, headerSize, ReadOnlyDataSectionSemantics);
 	DefineType("dyld_cache_header", headerType.name, headerType.type);
-	DefineAutoSymbolAndVariableOrFunction(GetDefaultPlatform(), new Symbol(DataSymbol, "primary_cache_header", primaryBase), headerType.type);
+	DefineAutoSymbolAndVariableOrFunction(
+		GetDefaultPlatform(), new Symbol(DataSymbol, "primary_cache_header", primaryBase), headerType.type);
 
 	return true;
 }
 
 
-DSCViewType::DSCViewType() : BinaryViewType(VIEW_NAME, VIEW_NAME)
-{
-}
+DSCViewType::DSCViewType() : BinaryViewType(VIEW_NAME, VIEW_NAME) {}
 
 BinaryNinja::Ref<BinaryNinja::BinaryView> DSCViewType::Create(BinaryNinja::BinaryView* data)
 {

@@ -1209,8 +1209,8 @@ pub trait BinaryViewExt: BinaryViewBase {
 
     /// Retrieves a list of the next disassembly lines.
     ///
-    /// `get_next_linear_disassembly_lines` retrieves an [Array] over [LinearDisassemblyLine] objects for the
-    /// next disassembly lines, and updates the [LinearViewCursor] passed in. This function can be called
+    /// Retrieves an [`Array`] over [`LinearDisassemblyLine`] objects for the
+    /// next disassembly lines, and updates the [`LinearViewCursor`] passed in. This function can be called
     /// repeatedly to get more lines of linear disassembly.
     ///
     /// # Arguments

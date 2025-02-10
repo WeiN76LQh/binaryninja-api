@@ -68,6 +68,7 @@ pub mod project;
 pub mod rc;
 pub mod references;
 pub mod relocation;
+pub mod render_layer;
 pub mod section;
 pub mod segment;
 pub mod settings;

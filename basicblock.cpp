@@ -592,6 +592,12 @@ bool BasicBlock::IsMediumLevelILBlock() const
 }
 
 
+bool BasicBlock::IsHighLevelILBlock() const
+{
+	return BNIsHighLevelILBasicBlock(m_object);
+}
+
+
 Ref<LowLevelILFunction> BasicBlock::GetLowLevelILFunction() const
 {
 	BNLowLevelILFunction* func = BNGetBasicBlockLowLevelILFunction(m_object);

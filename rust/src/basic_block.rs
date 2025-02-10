@@ -19,6 +19,7 @@ use crate::BranchType;
 use binaryninjacore_sys::*;
 use std::fmt;
 use std::fmt::Debug;
+use std::hash::{Hash, Hasher};
 
 enum EdgeDirection {
     Incoming,
@@ -97,7 +98,14 @@ pub trait BlockContext: Clone + Sync + Send + Sized {
     fn iter(&self, block: &BasicBlock<Self>) -> Self::Iter;
 }
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, PartialOrd, Ord)]
+pub enum BasicBlockType {
+    Native,
+    LowLevelIL,
+    MediumLevelIL,
+    HighLevelIL,
+}
+
 pub struct BasicBlock<C: BlockContext> {
     pub(crate) handle: *mut BNBasicBlock,
     context: C,
@@ -124,6 +132,19 @@ impl<C: BlockContext> BasicBlock<C> {
         unsafe {
             let arch = BNGetBasicBlockArchitecture(self.handle);
             CoreArchitecture::from_raw(arch)
+        }
+    }
+
+    pub fn block_type(&self) -> BasicBlockType {
+        if unsafe { !BNIsILBasicBlock(self.handle) } {
+            BasicBlockType::Native
+        } else if unsafe { BNIsLowLevelILBasicBlock(self.handle) } {
+            BasicBlockType::LowLevelIL
+        } else if unsafe { BNIsMediumLevelILBasicBlock(self.handle) } {
+            BasicBlockType::MediumLevelIL
+        } else {
+            // We checked all other IL levels, so this is safe.
+            BasicBlockType::HighLevelIL
         }
     }
 
@@ -194,7 +215,7 @@ impl<C: BlockContext> BasicBlock<C> {
             if block.is_null() {
                 return None;
             }
-            Some(Ref::new(BasicBlock::from_raw(block, self.context.clone())))
+            Some(BasicBlock::ref_from_raw(block, self.context.clone()))
         }
     }
 
@@ -236,6 +257,24 @@ impl<C: BlockContext> BasicBlock<C> {
 
     // TODO iterated dominance frontier
 }
+
+impl<C: BlockContext> Hash for BasicBlock<C> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.function().hash(state);
+        self.block_type().hash(state);
+        state.write_usize(self.index());
+    }
+}
+
+impl<C: BlockContext> PartialEq for BasicBlock<C> {
+    fn eq(&self, other: &Self) -> bool {
+        self.function() == other.function()
+            && self.index() == other.index()
+            && self.block_type() == other.block_type()
+    }
+}
+
+impl<C: BlockContext> Eq for BasicBlock<C> {}
 
 impl<C: BlockContext> IntoIterator for &BasicBlock<C> {
     type Item = C::Instruction;

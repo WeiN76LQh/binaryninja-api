@@ -18,6 +18,8 @@ use crate::{
 };
 use std::io;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::Ordering::SeqCst;
 use thiserror::Error;
 
 use crate::enterprise::release_license;
@@ -31,6 +33,9 @@ use std::thread::JoinHandle;
 use std::time::Duration;
 
 static MAIN_THREAD_HANDLE: Mutex<Option<JoinHandle<()>>> = Mutex::new(None);
+
+/// Used to prevent shutting down Binary Ninja if there are other [`Session`]'s.
+static SESSION_COUNT: AtomicUsize = AtomicUsize::new(0);
 
 #[derive(Error, Debug)]
 pub enum InitializationError {
@@ -91,11 +96,27 @@ pub struct InitializationOptions {
     pub floating_license_duration: Duration,
     /// The bundled plugin directory to use.
     pub bundled_plugin_directory: PathBuf,
+    /// Whether to initialize user plugins.
+    ///
+    /// Set this to false if your use might be impacted by a user installed plugin.
+    pub user_plugins: bool,
+    /// Whether to initialize repo plugins.
+    ///
+    /// Set this to false if your use might be impacted by a repo installed plugin.
+    pub repo_plugins: bool,
 }
 
 impl InitializationOptions {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn minimal() -> Self {
+        Self {
+            user_plugins: false,
+            repo_plugins: false,
+            ..Self::default()
+        }
     }
 
     /// A license to override with, you can use this to make sure you initialize with a specific license.
@@ -112,7 +133,7 @@ impl InitializationOptions {
     /// If you need to make sure that you do not check out a license set this to false.
     ///
     /// This is really only useful if you have a headless license but are using an enterprise enabled core.
-    pub fn with_checkout_license(mut self, should_checkout: bool) -> Self {
+    pub fn with_license_checkout(mut self, should_checkout: bool) -> Self {
         self.checkout_license = should_checkout;
         self
     }
@@ -130,6 +151,18 @@ impl InitializationOptions {
         self.floating_license_duration = duration;
         self
     }
+
+    /// Set this to false if your use might be impacted by a user installed plugin.
+    pub fn with_user_plugins(mut self, should_initialize: bool) -> Self {
+        self.user_plugins = should_initialize;
+        self
+    }
+
+    /// Set this to false if your use might be impacted by a repo installed plugin.
+    pub fn with_repo_plugins(mut self, should_initialize: bool) -> Self {
+        self.repo_plugins = should_initialize;
+        self
+    }
 }
 
 impl Default for InitializationOptions {
@@ -141,6 +174,8 @@ impl Default for InitializationOptions {
             floating_license_duration: Duration::from_secs(900),
             bundled_plugin_directory: bundled_plugin_directory()
                 .expect("Failed to get bundled plugin directory"),
+            user_plugins: true,
+            repo_plugins: true,
         }
     }
 }
@@ -188,8 +223,11 @@ pub fn init_with_opts(options: InitializationOptions) -> Result<(), Initializati
     set_bundled_plugin_directory(options.bundled_plugin_directory);
 
     unsafe {
-        BNInitPlugins(true);
-        BNInitRepoPlugins();
+        BNInitPlugins(options.user_plugins);
+        if options.repo_plugins {
+            // We are allowed to initialize repo plugins, so do it!
+            BNInitRepoPlugins();
+        }
     }
 
     if !is_license_validated() {
@@ -249,6 +287,14 @@ pub fn license_location() -> Option<LicenseLocation> {
 pub struct Session {}
 
 impl Session {
+    /// Get a registered [`Session`] for use.
+    ///
+    /// This is required so that we can keep track of the [`SESSION_COUNT`].
+    fn registered_session() -> Self {
+        let _previous_count = SESSION_COUNT.fetch_add(1, SeqCst);
+        Self {}
+    }
+
     /// Before calling new you must make sure that the license is retrievable, otherwise the core won't be able to initialize.
     ///
     /// If you cannot otherwise provide a license via `BN_LICENSE_FILE` environment variable or the Binary Ninja user directory
@@ -257,7 +303,7 @@ impl Session {
         if license_location().is_some() {
             // We were able to locate a license, continue with initialization.
             init()?;
-            Ok(Self {})
+            Ok(Self::registered_session())
         } else {
             // There was no license that could be automatically retrieved, you must call [Self::new_with_license].
             Err(InitializationError::NoLicenseFound)
@@ -270,7 +316,7 @@ impl Session {
     /// can discover by itself, therefor it is expected that you know where your license is when calling this directly.
     pub fn new_with_opts(options: InitializationOptions) -> Result<Self, InitializationError> {
         init_with_opts(options)?;
-        Ok(Self {})
+        Ok(Self::registered_session())
     }
 
     /// ```no_run
@@ -364,6 +410,10 @@ impl Session {
 
 impl Drop for Session {
     fn drop(&mut self) {
-        shutdown()
+        let previous_count = SESSION_COUNT.fetch_sub(1, SeqCst);
+        if previous_count == 1 {
+            // We were the last session, therefor we can safely shut down.
+            shutdown();
+        }
     }
 }

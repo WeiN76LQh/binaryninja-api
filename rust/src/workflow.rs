@@ -565,7 +565,7 @@ impl Workflow {
         &self,
         activity: A,
         sequential: Option<bool>,
-    ) -> Option<FlowGraph> {
+    ) -> Option<Ref<FlowGraph>> {
         let sequential = sequential.unwrap_or(false);
         let activity_name = activity.into_bytes_with_nul();
         let graph = unsafe {
@@ -578,7 +578,7 @@ impl Workflow {
         if graph.is_null() {
             return None;
         }
-        Some(unsafe { FlowGraph::from_raw(graph) })
+        Some(unsafe { FlowGraph::ref_from_raw(graph) })
     }
 
     /// Not yet implemented.

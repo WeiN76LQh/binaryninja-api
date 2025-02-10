@@ -242,6 +242,8 @@ class BINARYNINJAUIAPI LinearView : public QAbstractScrollArea, public View, pub
 	QWidget* m_dataButtonContainer = nullptr;
 	QHBoxLayout* m_dataButtonLayout = nullptr;
 
+	std::set<std::string> m_layers;
+
 	void setTopToAddress(uint64_t addr);
 	void setTopToOrderingIndex(uint64_t idx);
 	void refreshLines(size_t lineOffset = 0, bool refreshUIContext = true);
@@ -498,6 +500,9 @@ public:
 	void setCallParamHints(BNDisassemblyCallParameterHints hints);
 	void setDisplayedFileName();
 	void setAddressBaseOffset(bool toHere);
+
+	void toggleRenderLayer(const std::string& layer);
+	BinaryNinja::Ref<BinaryNinja::LinearViewCursor> applyRenderLayers(BinaryNinja::Ref<BinaryNinja::LinearViewCursor> cursor);
 
 	virtual bool goToReference(FunctionRef func, uint64_t source, uint64_t target) override;
 	QFont getFont() override { return m_render.getFont(); }

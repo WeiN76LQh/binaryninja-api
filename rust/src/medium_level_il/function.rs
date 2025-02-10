@@ -548,10 +548,10 @@ impl MediumLevelILFunction {
         unsafe { BNGetMediumLevelILSSAVarValue(self.handle, &raw_var, ssa_variable.version) }.into()
     }
 
-    pub fn create_graph(&self, settings: Option<DisassemblySettings>) -> FlowGraph {
+    pub fn create_graph(&self, settings: Option<DisassemblySettings>) -> Ref<FlowGraph> {
         let settings = settings.map(|x| x.handle).unwrap_or(std::ptr::null_mut());
         let graph = unsafe { BNCreateMediumLevelILFunctionGraph(self.handle, settings) };
-        unsafe { FlowGraph::from_raw(graph) }
+        unsafe { FlowGraph::ref_from_raw(graph) }
     }
 
     /// This gets just the MLIL variables - you may be interested in the union

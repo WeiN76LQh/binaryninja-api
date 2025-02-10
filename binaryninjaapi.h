@@ -20,9 +20,9 @@
 
 #pragma once
 #ifdef WIN32
-#ifndef NOMINMAX
-	#define NOMINMAX
-#endif
+	#ifndef NOMINMAX
+		#define NOMINMAX
+	#endif
 	#include <windows.h>
 	#define FMT_UNICODE 0
 #endif
@@ -59,53 +59,125 @@
 	#define NOEXCEPT noexcept
 #endif
 
-//#define BN_REF_COUNT_DEBUG  // Mac OS X only, prints stack trace of leaked references
+// #define BN_REF_COUNT_DEBUG  // Mac OS X only, prints stack trace of leaked references
 
 #ifdef DOXYGEN_INCLUDE_MAINPAGE
-#include ".doxygen.h"
+	#include ".doxygen.h"
 #endif
 
 namespace BinaryNinja {
 #ifdef __GNUC__
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-	static inline uint16_t ToLE16(uint16_t val) { return val; }
-	static inline uint32_t ToLE32(uint32_t val) { return val; }
-	static inline uint64_t ToLE64(uint64_t val) { return val; }
-	static inline uint16_t ToBE16(uint16_t val) { return __builtin_bswap16(val); }
-	static inline uint32_t ToBE32(uint32_t val) { return __builtin_bswap32(val); }
-	static inline uint64_t ToBE64(uint64_t val) { return __builtin_bswap64(val); }
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-	static inline uint16_t ToBE16(uint16_t val) { return val; }
-	static inline uint32_t ToBE32(uint32_t val) { return val; }
-	static inline uint64_t ToBE64(uint64_t val) { return val; }
-	static inline uint16_t ToLE16(uint16_t val) { return __builtin_bswap16(val); }
-	static inline uint32_t ToLE32(uint32_t val) { return __builtin_bswap32(val); }
-	static inline uint64_t ToLE64(uint64_t val) { return __builtin_bswap64(val); }
-#endif
+	#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	static inline uint16_t ToLE16(uint16_t val)
+	{
+		return val;
+	}
+	static inline uint32_t ToLE32(uint32_t val)
+	{
+		return val;
+	}
+	static inline uint64_t ToLE64(uint64_t val)
+	{
+		return val;
+	}
+	static inline uint16_t ToBE16(uint16_t val)
+	{
+		return __builtin_bswap16(val);
+	}
+	static inline uint32_t ToBE32(uint32_t val)
+	{
+		return __builtin_bswap32(val);
+	}
+	static inline uint64_t ToBE64(uint64_t val)
+	{
+		return __builtin_bswap64(val);
+	}
+	#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	static inline uint16_t ToBE16(uint16_t val)
+	{
+		return val;
+	}
+	static inline uint32_t ToBE32(uint32_t val)
+	{
+		return val;
+	}
+	static inline uint64_t ToBE64(uint64_t val)
+	{
+		return val;
+	}
+	static inline uint16_t ToLE16(uint16_t val)
+	{
+		return __builtin_bswap16(val);
+	}
+	static inline uint32_t ToLE32(uint32_t val)
+	{
+		return __builtin_bswap32(val);
+	}
+	static inline uint64_t ToLE64(uint64_t val)
+	{
+		return __builtin_bswap64(val);
+	}
+	#endif
 #elif defined(_MSC_VER)
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-	static inline uint16_t ToLE16(uint16_t val) { return val; }
-	static inline uint32_t ToLE32(uint32_t val) { return val; }
-	static inline uint64_t ToLE64(uint64_t val) { return val; }
-	static inline uint16_t ToBE16(uint16_t val) { return _byteswap_ushort(val); }
-	static inline uint32_t ToBE32(uint32_t val) { return _byteswap_ulong(val); }
-	static inline uint64_t ToBE64(uint64_t val) { return _byteswap_uint64(val); }
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-	static inline uint16_t ToBE16(uint16_t val) { return val; }
-	static inline uint32_t ToBE32(uint32_t val) { return val; }
-	static inline uint64_t ToBE64(uint64_t val) { return val; }
-	static inline uint16_t ToLE16(uint16_t val) { return _byteswap_ushort(val); }
-	static inline uint32_t ToLE32(uint32_t val) { return _byteswap_ulong(val); }
-	static inline uint64_t ToLE64(uint64_t val) { return _byteswap_uint64(val); }
-#endif
+	#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	static inline uint16_t ToLE16(uint16_t val)
+	{
+		return val;
+	}
+	static inline uint32_t ToLE32(uint32_t val)
+	{
+		return val;
+	}
+	static inline uint64_t ToLE64(uint64_t val)
+	{
+		return val;
+	}
+	static inline uint16_t ToBE16(uint16_t val)
+	{
+		return _byteswap_ushort(val);
+	}
+	static inline uint32_t ToBE32(uint32_t val)
+	{
+		return _byteswap_ulong(val);
+	}
+	static inline uint64_t ToBE64(uint64_t val)
+	{
+		return _byteswap_uint64(val);
+	}
+	#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	static inline uint16_t ToBE16(uint16_t val)
+	{
+		return val;
+	}
+	static inline uint32_t ToBE32(uint32_t val)
+	{
+		return val;
+	}
+	static inline uint64_t ToBE64(uint64_t val)
+	{
+		return val;
+	}
+	static inline uint16_t ToLE16(uint16_t val)
+	{
+		return _byteswap_ushort(val);
+	}
+	static inline uint32_t ToLE32(uint32_t val)
+	{
+		return _byteswap_ulong(val);
+	}
+	static inline uint64_t ToLE64(uint64_t val)
+	{
+		return _byteswap_uint64(val);
+	}
+	#endif
 #endif
 
 	/*!
-		\ingroup refcount
+	    \ingroup refcount
 	*/
 	class RefCountObject
 	{
-	  public:
+	public:
 		std::atomic<int> m_refs;
 		RefCountObject() : m_refs(0) {}
 		virtual ~RefCountObject() {}
@@ -124,7 +196,7 @@ namespace BinaryNinja {
 
 
 	/*!
-		\ingroup refcount
+	    \ingroup refcount
 	*/
 	template <class T, T* (*AddObjectReference)(T*), void (*FreeObjectReference)(T*)>
 	class CoreRefCountObject
@@ -140,7 +212,7 @@ namespace BinaryNinja {
 			}
 		}
 
-	  public:
+	public:
 		std::atomic<int> m_refs;
 		bool m_registeredRef = false;
 		T* m_object;
@@ -195,7 +267,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup refcount
+	    \ingroup refcount
 	*/
 	template <class T>
 	class StaticCoreRefCountObject
@@ -208,7 +280,7 @@ namespace BinaryNinja {
 				delete this;
 		}
 
-	  public:
+	public:
 		std::atomic<int> m_refs;
 		T* m_object;
 		StaticCoreRefCountObject() : m_refs(0), m_object(nullptr) {}
@@ -233,7 +305,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup refcount
+	    \ingroup refcount
 	*/
 	template <class T>
 	class Ref
@@ -243,7 +315,7 @@ namespace BinaryNinja {
 		void* m_assignmentTrace = nullptr;
 #endif
 
-	  public:
+	public:
 		Ref() : m_obj(nullptr) {}
 
 		Ref(T* obj) : m_obj(obj)
@@ -385,14 +457,14 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup confidence
+	    \ingroup confidence
 	*/
 	class ConfidenceBase
 	{
-	  protected:
+	protected:
 		uint8_t m_confidence;
 
-	  public:
+	public:
 		ConfidenceBase() : m_confidence(0) {}
 
 		ConfidenceBase(uint8_t conf) : m_confidence(conf) {}
@@ -412,14 +484,14 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup confidence
+	    \ingroup confidence
 	*/
 	template <class T>
 	class Confidence : public ConfidenceBase
 	{
 		T m_value;
 
-	  public:
+	public:
 		Confidence() {}
 
 		Confidence(const T& value) : ConfidenceBase(BN_FULL_CONFIDENCE), m_value(value) {}
@@ -474,14 +546,14 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup confidence
+	    \ingroup confidence
 	*/
 	template <class T>
 	class Confidence<Ref<T>> : public ConfidenceBase
 	{
 		Ref<T> m_value;
 
-	  public:
+	public:
 		Confidence() {}
 
 		Confidence(T* value) : ConfidenceBase(value ? BN_FULL_CONFIDENCE : 0), m_value(value) {}
@@ -544,22 +616,24 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup logging
+	    \ingroup logging
 	*/
 	class LogListener
 	{
-		static void LogMessageCallback(void* ctxt, size_t session, BNLogLevel level, const char* msg, const char* logger_name = "", size_t tid = 0);
+		static void LogMessageCallback(void* ctxt, size_t session, BNLogLevel level, const char* msg,
+			const char* logger_name = "", size_t tid = 0);
 		static void CloseLogCallback(void* ctxt);
 		static BNLogLevel GetLogLevelCallback(void* ctxt);
 
-	  public:
+	public:
 		virtual ~LogListener() {}
 
 		static void RegisterLogListener(LogListener* listener);
 		static void UnregisterLogListener(LogListener* listener);
 		static void UpdateLogListeners();
 
-		virtual void LogMessage(size_t session, BNLogLevel level, const std::string& msg, const std::string& logger_name = "", size_t tid = 0) = 0;
+		virtual void LogMessage(size_t session, BNLogLevel level, const std::string& msg,
+			const std::string& logger_name = "", size_t tid = 0) = 0;
 		virtual void CloseLog() {}
 		virtual BNLogLevel GetLogLevel() { return WarningLog; }
 	};
@@ -682,111 +756,111 @@ namespace BinaryNinja {
 
 	/*! Logs to the error console with the given BNLogLevel.
 
-		@threadsafe
+	    @threadsafe
 
-		\ingroup logging
+	    \ingroup logging
 
-		\param level BNLogLevel debug log level
-		\param format fmt-style format string.
-		\param ... Variable arguments corresponding to the format string.
+	    \param level BNLogLevel debug log level
+	    \param format fmt-style format string.
+	    \param ... Variable arguments corresponding to the format string.
 	*/
-	template<typename... T>
+	template <typename... T>
 	void LogF(BNLogLevel level, fmt::format_string<T...> format, T&&... args)
 	{
 		LogFV(level, format, fmt::make_format_args(args...));
 	}
 
 	/*! LogTrace only writes text to the error console if the console is set to log level: DebugLog
-		Log level and the build is not a DEBUG build (i.e. the preprocessor directive _DEBUG is defined)
+	    Log level and the build is not a DEBUG build (i.e. the preprocessor directive _DEBUG is defined)
 
-		@threadsafe
+	    @threadsafe
 
-		\ingroup logging
+	    \ingroup logging
 
-		\param format fmt-style format string.
-		\param ... Variable arguments corresponding to the format string.
+	    \param format fmt-style format string.
+	    \param ... Variable arguments corresponding to the format string.
 	*/
-	template<typename... T>
+	template <typename... T>
 	void LogTraceF(fmt::format_string<T...> format, T&&... args)
 	{
 		LogTraceFV(format, fmt::make_format_args(args...));
 	}
 
 	/*! LogDebug only writes text to the error console if the console is set to log level: DebugLog
-		Log level DebugLog is the most verbose logging level in release builds.
+	    Log level DebugLog is the most verbose logging level in release builds.
 
-		@threadsafe
+	    @threadsafe
 
-		\ingroup logging
+	    \ingroup logging
 
-		\param format fmt-style format string.
-		\param ... Variable arguments corresponding to the format string.
+	    \param format fmt-style format string.
+	    \param ... Variable arguments corresponding to the format string.
 	*/
-	template<typename... T>
+	template <typename... T>
 	void LogDebugF(fmt::format_string<T...> format, T&&... args)
 	{
 		LogDebugFV(format, fmt::make_format_args(args...));
 	}
 
 	/*! LogInfo always writes text to the error console, and corresponds to the log level: InfoLog.
-		Log level InfoLog is the second most verbose logging level.
+	    Log level InfoLog is the second most verbose logging level.
 
-		@threadsafe
+	    @threadsafe
 
-		\ingroup logging
+	    \ingroup logging
 
-		\param format fmt-style format string.
-		\param ... Variable arguments corresponding to the format string.
+	    \param format fmt-style format string.
+	    \param ... Variable arguments corresponding to the format string.
 	*/
-	template<typename... T>
+	template <typename... T>
 	void LogInfoF(fmt::format_string<T...> format, T&&... args)
 	{
 		LogInfoFV(format, fmt::make_format_args(args...));
 	}
 
 	/*! LogWarn writes text to the error console including a warning icon,
-		and also shows a warning icon in the bottom pane. LogWarn corresponds to the log level: WarningLog.
+	    and also shows a warning icon in the bottom pane. LogWarn corresponds to the log level: WarningLog.
 
-		@threadsafe
+	    @threadsafe
 
-		\ingroup logging
+	    \ingroup logging
 
-		\param format fmt-style format string.
-		\param ... Variable arguments corresponding to the format string.
+	    \param format fmt-style format string.
+	    \param ... Variable arguments corresponding to the format string.
 	*/
-	template<typename... T>
+	template <typename... T>
 	void LogWarnF(fmt::format_string<T...> format, T&&... args)
 	{
 		LogWarnFV(format, fmt::make_format_args(args...));
 	}
 
 	/*! LogError writes text to the error console and pops up the error console. Additionally,
-		Errors in the console log include a error icon. LogError corresponds to the log level: ErrorLog.
+	    Errors in the console log include a error icon. LogError corresponds to the log level: ErrorLog.
 
-		@threadsafe
+	    @threadsafe
 
-		\ingroup logging
+	    \ingroup logging
 
-		\param format fmt-style format string.
-		\param ... Variable arguments corresponding to the format string.
+	    \param format fmt-style format string.
+	    \param ... Variable arguments corresponding to the format string.
 	*/
-	template<typename... T>
+	template <typename... T>
 	void LogErrorF(fmt::format_string<T...> format, T&&... args)
 	{
 		LogErrorFV(format, fmt::make_format_args(args...));
 	}
 
 	/*! LogAlert pops up a message box displaying the alert message and logs to the error console.
-		LogAlert corresponds to the log level: AlertLog.
+	    LogAlert corresponds to the log level: AlertLog.
 
-		@threadsafe
+	    @threadsafe
 
-		\ingroup logging
+	    \ingroup logging
 
-		\param format fmt-style format string.
-		\param ... Variable arguments corresponding to the format string.
+	    \param format fmt-style format string.
+	    \param ... Variable arguments corresponding to the format string.
 	*/
-	template<typename... T>
+	template <typename... T>
 	void LogAlertF(fmt::format_string<T...> format, T&&... args)
 	{
 		LogAlertFV(format, fmt::make_format_args(args...));
@@ -798,7 +872,7 @@ namespace BinaryNinja {
 
 	    \ingroup logging
 
-		\param minimumLevel minimum level to log to stdout
+	    \param minimumLevel minimum level to log to stdout
 	*/
 	void LogToStdout(BNLogLevel minimumLevel);
 
@@ -808,7 +882,7 @@ namespace BinaryNinja {
 
 	    \ingroup logging
 
-		\param minimumLevel minimum level to log to stderr
+	    \param minimumLevel minimum level to log to stderr
 	*/
 	void LogToStderr(BNLogLevel minimumLevel);
 
@@ -818,9 +892,9 @@ namespace BinaryNinja {
 
 	    \ingroup logging
 
-		\param minimumLevel minimum level to log to stderr
-		\param path Path to log to
-		\param append Optional flag for specifying appending. True = append, False = overwrite.
+	    \param minimumLevel minimum level to log to stderr
+	    \param path Path to log to
+	    \param append Optional flag for specifying appending. True = append, False = overwrite.
 	*/
 	bool LogToFile(BNLogLevel minimumLevel, const std::string& path, bool append = false);
 
@@ -834,311 +908,311 @@ namespace BinaryNinja {
 	class BinaryView;
 	/*! Logger is a class allowing scoped logging to the console
 
-		\ingroup logging
+	    \ingroup logging
 	*/
-	class Logger: public CoreRefCountObject<BNLogger, BNNewLoggerReference, BNFreeLogger>
+	class Logger : public CoreRefCountObject<BNLogger, BNNewLoggerReference, BNFreeLogger>
 	{
-			size_t GetThreadId() const;
-			std::unordered_map<BNLogLevel, std::string> m_iterBuffer;
-			friend struct Iterator;
+		size_t GetThreadId() const;
+		std::unordered_map<BNLogLevel, std::string> m_iterBuffer;
+		friend struct Iterator;
 
-			void LogFV(BNLogLevel level, fmt::string_view format, fmt::format_args args);
-			void LogTraceFV(fmt::string_view format, fmt::format_args args);
-			void LogDebugFV(fmt::string_view format, fmt::format_args args);
-			void LogInfoFV(fmt::string_view format, fmt::format_args args);
-			void LogWarnFV(fmt::string_view format, fmt::format_args args);
-			void LogErrorFV(fmt::string_view format, fmt::format_args args);
-			void LogAlertFV(fmt::string_view format, fmt::format_args args);
+		void LogFV(BNLogLevel level, fmt::string_view format, fmt::format_args args);
+		void LogTraceFV(fmt::string_view format, fmt::format_args args);
+		void LogDebugFV(fmt::string_view format, fmt::format_args args);
+		void LogInfoFV(fmt::string_view format, fmt::format_args args);
+		void LogWarnFV(fmt::string_view format, fmt::format_args args);
+		void LogErrorFV(fmt::string_view format, fmt::format_args args);
+		void LogAlertFV(fmt::string_view format, fmt::format_args args);
 
-		public:
-			Logger(BNLogger* logger);
+	public:
+		Logger(BNLogger* logger);
 
-			/*! Create a logger with the specified name and session ID
+		/*! Create a logger with the specified name and session ID
 
-				\warning You may want to use LogRegistry::CreateLogger and LogRegistry::GetLogger instead of this. If
-			 			 you already have access to a BinaryView, you may want to use bv->CreateLogger() instead of this.
+		    \warning You may want to use LogRegistry::CreateLogger and LogRegistry::GetLogger instead of this. If
+		             you already have access to a BinaryView, you may want to use bv->CreateLogger() instead of this.
 
-				\see BinaryView::CreateLogger()
+		    \see BinaryView::CreateLogger()
 
-			 	\code{.cpp}
-			 	auto logger = Logger("MyPluginName", 0);
-			 	\endcode
+		    \code{.cpp}
+		    auto logger = Logger("MyPluginName", 0);
+		    \endcode
 
-			 	Session ID corresponds to the tab for the specified BinaryView, and the default of 0 will log to *all tabs*.
+		    Session ID corresponds to the tab for the specified BinaryView, and the default of 0 will log to *all tabs*.
 
-			 	\see FileMetadata::GetSessionId()
+		    \see FileMetadata::GetSessionId()
 
-				\param loggerName Name of the logger to create
-				\param sessionId Session ID for the logger.
-			*/
-			Logger(const std::string& loggerName, size_t sessionId = 0);
+		    \param loggerName Name of the logger to create
+		    \param sessionId Session ID for the logger.
+		*/
+		Logger(const std::string& loggerName, size_t sessionId = 0);
 
-			/*! Logs to the error console with the given BNLogLevel.
+		/*! Logs to the error console with the given BNLogLevel.
 
-	    			@threadsafe
+		        @threadsafe
 
-				\param level BNLogLevel debug log level
-	    		\param fmt C-style format string.
-	    		\param ... Variable arguments corresponding to the format string.
-			*/
-			void Log(BNLogLevel level, const char* fmt, ...);
+		    \param level BNLogLevel debug log level
+		    \param fmt C-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		void Log(BNLogLevel level, const char* fmt, ...);
 
-			/*! LogTrace only writes text to the error console if the console is set to log level: DebugLog
-				Log level and the build is not a DEBUG build (i.e. the preprocessor directive _DEBUG is defined)
+		/*! LogTrace only writes text to the error console if the console is set to log level: DebugLog
+		    Log level and the build is not a DEBUG build (i.e. the preprocessor directive _DEBUG is defined)
 
-	    			@threadsafe
+		        @threadsafe
 
-				\param fmt C-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			void LogTrace(const char* fmt, ...);
+		    \param fmt C-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		void LogTrace(const char* fmt, ...);
 
-			/*! LogDebug only writes text to the error console if the console is set to log level: DebugLog
-				Log level DebugLog is the most verbose logging level in release builds.
+		/*! LogDebug only writes text to the error console if the console is set to log level: DebugLog
+		    Log level DebugLog is the most verbose logging level in release builds.
 
-	    			@threadsafe
+		        @threadsafe
 
-				\param fmt C-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			void LogDebug(const char* fmt, ...);
+		    \param fmt C-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		void LogDebug(const char* fmt, ...);
 
-			/*! LogInfo always writes text to the error console, and corresponds to the log level: InfoLog.
-				Log level InfoLog is the second most verbose logging level.
+		/*! LogInfo always writes text to the error console, and corresponds to the log level: InfoLog.
+		    Log level InfoLog is the second most verbose logging level.
 
-	    			@threadsafe
+		        @threadsafe
 
-				\param fmt C-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			void LogInfo(const char* fmt, ...);
+		    \param fmt C-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		void LogInfo(const char* fmt, ...);
 
-			/*! LogWarn writes text to the error console including a warning icon,
-				and also shows a warning icon in the bottom pane. LogWarn corresponds to the log level: WarningLog.
+		/*! LogWarn writes text to the error console including a warning icon,
+		    and also shows a warning icon in the bottom pane. LogWarn corresponds to the log level: WarningLog.
 
-	    			@threadsafe
+		        @threadsafe
 
-				\param fmt C-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			void LogWarn(const char* fmt, ...);
+		    \param fmt C-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		void LogWarn(const char* fmt, ...);
 
-			/*! LogError writes text to the error console and pops up the error console. Additionally,
-				Errors in the console log include a error icon. LogError corresponds to the log level: ErrorLog.
+		/*! LogError writes text to the error console and pops up the error console. Additionally,
+		    Errors in the console log include a error icon. LogError corresponds to the log level: ErrorLog.
 
-	    			@threadsafe
+		        @threadsafe
 
-				\param fmt C-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			void LogError(const char* fmt, ...);
+		    \param fmt C-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		void LogError(const char* fmt, ...);
 
-			/*! LogAlert pops up a message box displaying the alert message and logs to the error console.
-				LogAlert corresponds to the log level: AlertLog.
+		/*! LogAlert pops up a message box displaying the alert message and logs to the error console.
+		    LogAlert corresponds to the log level: AlertLog.
 
-	    			@threadsafe
+		        @threadsafe
 
-				\param fmt C-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			void LogAlert(const char* fmt, ...);
+		    \param fmt C-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		void LogAlert(const char* fmt, ...);
 
-			/*! Logs to the error console with the given BNLogLevel.
+		/*! Logs to the error console with the given BNLogLevel.
 
-					@threadsafe
+		        @threadsafe
 
-				\param level BNLogLevel debug log level
-				\param format fmt-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			template<typename... T>
-			void LogF(BNLogLevel level, fmt::format_string<T...> format, T&&... args)
-			{
-				LogFV(level, format, fmt::make_format_args(args...));
-			}
+		    \param level BNLogLevel debug log level
+		    \param format fmt-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		template <typename... T>
+		void LogF(BNLogLevel level, fmt::format_string<T...> format, T&&... args)
+		{
+			LogFV(level, format, fmt::make_format_args(args...));
+		}
 
-			/*! LogTrace only writes text to the error console if the console is set to log level: DebugLog
-				Log level and the build is not a DEBUG build (i.e. the preprocessor directive _DEBUG is defined)
+		/*! LogTrace only writes text to the error console if the console is set to log level: DebugLog
+		    Log level and the build is not a DEBUG build (i.e. the preprocessor directive _DEBUG is defined)
 
-					@threadsafe
+		        @threadsafe
 
-				\param format fmt-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			template<typename... T>
-			void LogTraceF(fmt::format_string<T...> format, T&&... args)
-			{
-				LogTraceFV(format, fmt::make_format_args(args...));
-			}
+		    \param format fmt-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		template <typename... T>
+		void LogTraceF(fmt::format_string<T...> format, T&&... args)
+		{
+			LogTraceFV(format, fmt::make_format_args(args...));
+		}
 
-			/*! LogDebug only writes text to the error console if the console is set to log level: DebugLog
-				Log level DebugLog is the most verbose logging level in release builds.
+		/*! LogDebug only writes text to the error console if the console is set to log level: DebugLog
+		    Log level DebugLog is the most verbose logging level in release builds.
 
-					@threadsafe
+		        @threadsafe
 
-				\param format fmt-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			template<typename... T>
-			void LogDebugF(fmt::format_string<T...> format, T&&... args)
-			{
-				LogDebugFV(format, fmt::make_format_args(args...));
-			}
+		    \param format fmt-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		template <typename... T>
+		void LogDebugF(fmt::format_string<T...> format, T&&... args)
+		{
+			LogDebugFV(format, fmt::make_format_args(args...));
+		}
 
-			/*! LogInfo always writes text to the error console, and corresponds to the log level: InfoLog.
-				Log level InfoLog is the second most verbose logging level.
+		/*! LogInfo always writes text to the error console, and corresponds to the log level: InfoLog.
+		    Log level InfoLog is the second most verbose logging level.
 
-					@threadsafe
+		        @threadsafe
 
-				\param format fmt-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			template<typename... T>
-			void LogInfoF(fmt::format_string<T...> format, T&&... args)
-			{
-				LogInfoFV(format, fmt::make_format_args(args...));
-			}
+		    \param format fmt-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		template <typename... T>
+		void LogInfoF(fmt::format_string<T...> format, T&&... args)
+		{
+			LogInfoFV(format, fmt::make_format_args(args...));
+		}
 
-			/*! LogWarn writes text to the error console including a warning icon,
-				and also shows a warning icon in the bottom pane. LogWarn corresponds to the log level: WarningLog.
+		/*! LogWarn writes text to the error console including a warning icon,
+		    and also shows a warning icon in the bottom pane. LogWarn corresponds to the log level: WarningLog.
 
-					@threadsafe
+		        @threadsafe
 
-				\param format fmt-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			template<typename... T>
-			void LogWarnF(fmt::format_string<T...> format, T&&... args)
-			{
-				LogWarnFV(format, fmt::make_format_args(args...));
-			}
+		    \param format fmt-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		template <typename... T>
+		void LogWarnF(fmt::format_string<T...> format, T&&... args)
+		{
+			LogWarnFV(format, fmt::make_format_args(args...));
+		}
 
-			/*! LogError writes text to the error console and pops up the error console. Additionally,
-				Errors in the console log include a error icon. LogError corresponds to the log level: ErrorLog.
+		/*! LogError writes text to the error console and pops up the error console. Additionally,
+		    Errors in the console log include a error icon. LogError corresponds to the log level: ErrorLog.
 
-					@threadsafe
+		        @threadsafe
 
-				\param format fmt-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			template<typename... T>
-			void LogErrorF(fmt::format_string<T...> format, T&&... args)
-			{
-				LogErrorFV(format, fmt::make_format_args(args...));
-			}
+		    \param format fmt-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		template <typename... T>
+		void LogErrorF(fmt::format_string<T...> format, T&&... args)
+		{
+			LogErrorFV(format, fmt::make_format_args(args...));
+		}
 
-			/*! LogAlert pops up a message box displaying the alert message and logs to the error console.
-				LogAlert corresponds to the log level: AlertLog.
+		/*! LogAlert pops up a message box displaying the alert message and logs to the error console.
+		    LogAlert corresponds to the log level: AlertLog.
 
-					@threadsafe
+		        @threadsafe
 
-				\param format fmt-style format string.
-				\param ... Variable arguments corresponding to the format string.
-			*/
-			template<typename... T>
-			void LogAlertF(fmt::format_string<T...> format, T&&... args)
-			{
-				LogAlertFV(format, fmt::make_format_args(args...));
-			}
+		    \param format fmt-style format string.
+		    \param ... Variable arguments corresponding to the format string.
+		*/
+		template <typename... T>
+		void LogAlertF(fmt::format_string<T...> format, T&&... args)
+		{
+			LogAlertFV(format, fmt::make_format_args(args...));
+		}
 
-			/*! Get the name registered for this Logger
+		/*! Get the name registered for this Logger
 
-	    			@threadsafe
+		        @threadsafe
 
-				\return The logger name
-			*/
-			std::string GetName();
+		    \return The logger name
+		*/
+		std::string GetName();
 
-			/*! Get the session ID registered for this logger
+		/*! Get the session ID registered for this logger
 
-	    			@threadsafe
+		        @threadsafe
 
-				\return The logger session ID
-			*/
-			size_t GetSessionId();
+		    \return The logger session ID
+		*/
+		size_t GetSessionId();
 
-			void Indent();
-			void Dedent();
-			void ResetIndent();
+		void Indent();
+		void Dedent();
+		void ResetIndent();
 	};
 
 	/*! A class allowing registering and retrieving Loggers
 
-		\see BinaryView::CreateLogger
+	    \see BinaryView::CreateLogger
 
-	 	\ingroup logging
+	    \ingroup logging
 	*/
 	class LogRegistry
 	{
 	public:
 		/*! Create a logger with the specified name and session ID
 
-	    		@threadsafe
+		        @threadsafe
 
-			\note If you already have a BinaryView, you may want to use \c BinaryView::CreateLogger instead of this.
+		    \note If you already have a BinaryView, you may want to use \c BinaryView::CreateLogger instead of this.
 
-			\code{.cpp}
-			auto sessionID = bv->GetFile()->GetSessionId();
-			auto logger = LogRegistry::CreateLogger("MyPluginName", sessionID);
-			\endcode
+		    \code{.cpp}
+		    auto sessionID = bv->GetFile()->GetSessionId();
+		    auto logger = LogRegistry::CreateLogger("MyPluginName", sessionID);
+		    \endcode
 
-			Session ID corresponds to the tab for the specified BinaryView, and the default of 0 will log to *all tabs*.
+		    Session ID corresponds to the tab for the specified BinaryView, and the default of 0 will log to *all tabs*.
 
-		 	\see FileMetadata::GetSessionId()
+		    \see FileMetadata::GetSessionId()
 
-			\param loggerName Name of the logger to create
-			\param sessionId Session ID for the logger
-		 	\return The created logger
+		    \param loggerName Name of the logger to create
+		    \param sessionId Session ID for the logger
+		    \return The created logger
 		*/
 		static Ref<Logger> CreateLogger(const std::string& loggerName, size_t sessionId = 0);
 
 		/*! Get a logger with the specified name and session ID
 
-	    		@threadsafe
+		        @threadsafe
 
-			\code{.cpp}
-			auto sessionID = bv->GetFile()->GetSessionId();
-			auto logger = LogRegistry::GetLogger("MyPluginName", sessionID);
-			\endcode
+		    \code{.cpp}
+		    auto sessionID = bv->GetFile()->GetSessionId();
+		    auto logger = LogRegistry::GetLogger("MyPluginName", sessionID);
+		    \endcode
 
-			Session ID corresponds to the tab for the specified BinaryView, and the default of 0 will log to *all tabs*.
+		    Session ID corresponds to the tab for the specified BinaryView, and the default of 0 will log to *all tabs*.
 
-		 	\see FileMetadata::GetSessionId()
+		    \see FileMetadata::GetSessionId()
 
-			\param loggerName Name of the logger to create
-			\param sessionId Session ID for the logger
-		 	\return The created logger
+		    \param loggerName Name of the logger to create
+		    \param sessionId Session ID for the logger
+		    \return The created logger
 		*/
 		static Ref<Logger> GetLogger(const std::string& loggerName, size_t sessionId = 0);
 
 		/*! Get the list of registered Logger names
 
-	    		@threadsafe
+		        @threadsafe
 
-			\return a list of registered logger names
+		    \return a list of registered logger names
 		*/
 		static std::vector<std::string> GetLoggerNames();
 	};
 
 	/*!
-		@addtogroup coreapi
-	 	@{
+	    @addtogroup coreapi
+	    @{
 	*/
 	std::string EscapeString(const std::string& s);
 	std::string UnescapeString(const std::string& s);
 
 	bool PreprocessSource(const std::string& source, const std::string& fileName, std::string& output,
-	    std::string& errors, const std::vector<std::string>& includeDirs = std::vector<std::string>());
+		std::string& errors, const std::vector<std::string>& includeDirs = std::vector<std::string>());
 
 	void DisablePlugins();
 	bool IsPluginsEnabled();
 	bool InitPlugins(bool allowUserPlugins = true);
 	/*!
-		\deprecated Use `InitPlugins()`
+	    \deprecated Use `InitPlugins()`
 	*/
 	void InitCorePlugins();  // Deprecated, use InitPlugins
 	/*!
-		\deprecated Use `InitPlugins()`
+	    \deprecated Use `InitPlugins()`
 	*/
 	void InitUserPlugins();  // Deprecated, use InitPlugins
 	void InitRepoPlugins();
@@ -1157,7 +1231,7 @@ namespace BinaryNinja {
 	std::string GetPathRelativeToUserDirectory(const std::string& path);
 
 	bool ExecuteWorkerProcess(const std::string& path, const std::vector<std::string>& args, const DataBuffer& input,
-	    std::string& output, std::string& errors, bool stdoutIsText = false, bool stderrIsText = true);
+		std::string& output, std::string& errors, bool stdoutIsText = false, bool stderrIsText = true);
 
 	std::string GetVersionString();
 	std::string GetLicensedUserEmail();
@@ -1180,7 +1254,7 @@ namespace BinaryNinja {
 	void AddRequiredPluginDependency(const std::string& name);
 	void AddOptionalPluginDependency(const std::string& name);
 
-	template<typename T>
+	template <typename T>
 	std::string CoreEnumName()
 	{
 		// Extremely implementation-defined. Best-effort is made for our relevant platforms
@@ -1198,7 +1272,7 @@ namespace BinaryNinja {
 #endif
 	}
 
-	template<typename T>
+	template <typename T>
 	std::optional<std::string> CoreEnumToString(T value)
 	{
 		auto name = CoreEnumName<T>();
@@ -1210,7 +1284,7 @@ namespace BinaryNinja {
 		return cppResult;
 	}
 
-	template<typename T>
+	template <typename T>
 	std::optional<T> CoreEnumFromString(const std::string& value)
 	{
 		auto name = CoreEnumName<T>();
@@ -1223,7 +1297,7 @@ namespace BinaryNinja {
 	std::optional<size_t> FuzzyMatchSingle(const std::string& target, const std::string& query);
 
 	/*!
-		@}
+	    @}
 	*/
 
 	class Metadata;
@@ -1378,7 +1452,7 @@ namespace BinaryNinja {
 		// For key-value data only
 		/*! Get a Metadata object by key. Only for if IsKeyValueStore == true
 
-			@threadunsafewith{SetValueForKey and RemoveKey}
+		    @threadunsafewith{SetValueForKey and RemoveKey}
 
 		    \param key
 		    \return
@@ -1386,7 +1460,7 @@ namespace BinaryNinja {
 		Ref<Metadata> Get(const std::string& key);
 		/*! Set the value mapped to by a particular string. Only for if IsKeyValueStore == true
 
-			@threadunsafewith{Get and RemoveKey}
+		    @threadunsafewith{Get and RemoveKey}
 
 		    \param key
 		    \param data
@@ -1396,7 +1470,7 @@ namespace BinaryNinja {
 
 		/*! Remove a key from the map. Only for if IsKeyValueStore == true
 
-			@threadunsafewith{SetValueForKey and Get}
+		    @threadunsafewith{SetValueForKey and Get}
 
 		    \param key - Key to remove
 		 */
@@ -1407,7 +1481,7 @@ namespace BinaryNinja {
 
 		    For array data only
 
-			@threadunsafewith{Array data modifiers}
+		    @threadunsafewith{Array data modifiers}
 
 		    \param index Index of the item to retrieve
 		    \return Item at that index, if valid.
@@ -1418,7 +1492,7 @@ namespace BinaryNinja {
 
 		    For array data only
 
-			@threadunsafewith{Array data modifiers}
+		    @threadunsafewith{Array data modifiers}
 
 		    \param data Data to append
 		    \return Whether the append was successful
@@ -1429,7 +1503,7 @@ namespace BinaryNinja {
 
 		    For array data only
 
-			@threadunsafewith{Array data modifiers}
+		    @threadunsafewith{Array data modifiers}
 
 		    \param index Index of the item to remove
 		 */
@@ -1439,7 +1513,7 @@ namespace BinaryNinja {
 
 		    For array data only
 
-			@threadunsafewith{Array data modifiers}
+		    @threadunsafewith{Array data modifiers}
 
 		    \return Size of the array
 		 */
@@ -1484,10 +1558,10 @@ namespace BinaryNinja {
 	    `files.universal.architecturePreference` setting. This setting is scoped to
 	    SettingsUserScope and can be modified as follows:
 
-	 	\code{.cpp}
-		Metadata options = {{"files.universal.architecturePreference", Metadata({"arm64"})}};
-		Ref<BinaryView> bv = Load("/bin/ls", true, {}, options);
-	 	\endcode
+	    \code{.cpp}
+	    Metadata options = {{"files.universal.architecturePreference", Metadata({"arm64"})}};
+	    Ref<BinaryView> bv = Load("/bin/ls", true, {}, options);
+	    \endcode
 
 	    \param filename Path to filename or BNDB to open.
 	    \param updateAnalysis If true, UpdateAnalysisAndWait() will be called after opening
@@ -1497,7 +1571,8 @@ namespace BinaryNinja {
 	                    being loaded. If the function returns false, it will cancel Load.
 	    \return Constructed view, or a nullptr Ref<BinaryView>
 	*/
-	Ref<BinaryView> Load(const std::string& filename, bool updateAnalysis = true, const std::string& options = "{}", std::function<bool(size_t, size_t)> progress = {});
+	Ref<BinaryView> Load(const std::string& filename, bool updateAnalysis = true, const std::string& options = "{}",
+		std::function<bool(size_t, size_t)> progress = {});
 	/*! Open a BinaryView from a raw data buffer, initializing data views and loading settings.
 
 	    @threadmainonly
@@ -1513,7 +1588,8 @@ namespace BinaryNinja {
 	                    being loaded. If the function returns false, it will cancel Load.
 	    \return Constructed view, or a nullptr Ref<BinaryView>
 	*/
-	Ref<BinaryView> Load(const DataBuffer& rawData, bool updateAnalysis = true, const std::string& options = "{}", std::function<bool(size_t, size_t)> progress = {});
+	Ref<BinaryView> Load(const DataBuffer& rawData, bool updateAnalysis = true, const std::string& options = "{}",
+		std::function<bool(size_t, size_t)> progress = {});
 
 
 	/*! Open a BinaryView from a raw BinaryView, initializing data views and loading settings.
@@ -1531,7 +1607,8 @@ namespace BinaryNinja {
 	                    being loaded. If the function returns false, it will cancel Load.
 	    \return Constructed view, or a nullptr Ref<BinaryView>
 	*/
-	Ref<BinaryView> Load(Ref<BinaryView> rawData, bool updateAnalysis = true, const std::string& options = "{}", std::function<bool(size_t, size_t)> progress = {});
+	Ref<BinaryView> Load(Ref<BinaryView> rawData, bool updateAnalysis = true, const std::string& options = "{}",
+		std::function<bool(size_t, size_t)> progress = {});
 
 	/*! Open a BinaryView from a ProjectFile, initializing data views and loading settings.
 
@@ -1548,59 +1625,65 @@ namespace BinaryNinja {
 	                    being loaded. If the function returns false, it will cancel Load.
 	    \return Constructed view, or a nullptr Ref<BinaryView>
 	*/
-	Ref<BinaryView> Load(Ref<ProjectFile> rawData, bool updateAnalysis = true, const std::string& options = "{}", std::function<bool(size_t, size_t)> progress = {});
+	Ref<BinaryView> Load(Ref<ProjectFile> rawData, bool updateAnalysis = true, const std::string& options = "{}",
+		std::function<bool(size_t, size_t)> progress = {});
+
+	Ref<BinaryView> ParseTextFormat(const std::string& filename);
 
 	/*!
-		Deprecated. Use non-metadata version.
+	    Deprecated. Use non-metadata version.
 	*/
-	Ref<BinaryView> Load(const std::string& filename, bool updateAnalysis, std::function<bool(size_t, size_t)> progress, Ref<Metadata> options = new Metadata(MetadataType::KeyValueDataType));
+	Ref<BinaryView> Load(const std::string& filename, bool updateAnalysis, std::function<bool(size_t, size_t)> progress,
+		Ref<Metadata> options = new Metadata(MetadataType::KeyValueDataType));
 
 	/*!
-		Deprecated. Use non-metadata version.
+	    Deprecated. Use non-metadata version.
 	*/
-	Ref<BinaryView> Load(const DataBuffer& rawData, bool updateAnalysis, std::function<bool(size_t, size_t)> progress, Ref<Metadata> options = new Metadata(MetadataType::KeyValueDataType));
+	Ref<BinaryView> Load(const DataBuffer& rawData, bool updateAnalysis, std::function<bool(size_t, size_t)> progress,
+		Ref<Metadata> options = new Metadata(MetadataType::KeyValueDataType));
 
 	/*!
-		Deprecated. Use non-metadata version.
+	    Deprecated. Use non-metadata version.
 	*/
-	Ref<BinaryView> Load(Ref<BinaryView> rawData, bool updateAnalysis, std::function<bool(size_t, size_t)> progress, Ref<Metadata> options = new Metadata(MetadataType::KeyValueDataType), bool isDatabase = false);
+	Ref<BinaryView> Load(Ref<BinaryView> rawData, bool updateAnalysis, std::function<bool(size_t, size_t)> progress,
+		Ref<Metadata> options = new Metadata(MetadataType::KeyValueDataType), bool isDatabase = false);
 
 	/*! Attempt to demangle a mangled name, trying all relevant demanglers and using whichever one accepts it
 
-		\see Demangler::Demangle for a discussion on which demangler will be used.
+	    \see Demangler::Demangle for a discussion on which demangler will be used.
 
-		\param[in] arch Architecture for the symbol. Required for pointer and integer sizes.
-		\param[in] mangledName a mangled Microsoft Visual Studio C++ name
-		\param[out] outType Pointer to Type to output
-		\param[out] outVarName QualifiedName reference to write the output name to.
-		\param[in] view (Optional) view of the binary containing the mangled name
-		\param[in] simplify (Optional) Whether to simplify demangled names.
-		\return True if the name was demangled and written to the out* parameters
+	    \param[in] arch Architecture for the symbol. Required for pointer and integer sizes.
+	    \param[in] mangledName a mangled Microsoft Visual Studio C++ name
+	    \param[out] outType Pointer to Type to output
+	    \param[out] outVarName QualifiedName reference to write the output name to.
+	    \param[in] view (Optional) view of the binary containing the mangled name
+	    \param[in] simplify (Optional) Whether to simplify demangled names.
+	    \return True if the name was demangled and written to the out* parameters
 
-		\ingroup demangle
+	    \ingroup demangle
 	*/
-	bool DemangleGeneric(Ref<Architecture> arch, const std::string& mangledName, Ref<Type>& outType, QualifiedName& outVarName,
-	                     Ref<BinaryView> view = nullptr, const bool simplify = false);
+	bool DemangleGeneric(Ref<Architecture> arch, const std::string& mangledName, Ref<Type>& outType,
+		QualifiedName& outVarName, Ref<BinaryView> view = nullptr, const bool simplify = false);
 
 	/*! Demangles using LLVM's demangler
 
-		\param[in] mangledName a mangled (msvc/itanium/rust/dlang) name
-		\param[out] outVarName QualifiedName reference to write the output name to.
-		\param[in] simplify Whether to simplify demangled names.
+	    \param[in] mangledName a mangled (msvc/itanium/rust/dlang) name
+	    \param[out] outVarName QualifiedName reference to write the output name to.
+	    \param[in] simplify Whether to simplify demangled names.
 	    \return True if the name was demangled and written to the out* parameters
 
-		\ingroup demangle
+	    \ingroup demangle
 	*/
 	bool DemangleLLVM(const std::string& mangledName, QualifiedName& outVarName, const bool simplify = false);
 
 	/*! Demangles using LLVM's demangler
 
-		\param[in] mangledName a mangled (msvc/itanium/rust/dlang) name
-		\param[out] outVarName QualifiedName reference to write the output name to.
-		\param[in] view View to check the analysis.types.templateSimplifier for
+	    \param[in] mangledName a mangled (msvc/itanium/rust/dlang) name
+	    \param[out] outVarName QualifiedName reference to write the output name to.
+	    \param[in] view View to check the analysis.types.templateSimplifier for
 	    \return True if the name was demangled and written to the out* parameters
 
-		\ingroup demangle
+	    \ingroup demangle
 	*/
 	bool DemangleLLVM(const std::string& mangledName, QualifiedName& outVarName, BinaryView* view);
 
@@ -1675,92 +1758,94 @@ namespace BinaryNinja {
 	bool IsGNU3MangledString(const std::string& mangledName);
 
 	/*!
-		\ingroup demangle
+	    \ingroup demangle
 	*/
 	std::string SimplifyToString(const std::string& input);
 
 	/*!
-		\ingroup demangle
+	    \ingroup demangle
 	*/
 	std::string SimplifyToString(const QualifiedName& input);
 
 	/*!
-		\ingroup demangle
+	    \ingroup demangle
 	*/
 	QualifiedName SimplifyToQualifiedName(const std::string& input, bool simplify);
 
 	/*!
-		\ingroup demangle
+	    \ingroup demangle
 	*/
 	QualifiedName SimplifyToQualifiedName(const QualifiedName& input);
 
 	/*!
-		\ingroup mainthread
+	    \ingroup mainthread
 	*/
 	void RegisterMainThread(MainThreadActionHandler* handler);
 
 	/*!
-		@threadsafe
-		\ingroup mainthread
+	    @threadsafe
+	    \ingroup mainthread
 	*/
 	Ref<MainThreadAction> ExecuteOnMainThread(const std::function<void()>& action);
 
 	/*!
-		@threadsafe
-		\ingroup mainthread
+	    @threadsafe
+	    \ingroup mainthread
 	*/
 	void ExecuteOnMainThreadAndWait(const std::function<void()>& action);
 
 	/*!
-		@threadsafe
-		\ingroup mainthread
+	    @threadsafe
+	    \ingroup mainthread
 	*/
 	bool IsMainThread();
 
 	/*!
-		@threadsafe
-		\ingroup mainthread
+	    @threadsafe
+	    \ingroup mainthread
 	*/
 	void WorkerEnqueue(const std::function<void()>& action, const std::string& name = "");
 
 	/*!
-		@threadsafe
-		\ingroup mainthread
+	    @threadsafe
+	    \ingroup mainthread
 	*/
 	void WorkerEnqueue(RefCountObject* owner, const std::function<void()>& action, const std::string& name = "");
 
 	/*!
-		@threadsafe
-		\ingroup mainthread
+	    @threadsafe
+	    \ingroup mainthread
 	*/
 	void WorkerPriorityEnqueue(const std::function<void()>& action, const std::string& name = "");
 
 	/*!
-		\ingroup mainthread
+	    \ingroup mainthread
 	*/
-	void WorkerPriorityEnqueue(RefCountObject* owner, const std::function<void()>& action, const std::string& name = "");
+	void WorkerPriorityEnqueue(
+		RefCountObject* owner, const std::function<void()>& action, const std::string& name = "");
 
 	/*!
-		@threadsafe
-		\ingroup mainthread
+	    @threadsafe
+	    \ingroup mainthread
 	*/
 	void WorkerInteractiveEnqueue(const std::function<void()>& action, const std::string& name = "");
 
 	/*!
-		@threadsafe
-		\ingroup mainthread
+	    @threadsafe
+	    \ingroup mainthread
 	*/
-	void WorkerInteractiveEnqueue(RefCountObject* owner, const std::function<void()>& action, const std::string& name = "");
+	void WorkerInteractiveEnqueue(
+		RefCountObject* owner, const std::function<void()>& action, const std::string& name = "");
 
 	/*!
-		@threadsafe
-		\ingroup mainthread
+	    @threadsafe
+	    \ingroup mainthread
 	*/
 	size_t GetWorkerThreadCount();
 
 	/*!
-		@threadsafe
-		\ingroup mainthread
+	    @threadsafe
+	    \ingroup mainthread
 	*/
 	void SetWorkerThreadCount(size_t count);
 
@@ -1773,250 +1858,252 @@ namespace BinaryNinja {
 
 	/*! Displays contents to the user in the UI or on the command-line
 
-		@threadsafe
+	    @threadsafe
 
-		\note This API functions differently on the command-line vs the UI. In the UI, it will be rendered in a new tab. From
-		the command line, a simple text prompt is used.
+	    \note This API functions differently on the command-line vs the UI. In the UI, it will be rendered in a new tab.
+	   From the command line, a simple text prompt is used.
 
-	 	\ingroup interaction
+	    \ingroup interaction
 
-		\param title Title for the report
-		\param contents Contents of the report
+	    \param title Title for the report
+	    \param contents Contents of the report
 	*/
 	void ShowPlainTextReport(const std::string& title, const std::string& contents);
 
 	/*! Displays markdown contents to the user in the UI or on the command-line
 
-		@threadsafe
+	    @threadsafe
 
-	 	\note This API functions differently on the command-line vs the UI. In the UI, it will be rendered in a new tab. From
-		the command line, a simple text prompt is used.
+	    \note This API functions differently on the command-line vs the UI. In the UI, it will be rendered in a new tab.
+	   From the command line, a simple text prompt is used.
 
-	 	\ingroup interaction
+	    \ingroup interaction
 
-		\param title Title for the report
-		\param contents Markdown contents of the report
-		\param plainText Plaintext contents of the report (used on the command line)
+	    \param title Title for the report
+	    \param contents Markdown contents of the report
+	    \param plainText Plaintext contents of the report (used on the command line)
 	*/
 	void ShowMarkdownReport(const std::string& title, const std::string& contents, const std::string& plainText = "");
 
 	/*! Displays HTML contents to the user in the UI or on the command-line
 
-		@threadsafe
+	    @threadsafe
 
-		\note This API functions differently on the command-line vs the UI. In the UI, it will be rendered in a new tab. From
-		the command line, a simple text prompt is used.
-		\note This API doesn't support clickable references into an existing BinaryView.
+	    \note This API functions differently on the command-line vs the UI. In the UI, it will be rendered in a new tab.
+	   From the command line, a simple text prompt is used. \note This API doesn't support clickable references into an
+	   existing BinaryView.
 
-	 	\ingroup interaction
+	    \ingroup interaction
 
-		\param title Title for the report
-		\param contents HTML contents of the report
-		\param plainText Plaintext contents of the report (used on the command line)
+	    \param title Title for the report
+	    \param contents HTML contents of the report
+	    \param plainText Plaintext contents of the report (used on the command line)
 	*/
 	void ShowHTMLReport(const std::string& title, const std::string& contents, const std::string& plainText = "");
 
 	/*! Displays a flow graph in UI applications and nothing in command-line applications.
 
-		@threadsafe
+	    @threadsafe
 
-	 	\note This API doesn't support clickable references into an existing BinaryView.
-	 	\note This API has no effect outside of the UI
+	    \note This API doesn't support clickable references into an existing BinaryView.
+	    \note This API has no effect outside of the UI
 
-	 	\ingroup interaction
+	    \ingroup interaction
 
-		\param title Title for the report
-		\param graph FlowGraph object to be rendered.
+	    \param title Title for the report
+	    \param graph FlowGraph object to be rendered.
 	*/
 	void ShowGraphReport(const std::string& title, FlowGraph* graph);
 
 	/*! Show a collection of reports
 
-		@threadsafe
+	    @threadsafe
 
-	 	\ingroup interaction
+	    \ingroup interaction
 
-		\param title Title for the collection of reports
-		\param reports Collection of reports to show
+	    \param title Title for the collection of reports
+	    \param reports Collection of reports to show
 	*/
 	void ShowReportCollection(const std::string& title, ReportCollection* reports);
 
 	/*! Prompts the user to input a string with the given prompt and title
 
-		@threadsafe
+	    @threadsafe
 
-	 	\ingroup interaction
+	    \ingroup interaction
 
-		\param[out] result Reference to the string the result will be copied to
-		\param[in] prompt Prompt for the input
-		\param[in] title Title for the input popup when used in UI
-		\return Whether a line was successfully received
+	    \param[out] result Reference to the string the result will be copied to
+	    \param[in] prompt Prompt for the input
+	    \param[in] title Title for the input popup when used in UI
+	    \return Whether a line was successfully received
 	*/
 	bool GetTextLineInput(std::string& result, const std::string& prompt, const std::string& title);
 
 	/*! Prompts the user to input an integer with the given prompt and title
 
-		@threadsafe
+	    @threadsafe
 
-	 	\ingroup interaction
-		\param[out] result Reference to the int64_t the result will be copied to
-		\param[in] prompt Prompt for the input
-		\param[in] title Title for the input popup when used in UI
-		\return Whether an integer was successfully received
+	    \ingroup interaction
+	    \param[out] result Reference to the int64_t the result will be copied to
+	    \param[in] prompt Prompt for the input
+	    \param[in] title Title for the input popup when used in UI
+	    \return Whether an integer was successfully received
 	*/
 	bool GetIntegerInput(int64_t& result, const std::string& prompt, const std::string& title);
 
 	/*! Prompts the user to input an unsigned integer with the given prompt and title
 
-		@threadsafe
+	    @threadsafe
 
-	 	\ingroup interaction
-		\param[out] result Reference to the uint64_t the result will be copied to
-		\param[in] prompt Prompt for the input
-		\param[in] title Title for the input popup when used in UI
-		\return Whether an integer was successfully received
+	    \ingroup interaction
+	    \param[out] result Reference to the uint64_t the result will be copied to
+	    \param[in] prompt Prompt for the input
+	    \param[in] title Title for the input popup when used in UI
+	    \return Whether an integer was successfully received
 	*/
 	bool GetAddressInput(uint64_t& result, const std::string& prompt, const std::string& title);
 
 	/*! Prompts the user to select the one of the provided choices
 
-		@threadsafe
+	    @threadsafe
 
-	 	\ingroup interaction
-		\param[out] idx Reference to the size_t the resulting index selected will be copied to
-		\param[in] prompt Prompt for the input
-		\param[in] title Title for the input popup when used in UI
-		\param[in] choices List of string choices for the user to select from
-		\return Whether a choice was successfully picked
+	    \ingroup interaction
+	    \param[out] idx Reference to the size_t the resulting index selected will be copied to
+	    \param[in] prompt Prompt for the input
+	    \param[in] title Title for the input popup when used in UI
+	    \param[in] choices List of string choices for the user to select from
+	    \return Whether a choice was successfully picked
 	*/
 	bool GetChoiceInput(
 		size_t& idx, const std::string& prompt, const std::string& title, const std::vector<std::string>& choices);
 
-	/*! Prompts the user to select the one of the provided choices out of a large list, with the option to filter choices
+	/*! Prompts the user to select the one of the provided choices out of a large list, with the option to filter
+	   choices
 
-		\ingroup interaction
-		\param[out] idx Reference to the size_t the resulting index selected will be copied to
-		\param[in] title Title for the input popup / prompt for headless
-		\param[in] prompt Prompt for the input (shown on the 'Select' button in UI)
-		\param[in] choices List of string choices for the user to select from
-		\return Whether a choice was successfully picked
+	    \ingroup interaction
+	    \param[out] idx Reference to the size_t the resulting index selected will be copied to
+	    \param[in] title Title for the input popup / prompt for headless
+	    \param[in] prompt Prompt for the input (shown on the 'Select' button in UI)
+	    \param[in] choices List of string choices for the user to select from
+	    \return Whether a choice was successfully picked
 	*/
-	bool GetLargeChoiceInput(size_t& idx, const std::string& title, const std::string& prompt, const std::vector<std::string>& choices);
+	bool GetLargeChoiceInput(
+		size_t& idx, const std::string& title, const std::string& prompt, const std::vector<std::string>& choices);
 
 	/*! Prompts the user for a file name to open
 
-		@threadsafe
+	    @threadsafe
 
-		Multiple file selection groups can be included if separated by two semicolons. Multiple file wildcards may be
-	 	specified by using a space within the parenthesis.
+	    Multiple file selection groups can be included if separated by two semicolons. Multiple file wildcards may be
+	    specified by using a space within the parenthesis.
 
-		Also, a simple selector of "\*.extension" by itself may also be used instead of specifying the description.
+	    Also, a simple selector of "\*.extension" by itself may also be used instead of specifying the description.
 
-	 	\ingroup interaction
+	    \ingroup interaction
 
-		\param[out] result Reference to the string the result will be copied to
-		\param[in] prompt Prompt for the dialog
-		\param[in] ext Optional, file extension
-		\return Whether a filename was successfully received
+	    \param[out] result Reference to the string the result will be copied to
+	    \param[in] prompt Prompt for the dialog
+	    \param[in] ext Optional, file extension
+	    \return Whether a filename was successfully received
 	*/
 	bool GetOpenFileNameInput(std::string& result, const std::string& prompt, const std::string& ext = "");
 
 	/*! Prompts the user for a file name to save as, optionally providing a file extension and defaultName
 
-		@threadsafe
+	    @threadsafe
 
-	 	\ingroup interaction
+	    \ingroup interaction
 
-		\param[out] result Reference to the string the result will be copied to
-		\param[in] prompt Prompt for the dialog
-		\param[in] ext Optional, file extension
-		\param[in] defaultName Optional, default filename
-		\return Whether a filename was successfully received
+	    \param[out] result Reference to the string the result will be copied to
+	    \param[in] prompt Prompt for the dialog
+	    \param[in] ext Optional, file extension
+	    \param[in] defaultName Optional, default filename
+	    \return Whether a filename was successfully received
 	*/
 	bool GetSaveFileNameInput(std::string& result, const std::string& prompt, const std::string& ext = "",
-	    const std::string& defaultName = "");
+		const std::string& defaultName = "");
 
 	/*! Prompts the user for a directory name to save as, optionally providing a default_name
 
-		@threadsafe
+	    @threadsafe
 
-	 	\ingroup interaction
-		\param[out] result Reference to the string the result will be copied to
-		\param[in] prompt Prompt for the dialog
-		\param[in] defaultName Optional, default directory name
-		\return Whether a directory was successfully received
+	    \ingroup interaction
+	    \param[out] result Reference to the string the result will be copied to
+	    \param[in] prompt Prompt for the dialog
+	    \param[in] defaultName Optional, default directory name
+	    \return Whether a directory was successfully received
 	*/
 	bool GetDirectoryNameInput(std::string& result, const std::string& prompt, const std::string& defaultName = "");
 
 	/*! Prompts the user for a set of inputs specified in `fields` with given title.
-		The fields parameter is a list containing FieldInputFields
+	    The fields parameter is a list containing FieldInputFields
 
-		@threadsafe
+	    @threadsafe
 
-	 	\ingroup interaction
-		\param[in,out] fields reference to a list containing FieldInputFields
-		\param[in] title Title of the Form
-		\return Whether the form was successfully filled out
+	    \ingroup interaction
+	    \param[in,out] fields reference to a list containing FieldInputFields
+	    \param[in] title Title of the Form
+	    \return Whether the form was successfully filled out
 	*/
 	bool GetFormInput(std::vector<FormInputField>& fields, const std::string& title);
 
 	/*! Displays a configurable message box in the UI, or prompts on the console as appropriate
 
-		@threadsafe
+	    @threadsafe
 
-		\param title Title for the message box
-		\param text Contents of the message box
-		\param buttons
-	 	\parblock
+	    \param title Title for the message box
+	    \param text Contents of the message box
+	    \param buttons
+	    \parblock
 	    Button Set type to display to the user
 
-	    	OKButtonSet - Displays only an OK button
-	    	YesNoButtonSet - Displays a Yes and a No button
-	    	YesNoCancelButtonSet - Displays a Yes, No, and Cancel button
+	        OKButtonSet - Displays only an OK button
+	        YesNoButtonSet - Displays a Yes and a No button
+	        YesNoCancelButtonSet - Displays a Yes, No, and Cancel button
 	    \endparblock
-		\param icon Icons to display to the user
+	    \param icon Icons to display to the user
 
-	 	\ingroup interaction
+	    \ingroup interaction
 
-		\return Which button was selected'
-	 	\retval NoButton No was clicked, or the box was closed and had type YesNoButtonSet
-	 	\retval YesButton Yes was clicked
-	 	\retval OKButton Ok Button was clicked, or the box was closed and had type OKButtonSet
-	 	\retval CancelButton Cancel button was clicked or the dialog box was closed and had type YesNoCancelButtonSet
+	    \return Which button was selected'
+	    \retval NoButton No was clicked, or the box was closed and had type YesNoButtonSet
+	    \retval YesButton Yes was clicked
+	    \retval OKButton Ok Button was clicked, or the box was closed and had type OKButtonSet
+	    \retval CancelButton Cancel button was clicked or the dialog box was closed and had type YesNoCancelButtonSet
 	*/
 	BNMessageBoxButtonResult ShowMessageBox(const std::string& title, const std::string& text,
-	    BNMessageBoxButtonSet buttons = OKButtonSet, BNMessageBoxIcon icon = InformationIcon);
+		BNMessageBoxButtonSet buttons = OKButtonSet, BNMessageBoxIcon icon = InformationIcon);
 
 	/*! Opens a given url in the user's web browser, if available.
 
-		@threadsafe
+	    @threadsafe
 
-	 	\ingroup interaction
+	    \ingroup interaction
 
-		\param url URL to open
-		\return Whether a URL was successfully opened.
+	    \param url URL to open
+	    \return Whether a URL was successfully opened.
 	*/
 	bool OpenUrl(const std::string& url);
 
 	/*! Run a given task in a background thread, and show an updating progress bar which the user can cancel
 
-		@threadsafe
+	    @threadsafe
 
-		\param title Dialog title
-		\param canCancel If the task can be cancelled
-		\param task Function to perform the task, taking as a parameter a function which should be called to report progress
-		            updates and check for cancellation. If the progress function returns false, the user has requested
-		            to cancel, and the task should handle this appropriately.
-		\return True if not cancelled
+	    \param title Dialog title
+	    \param canCancel If the task can be cancelled
+	    \param task Function to perform the task, taking as a parameter a function which should be called to report
+	   progress updates and check for cancellation. If the progress function returns false, the user has requested to
+	   cancel, and the task should handle this appropriately. \return True if not cancelled
 	*/
-	bool RunProgressDialog(const std::string& title, bool canCancel, std::function<void(std::function<bool(size_t, size_t)> progress)> task);
+	bool RunProgressDialog(const std::string& title, bool canCancel,
+		std::function<void(std::function<bool(size_t, size_t)> progress)> task);
 
 	/*!
 	    Split a single progress function into equally sized subparts.
 	    This function takes the original progress function and returns a new function whose signature
 	    is the same but whose output is shortened to correspond to the specified subparts.
 
-		@threadsafe
+	    @threadsafe
 
 	    E.g. If subpart = 0 and subpartCount = 3, this returns a function that calls originalFn and has
 	    all of its progress multiplied by 1/3 and 0/3 added.
@@ -2029,7 +2116,7 @@ namespace BinaryNinja {
 	    \return A function that will call originalFn() within a modified progress region
 	*/
 	std::function<bool(size_t, size_t)> SplitProgress(
-	    std::function<bool(size_t, size_t)> originalFn, size_t subpart, size_t subpartCount);
+		std::function<bool(size_t, size_t)> originalFn, size_t subpart, size_t subpartCount);
 
 
 	/*!
@@ -2037,7 +2124,7 @@ namespace BinaryNinja {
 	    This function takes the original progress function and returns a new function whose signature
 	    is the same but whose output is shortened to correspond to the specified subparts.
 
-		@threadsafe
+	    @threadsafe
 
 	    The length of a subpart is proportional to the sum of all the weights.
 	    E.g. If subpart = 1 and subpartWeights = { 0.25, 0.5, 0.25 }, this will return a function that calls
@@ -2051,7 +2138,7 @@ namespace BinaryNinja {
 	    \return A function that will call originalFn() within a modified progress region
 	*/
 	std::function<bool(size_t, size_t)> SplitProgress(
-	    std::function<bool(size_t, size_t)> originalFn, size_t subpart, std::vector<double> subpartWeights);
+		std::function<bool(size_t, size_t)> originalFn, size_t subpart, std::vector<double> subpartWeights);
 
 	struct ProgressContext
 	{
@@ -2067,13 +2154,13 @@ namespace BinaryNinja {
 	void SetThreadName(const std::string& name);
 
 	/*!
-		\ingroup databuffer
+	    \ingroup databuffer
 	*/
 	class DataBuffer
 	{
 		BNDataBuffer* m_buffer;
 
-	  public:
+	public:
 		DataBuffer();
 		DataBuffer(size_t len);
 		DataBuffer(const void* data, size_t len);
@@ -2089,76 +2176,80 @@ namespace BinaryNinja {
 
 		/*! Get the raw pointer to the data contained within this buffer
 
-			@threadunsafe
+		    @threadunsafe
 		*/
 		void* GetData();
 
 		/*! Get the raw pointer to the data contained within this buffer, as a const pointer.
 
-			@threadunsafe
+		    @threadunsafe
 		*/
 		const void* GetData() const;
 
 		/*! Get the raw pointer to the data contained within this buffer, starting at a given offset
 
-			@threadunsafe
+		    @threadunsafe
 		*/
 		void* GetDataAt(size_t offset);
 
 		/*! Get the const raw pointer to the data contained within this buffer, starting at a given offset
 
-			@threadunsafe
+		    @threadunsafe
 		*/
 		const void* GetDataAt(size_t offset) const;
 
 		/*! Get the length of the data contained within this buffer
 
-			@threadunsafe
+		    @threadunsafe
 		*/
 		size_t GetLength() const;
 
 		/*! Set the size of the data pointed to by this buffer
 
-			@threadunsafe
+		    @threadunsafe
 		*/
 		void SetSize(size_t len);
 
 		/*! Clear the data contained by this buffer.
 
-			\note This will call \c free() on this buffer's data pointer. You shouldn't call it yourself, typically ever.
+		    \note This will call \c free() on this buffer's data pointer. You shouldn't call it yourself, typically
+		   ever.
 
-			@threadunsafe
+		    @threadunsafe
 		*/
 		void Clear();
 
 		/*! Append \c len contents of the pointer \c data to the end of the buffer
 
-			\note This will typically call \c realloc() on this buffer's data pointer. You should hold this DataBuffer and use it for accesses, instead of storing the raw pointer.
+		    \note This will typically call \c realloc() on this buffer's data pointer. You should hold this DataBuffer
+		   and use it for accesses, instead of storing the raw pointer.
 
-			@threadunsafe
+		    @threadunsafe
 		*/
 		void Append(const void* data, size_t len);
 
 		/*! Append the contents of databuffer \c buf to the current DataBuffer
 
-			\note This will typically call \c realloc() on this buffer's data pointer. You should hold this DataBuffer and use it for accesses, instead of storing the raw pointer.
+		    \note This will typically call \c realloc() on this buffer's data pointer. You should hold this DataBuffer
+		   and use it for accesses, instead of storing the raw pointer.
 
-			@threadunsafe
+		    @threadunsafe
 		*/
 		void Append(const DataBuffer& buf);
 
 		/*! Append a single byte
 
-			\note This will typically call \c realloc() on this buffer's data pointer. You should hold this DataBuffer and use it for accesses, instead of storing the raw pointer.
+		    \note This will typically call \c realloc() on this buffer's data pointer. You should hold this DataBuffer
+		   and use it for accesses, instead of storing the raw pointer.
 
-			@threadunsafe
+		    @threadunsafe
 		*/
 		void AppendByte(uint8_t val);
 
 
 		/*! Get the contents of a given slice of data, as a DataBuffer
 
-			@threadunsafe
+		    @threadunsafe
 		*/
 		DataBuffer GetSlice(size_t start, size_t len);
 
@@ -2186,32 +2277,32 @@ namespace BinaryNinja {
 
 		/*! Convert the contents of this DataBuffer to a base64 representation
 
-			@threadunsafe
+		    @threadunsafe
 		*/
 		std::string ToBase64() const;
 
 		/*! Create a DataBuffer from a given base64 string.
 
-			\param src Input base64 string
-			\returns Databuffer created from this string
+		    \param src Input base64 string
+		    \returns Databuffer created from this string
 		*/
 		static DataBuffer FromBase64(const std::string& src);
 
 		/*! Compress this databuffer via ZLIB compression
 
-			@threadunsafe
+		    @threadunsafe
 
-			\param[out] output Output DataBuffer the compressed contents will be stored in.
-			\returns Whether compression was successful
+		    \param[out] output Output DataBuffer the compressed contents will be stored in.
+		    \returns Whether compression was successful
 		*/
 		bool ZlibCompress(DataBuffer& output) const;
 
 		/*! Decompress the contents of this buffer via ZLIB compression
 
-			@threadunsafe
+		    @threadunsafe
 
-			\param[out] output Output DataBuffer the decompressed contents will be stored in.
-			\returns Whether decompression was successful
+		    \param[out] output Output DataBuffer the decompressed contents will be stored in.
+		    \returns Whether decompression was successful
 		*/
 		bool ZlibDecompress(DataBuffer& output) const;
 
@@ -2244,24 +2335,24 @@ namespace BinaryNinja {
 	};
 
 	/*! TemporaryFile is used for creating temporary files, stored (temporarily) in the system's default temporary file
-	 		directory.
+	        directory.
 
-	 	\ingroup tempfile
+	    \ingroup tempfile
 	*/
 	class TemporaryFile : public CoreRefCountObject<BNTemporaryFile, BNNewTemporaryFileReference, BNFreeTemporaryFile>
 	{
-	  public:
+	public:
 		TemporaryFile();
 
 		/*! Create a new temporary file with BinaryNinja::DataBuffer contents.
 
-	    	\param contents DataBuffer with contents to write to the file.
+		    \param contents DataBuffer with contents to write to the file.
 		*/
 		TemporaryFile(const DataBuffer& contents);
 
 		/*! Create a new temporary file with string contents.
 
-	        \param contents std::string with contents to write to the file.
+		    \param contents std::string with contents to write to the file.
 		*/
 		TemporaryFile(const std::string& contents);
 		TemporaryFile(BNTemporaryFile* file);
@@ -2269,27 +2360,27 @@ namespace BinaryNinja {
 		bool IsValid() const { return m_object != nullptr; }
 
 		/*! Path to the TemporaryFile on the filesystem.
-		*/
+		 */
 		std::string GetPath() const;
 
 		/*! DataBuffer with contents of the file.
-		*/
+		 */
 		DataBuffer GetContents();
 	};
 
 	/*!
-		\ingroup filemetadata
+	    \ingroup filemetadata
 	*/
 	class NavigationHandler
 	{
-	  private:
+	private:
 		BNNavigationHandler m_callbacks;
 
 		static char* GetCurrentViewCallback(void* ctxt);
 		static uint64_t GetCurrentOffsetCallback(void* ctxt);
 		static bool NavigateCallback(void* ctxt, const char* view, uint64_t offset);
 
-	  public:
+	public:
 		NavigationHandler();
 		virtual ~NavigationHandler() {}
 
@@ -2302,16 +2393,16 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup coreapi
+	    \ingroup coreapi
 	*/
 	class User : public CoreRefCountObject<BNUser, BNNewUserReference, BNFreeUser>
 	{
-	  private:
+	private:
 		std::string m_id;
 		std::string m_name;
 		std::string m_email;
 
-	  public:
+	public:
 		User(BNUser* user);
 		std::string GetName();
 		std::string GetEmail();
@@ -2320,54 +2411,54 @@ namespace BinaryNinja {
 
 	/*! `InstructionTextToken` is used to tell the core about the various components in the disassembly views.
 
-		The below table is provided for documentation purposes but the complete list of TokenTypes is available at
-		`InstructionTextTokenType`. Note that types marked as `Not emitted by architectures` are not intended to be used
-		by Architectures during lifting. Rather, they are added by the core during analysis or display. UI plugins,
-		however, may make use of them as appropriate.
+	    The below table is provided for documentation purposes but the complete list of TokenTypes is available at
+	    `InstructionTextTokenType`. Note that types marked as `Not emitted by architectures` are not intended to be used
+	    by Architectures during lifting. Rather, they are added by the core during analysis or display. UI plugins,
+	    however, may make use of them as appropriate.
 
-		Uses of tokens include plugins that parse the output of an architecture (though parsing IL is recommended),
-	 	or additionally, applying color schemes appropriately.
+	    Uses of tokens include plugins that parse the output of an architecture (though parsing IL is recommended),
+	    or additionally, applying color schemes appropriately.
 
-			========================== ============================================
-			InstructionTextTokenType   Description
-			========================== ============================================
-			AddressDisplayToken        **Not emitted by architectures**
-			AnnotationToken            **Not emitted by architectures**
-			ArgumentNameToken          **Not emitted by architectures**
-			BeginMemoryOperandToken    The start of memory operand
-			CharacterConstantToken     A printable character
-			CodeRelativeAddressToken   **Not emitted by architectures**
-			CodeSymbolToken            **Not emitted by architectures**
-			DataSymbolToken            **Not emitted by architectures**
-			EndMemoryOperandToken      The end of a memory operand
-			ExternalSymbolToken        **Not emitted by architectures**
-			FieldNameToken             **Not emitted by architectures**
-			FloatingPointToken         Floating point number
-			HexDumpByteValueToken      **Not emitted by architectures**
-			HexDumpInvalidByteToken    **Not emitted by architectures**
-			HexDumpSkippedByteToken    **Not emitted by architectures**
-			HexDumpTextToken           **Not emitted by architectures**
-			ImportToken                **Not emitted by architectures**
-			IndirectImportToken        **Not emitted by architectures**
-			InstructionToken           The instruction mnemonic
-			IntegerToken               Integers
-			KeywordToken               **Not emitted by architectures**
-			LocalVariableToken         **Not emitted by architectures**
-			StackVariableToken         **Not emitted by architectures**
-			NameSpaceSeparatorToken    **Not emitted by architectures**
-			NameSpaceToken             **Not emitted by architectures**
-			OpcodeToken                **Not emitted by architectures**
-			OperandSeparatorToken      The comma or delimiter that separates tokens
-			PossibleAddressToken       Integers that are likely addresses
-			RegisterToken              Registers
-			StringToken                **Not emitted by architectures**
-			StructOffsetToken          **Not emitted by architectures**
-			TagToken                   **Not emitted by architectures**
-			TextToken                  Used for anything not of another type.
-			CommentToken               Comments
-			TypeNameToken              **Not emitted by architectures**
-			AddressSeparatorToken      **Not emitted by architectures**
-			========================== ============================================
+	        ========================== ============================================
+	        InstructionTextTokenType   Description
+	        ========================== ============================================
+	        AddressDisplayToken        **Not emitted by architectures**
+	        AnnotationToken            **Not emitted by architectures**
+	        ArgumentNameToken          **Not emitted by architectures**
+	        BeginMemoryOperandToken    The start of memory operand
+	        CharacterConstantToken     A printable character
+	        CodeRelativeAddressToken   **Not emitted by architectures**
+	        CodeSymbolToken            **Not emitted by architectures**
+	        DataSymbolToken            **Not emitted by architectures**
+	        EndMemoryOperandToken      The end of a memory operand
+	        ExternalSymbolToken        **Not emitted by architectures**
+	        FieldNameToken             **Not emitted by architectures**
+	        FloatingPointToken         Floating point number
+	        HexDumpByteValueToken      **Not emitted by architectures**
+	        HexDumpInvalidByteToken    **Not emitted by architectures**
+	        HexDumpSkippedByteToken    **Not emitted by architectures**
+	        HexDumpTextToken           **Not emitted by architectures**
+	        ImportToken                **Not emitted by architectures**
+	        IndirectImportToken        **Not emitted by architectures**
+	        InstructionToken           The instruction mnemonic
+	        IntegerToken               Integers
+	        KeywordToken               **Not emitted by architectures**
+	        LocalVariableToken         **Not emitted by architectures**
+	        StackVariableToken         **Not emitted by architectures**
+	        NameSpaceSeparatorToken    **Not emitted by architectures**
+	        NameSpaceToken             **Not emitted by architectures**
+	        OpcodeToken                **Not emitted by architectures**
+	        OperandSeparatorToken      The comma or delimiter that separates tokens
+	        PossibleAddressToken       Integers that are likely addresses
+	        RegisterToken              Registers
+	        StringToken                **Not emitted by architectures**
+	        StructOffsetToken          **Not emitted by architectures**
+	        TagToken                   **Not emitted by architectures**
+	        TextToken                  Used for anything not of another type.
+	        CommentToken               Comments
+	        TypeNameToken              **Not emitted by architectures**
+	        AddressSeparatorToken      **Not emitted by architectures**
+	        ========================== ============================================
 	*/
 	struct InstructionTextToken
 	{
@@ -2390,31 +2481,30 @@ namespace BinaryNinja {
 		InstructionTextToken();
 		InstructionTextToken(uint8_t confidence, BNInstructionTextTokenType t, const std::string& txt);
 		InstructionTextToken(BNInstructionTextTokenType type, const std::string& text, uint64_t value = 0,
-		    size_t size = 0, size_t operand = BN_INVALID_OPERAND, uint8_t confidence = BN_FULL_CONFIDENCE,
-		    const std::vector<std::string>& typeName = {}, uint64_t width = WidthIsByteCount);
+			size_t size = 0, size_t operand = BN_INVALID_OPERAND, uint8_t confidence = BN_FULL_CONFIDENCE,
+			const std::vector<std::string>& typeName = {}, uint64_t width = WidthIsByteCount);
 		InstructionTextToken(BNInstructionTextTokenType type, BNInstructionTextTokenContext context,
-		    const std::string& text, uint64_t address, uint64_t value = 0, size_t size = 0,
-		    size_t operand = BN_INVALID_OPERAND, uint8_t confidence = BN_FULL_CONFIDENCE,
-		    const std::vector<std::string>& typeName = {}, uint64_t width = WidthIsByteCount);
+			const std::string& text, uint64_t address, uint64_t value = 0, size_t size = 0,
+			size_t operand = BN_INVALID_OPERAND, uint8_t confidence = BN_FULL_CONFIDENCE,
+			const std::vector<std::string>& typeName = {}, uint64_t width = WidthIsByteCount);
 		InstructionTextToken(const BNInstructionTextToken& token);
 
 		InstructionTextToken WithConfidence(uint8_t conf);
 		static void ConvertInstructionTextToken(const InstructionTextToken& token, BNInstructionTextToken* result);
 		static BNInstructionTextToken* CreateInstructionTextTokenList(const std::vector<InstructionTextToken>& tokens);
 		static void FreeInstructionTextToken(BNInstructionTextToken* token);
-		static void FreeInstructionTextTokenList(
-		    BNInstructionTextToken* tokens, size_t count);
+		static void FreeInstructionTextTokenList(BNInstructionTextToken* tokens, size_t count);
 		static std::vector<InstructionTextToken> ConvertAndFreeInstructionTextTokenList(
-		    BNInstructionTextToken* tokens, size_t count);
+			BNInstructionTextToken* tokens, size_t count);
 		static std::vector<InstructionTextToken> ConvertInstructionTextTokenList(
-		    const BNInstructionTextToken* tokens, size_t count);
+			const BNInstructionTextToken* tokens, size_t count);
 	};
 
 	class UndoEntry;
 
 	/*!
 
-		\ingroup database
+	    \ingroup database
 	*/
 	struct DatabaseException : ExceptionWithStackTrace
 	{
@@ -2422,13 +2512,13 @@ namespace BinaryNinja {
 	};
 
 	/*! Maintains access to the raw data stored in Snapshots and various
-    	other Database-related structures.
+	    other Database-related structures.
 
-		\ingroup database
+	    \ingroup database
 	*/
 	class KeyValueStore : public CoreRefCountObject<BNKeyValueStore, BNNewKeyValueStoreReference, BNFreeKeyValueStore>
 	{
-	  public:
+	public:
 		KeyValueStore();
 		KeyValueStore(const DataBuffer& buffer);
 		KeyValueStore(BNKeyValueStore* store);
@@ -2458,11 +2548,11 @@ namespace BinaryNinja {
 
 	/*! A model of an individual database snapshot, created on save.
 
-		\ingroup database
+	    \ingroup database
 	*/
 	class Snapshot : public CoreRefCountObject<BNSnapshot, BNNewSnapshotReference, BNFreeSnapshot>
 	{
-	  public:
+	public:
 		Snapshot(BNSnapshot* snapshot);
 
 		Ref<Database> GetDatabase();
@@ -2491,11 +2581,11 @@ namespace BinaryNinja {
 
 	/*! Provides lower level access to raw snapshot data used to construct analysis data
 
-		\ingroup database
+	    \ingroup database
 	*/
 	class Database : public CoreRefCountObject<BNDatabase, BNNewDatabaseReference, BNFreeDatabase>
 	{
-	  public:
+	public:
 		Database(BNDatabase* database);
 
 		bool SnapshotHasData(int64_t id);
@@ -2504,7 +2594,7 @@ namespace BinaryNinja {
 		void SetCurrentSnapshot(int64_t id);
 		Ref<Snapshot> GetCurrentSnapshot();
 		int64_t WriteSnapshotData(std::vector<int64_t> parents, Ref<BinaryView> file, const std::string& name,
-		    const Ref<KeyValueStore>& data, bool autoSave, const std::function<bool(size_t, size_t)>& progress);
+			const Ref<KeyValueStore>& data, bool autoSave, const std::function<bool(size_t, size_t)>& progress);
 		void TrimSnapshot(int64_t id);
 		void RemoveSnapshot(int64_t id);
 
@@ -2525,7 +2615,7 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup project
+	    \ingroup project
 	*/
 	struct ProjectException : std::runtime_error
 	{
@@ -2543,7 +2633,8 @@ namespace BinaryNinja {
 	\ingroup project
 	*/
 
-	class ExternalLocation : public CoreRefCountObject<BNExternalLocation, BNNewExternalLocationReference, BNFreeExternalLocation>
+	class ExternalLocation :
+		public CoreRefCountObject<BNExternalLocation, BNNewExternalLocationReference, BNFreeExternalLocation>
 	{
 	public:
 		ExternalLocation(BNExternalLocation* loc);
@@ -2566,7 +2657,8 @@ namespace BinaryNinja {
 	\ingroup project
 	*/
 
-	class ExternalLibrary : public CoreRefCountObject<BNExternalLibrary, BNNewExternalLibraryReference, BNFreeExternalLibrary>
+	class ExternalLibrary :
+		public CoreRefCountObject<BNExternalLibrary, BNNewExternalLibraryReference, BNFreeExternalLibrary>
 	{
 	public:
 		ExternalLibrary(BNExternalLibrary* lib);
@@ -2579,11 +2671,11 @@ namespace BinaryNinja {
 
 
 	/*!
-		\ingroup project
+	    \ingroup project
 	*/
 	class ProjectNotification
 	{
-	  private:
+	private:
 		BNProjectNotification m_callbacks;
 
 		static bool BeforeOpenProjectCallback(void* ctxt, BNProject* project);
@@ -2605,7 +2697,7 @@ namespace BinaryNinja {
 		static bool BeforeProjectFolderDeletedCallback(void* ctxt, BNProject* project, BNProjectFolder* projectFolder);
 		static void AfterProjectFolderDeletedCallback(void* ctxt, BNProject* project, BNProjectFolder* projectFolder);
 
-	  public:
+	public:
 		ProjectNotification();
 		virtual ~ProjectNotification() {}
 
@@ -2617,10 +2709,7 @@ namespace BinaryNinja {
 			return true;
 		}
 
-		virtual void OnAfterOpenProject(Project* project)
-		{
-			(void)project;
-		}
+		virtual void OnAfterOpenProject(Project* project) { (void)project; }
 
 		virtual bool OnBeforeCloseProject(Project* project)
 		{
@@ -2628,10 +2717,7 @@ namespace BinaryNinja {
 			return true;
 		}
 
-		virtual void OnAfterCloseProject(Project* project)
-		{
-			(void)project;
-		}
+		virtual void OnAfterCloseProject(Project* project) { (void)project; }
 
 		virtual bool OnBeforeProjectMetadataWritten(Project* project, std::string& key, Metadata* value)
 		{
@@ -2744,7 +2830,8 @@ namespace BinaryNinja {
 		void SetDescription(const std::string& description);
 		Ref<ProjectFolder> GetParent() const;
 		void SetParent(Ref<ProjectFolder> parent);
-		bool Export(const std::string& destination, const std::function<bool(size_t progress, size_t total)>& progressCallback = {}) const;
+		bool Export(const std::string& destination,
+			const std::function<bool(size_t progress, size_t total)>& progressCallback = {}) const;
 	};
 
 	/*!
@@ -2773,11 +2860,11 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup project
+	    \ingroup project
 	*/
 	class Project : public CoreRefCountObject<BNProject, BNNewProjectReference, BNFreeProject>
 	{
-	  public:
+	public:
 		Project(BNProject* project);
 
 		static Ref<Project> CreateProject(const std::string& path, const std::string& name);
@@ -2798,19 +2885,31 @@ namespace BinaryNinja {
 		bool StoreMetadata(const std::string& key, Ref<Metadata> value);
 		void RemoveMetadata(const std::string& key);
 
-		Ref<ProjectFolder> CreateFolderFromPath(const std::string& path, Ref<ProjectFolder> parent, const std::string& description,
+		Ref<ProjectFolder> CreateFolderFromPath(const std::string& path, Ref<ProjectFolder> parent,
+			const std::string& description,
 			const std::function<bool(size_t progress, size_t total)>& progressCallback = {});
-		Ref<ProjectFolder> CreateFolder(Ref<ProjectFolder> parent, const std::string& name, const std::string& description);
-		Ref<ProjectFolder> CreateFolderUnsafe(Ref<ProjectFolder> parent, const std::string& name, const std::string& description, const std::string& id);
+		Ref<ProjectFolder> CreateFolder(
+			Ref<ProjectFolder> parent, const std::string& name, const std::string& description);
+		Ref<ProjectFolder> CreateFolderUnsafe(
+			Ref<ProjectFolder> parent, const std::string& name, const std::string& description, const std::string& id);
 		std::vector<Ref<ProjectFolder>> GetFolders() const;
 		Ref<ProjectFolder> GetFolderById(const std::string& id) const;
 		void PushFolder(Ref<ProjectFolder> folder);
-		bool DeleteFolder(Ref<ProjectFolder> folder, const std::function<bool(size_t progress, size_t total)>& progressCallback = {});
+		bool DeleteFolder(
+			Ref<ProjectFolder> folder, const std::function<bool(size_t progress, size_t total)>& progressCallback = {});
 
-		Ref<ProjectFile> CreateFileFromPath(const std::string& path, Ref<ProjectFolder> folder, const std::string& name, const std::string& description, const std::function<bool(size_t progress, size_t total)>& progressCallback = {});
-		Ref<ProjectFile> CreateFileFromPathUnsafe(const std::string& path, Ref<ProjectFolder> folder, const std::string& name, const std::string& description, const std::string& id, int64_t creationTimestamp, const std::function<bool(size_t progress, size_t total)>& progressCallback = {});
-		Ref<ProjectFile> CreateFile_(const std::vector<uint8_t>& contents, Ref<ProjectFolder> folder, const std::string& name, const std::string& description, const std::function<bool(size_t progress, size_t total)>& progressCallback = {});
-		Ref<ProjectFile> CreateFileUnsafe(const std::vector<uint8_t>& contents, Ref<ProjectFolder> folder, const std::string& name, const std::string& description, const std::string& id, int64_t creationTimestamp, const std::function<bool(size_t progress, size_t total)>& progressCallback = {});
+		Ref<ProjectFile> CreateFileFromPath(const std::string& path, Ref<ProjectFolder> folder, const std::string& name,
+			const std::string& description,
+			const std::function<bool(size_t progress, size_t total)>& progressCallback = {});
+		Ref<ProjectFile> CreateFileFromPathUnsafe(const std::string& path, Ref<ProjectFolder> folder,
+			const std::string& name, const std::string& description, const std::string& id, int64_t creationTimestamp,
+			const std::function<bool(size_t progress, size_t total)>& progressCallback = {});
+		Ref<ProjectFile> CreateFile_(const std::vector<uint8_t>& contents, Ref<ProjectFolder> folder,
+			const std::string& name, const std::string& description,
+			const std::function<bool(size_t progress, size_t total)>& progressCallback = {});
+		Ref<ProjectFile> CreateFileUnsafe(const std::vector<uint8_t>& contents, Ref<ProjectFolder> folder,
+			const std::string& name, const std::string& description, const std::string& id, int64_t creationTimestamp,
+			const std::function<bool(size_t progress, size_t total)>& progressCallback = {});
 		std::vector<Ref<ProjectFile>> GetFiles() const;
 		Ref<ProjectFile> GetFileById(const std::string& id) const;
 		Ref<ProjectFile> GetFileByPathOnDisk(const std::string& path);
@@ -2826,11 +2925,11 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup undo
+	    \ingroup undo
 	*/
 	class UndoAction : public CoreRefCountObject<BNUndoAction, BNNewUndoActionReference, BNFreeUndoAction>
 	{
-	  public:
+	public:
 		UndoAction(BNUndoAction* action);
 
 		std::string GetSummaryText();
@@ -2839,11 +2938,11 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup undo
+	    \ingroup undo
 	*/
 	class UndoEntry : public CoreRefCountObject<BNUndoEntry, BNNewUndoEntryReference, BNFreeUndoEntry>
 	{
-	  public:
+	public:
 		UndoEntry(BNUndoEntry* entry);
 
 		std::string GetId();
@@ -2852,11 +2951,11 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup filemetadata
+	    \ingroup filemetadata
 	*/
 	class SaveSettings : public CoreRefCountObject<BNSaveSettings, BNNewSaveSettingsReference, BNFreeSaveSettings>
 	{
-	  public:
+	public:
 		SaveSettings();
 		SaveSettings(BNSaveSettings* settings);
 
@@ -2868,81 +2967,81 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup filemetadata
+	    \ingroup filemetadata
 	*/
 	class FileMetadata : public CoreRefCountObject<BNFileMetadata, BNNewFileReference, BNFreeFileMetadata>
 	{
-	  public:
+	public:
 		FileMetadata();
 		FileMetadata(const std::string& filename);
 		FileMetadata(Ref<ProjectFile> projectFile);
 		FileMetadata(BNFileMetadata* file);
 
 		/*! Close the underlying file handle
-		*/
+		 */
 		void Close();
 
 		void SetNavigationHandler(NavigationHandler* handler);
 
 		/*! Get the original name of the binary opened if a bndb, otherwise the current filename
 
-			\return The original name of the binary opened if a bndb, otherwise returns the current filename
+		    \return The original name of the binary opened if a bndb, otherwise returns the current filename
 		*/
 		std::string GetOriginalFilename() const;
 
 		/*! If the filename is not open in a BNDB, sets the filename for the current file.
 
-			\param name New name
+		    \param name New name
 		*/
 		void SetOriginalFilename(const std::string& name);
 
 		/*!
-			\return The name of the open bndb or binary filename
+		    \return The name of the open bndb or binary filename
 		*/
 		std::string GetFilename() const;
 
 		/*! Set the filename for the current BNDB or binary.
 
-		 	\param name Set the filename for the current BNDB or binary.
+		    \param name Set the filename for the current BNDB or binary.
 		*/
 		void SetFilename(const std::string& name);
 
 		/*! Whether the file has unsaved modifications
 
-			\return Whether the file has unsaved modifications
+		    \return Whether the file has unsaved modifications
 		*/
 		bool IsModified() const;
 
 		/*! Whether auto-analysis results have changed.
 
-			\return Whether auto-analysis results have changed.
+		    \return Whether auto-analysis results have changed.
 		*/
 		bool IsAnalysisChanged() const;
 
 		/*! Mark file as having unsaved changes
-		*/
+		 */
 		void MarkFileModified();
 
 		/*! Mark file as having been saved (inverse of MarkFileModified)
-		*/
+		 */
 		void MarkFileSaved();
 
 		bool IsSnapshotDataAppliedWithoutError() const;
 
 		/*! Whether the FileMetadata is backed by a database, or if specified,
-		    	a specific BinaryView type
+		        a specific BinaryView type
 
-			\param binaryViewType Type for the BinaryView
-		 	\return Whether the FileMetadata is backed by a database
+		    \param binaryViewType Type for the BinaryView
+		    \return Whether the FileMetadata is backed by a database
 		*/
 		bool IsBackedByDatabase(const std::string& binaryViewType = "") const;
 
 		/*! Writes the current database (.bndb) out to the specified file.
 
-		 	\param name path and filename to write the bndb to. Should have ".bndb" appended to it.
-		 	\param data BinaryView to save the database from
-		 	\param settings Special save options
-		 	\return Whether the save was successful
+		    \param name path and filename to write the bndb to. Should have ".bndb" appended to it.
+		    \param data BinaryView to save the database from
+		    \param settings Special save options
+		    \return Whether the save was successful
 		*/
 		bool CreateDatabase(const std::string& name, BinaryView* data, Ref<SaveSettings> settings);
 
@@ -2955,30 +3054,30 @@ namespace BinaryNinja {
 		    \return Whether the save was successful
 		*/
 		bool CreateDatabase(const std::string& name, BinaryView* data,
-		    const std::function<bool(size_t progress, size_t total)>& progressCallback, Ref<SaveSettings> settings);
+			const std::function<bool(size_t progress, size_t total)>& progressCallback, Ref<SaveSettings> settings);
 
 		/*! Open an existing database from a given path
 
-		 	\param path Path to the existing database
-		 	\return The resulting BinaryView, if the load was successful
+		    \param path Path to the existing database
+		    \return The resulting BinaryView, if the load was successful
 		*/
 		Ref<BinaryView> OpenExistingDatabase(const std::string& path);
 
 		/*! Open an existing database from a given path with a progress callback
 
 		    \param path Path to the existing database
-			\param progressCallback callback function to send load progress to.
+		    \param progressCallback callback function to send load progress to.
 		    \return The resulting BinaryView, if the load was successful
 		*/
 		Ref<BinaryView> OpenExistingDatabase(
-		    const std::string& path, const std::function<bool(size_t progress, size_t total)>& progressCallback);
+			const std::string& path, const std::function<bool(size_t progress, size_t total)>& progressCallback);
 		Ref<BinaryView> OpenDatabaseForConfiguration(const std::string& path);
 
 		/*! Save the current database to the already created file.
 
-		 	Note: CreateDatabase should have been called prior to calling this.
+		    Note: CreateDatabase should have been called prior to calling this.
 
-			\param data BinaryView to save the data of
+		    \param data BinaryView to save the data of
 		    \param settings Special save options
 		    \return Whether the save was successful
 		*/
@@ -2994,17 +3093,17 @@ namespace BinaryNinja {
 		    \return Whether the save was successful
 		*/
 		bool SaveAutoSnapshot(BinaryView* data,
-		    const std::function<bool(size_t progress, size_t total)>& progressCallback, Ref<SaveSettings> settings);
+			const std::function<bool(size_t progress, size_t total)>& progressCallback, Ref<SaveSettings> settings);
 		void GetSnapshotData(
-		    Ref<KeyValueStore> data, Ref<KeyValueStore> cache, const std::function<bool(size_t, size_t)>& progress);
+			Ref<KeyValueStore> data, Ref<KeyValueStore> cache, const std::function<bool(size_t, size_t)>& progress);
 		void ApplySnapshotData(BinaryView* file, Ref<KeyValueStore> data, Ref<KeyValueStore> cache,
-		    const std::function<bool(size_t, size_t)>& progress, bool openForConfiguration = false,
-		    bool restoreRawView = true);
+			const std::function<bool(size_t, size_t)>& progress, bool openForConfiguration = false,
+			bool restoreRawView = true);
 		Ref<Database> GetDatabase();
 
 		/*! Rebase the given BinaryView to a new address
 
-			\param data BinaryView to rebase
+		    \param data BinaryView to rebase
 		    \param address Address to rebase to
 		    \return Whether the rebase was successful
 		*/
@@ -3012,66 +3111,66 @@ namespace BinaryNinja {
 
 		/*! Rebase the given BinaryView to a new address
 
-			\param data BinaryView to rebase
+		    \param data BinaryView to rebase
 		    \param address Address to rebase to
 		    \param progressCallback Callback function to pass rebase progress to
 		    \return Whether the rebase was successful
 		*/
 		bool Rebase(BinaryView* data, uint64_t address,
-		    const std::function<bool(size_t progress, size_t total)>& progressCallback);
+			const std::function<bool(size_t progress, size_t total)>& progressCallback);
 		bool CreateSnapshotedView(BinaryView* data, const std::string& viewName);
 		bool CreateSnapshotedView(BinaryView* data, const std::string& viewName,
-								  const std::function<bool(size_t progress, size_t total)>& progressCallback);
+			const std::function<bool(size_t progress, size_t total)>& progressCallback);
 
 		/*! Run a function in a context in which any changes made to analysis will be added to an undo state.
-			If the function returns false or throws an exception, any changes made within will be reverted.
+		    If the function returns false or throws an exception, any changes made within will be reverted.
 
-			\param func Function to run in undo context
-			\return Return status of function
-			\throws std::exception If the called function throws an exception
+		    \param func Function to run in undo context
+		    \return Return status of function
+		    \throws std::exception If the called function throws an exception
 		 */
 		bool RunUndoableTransaction(std::function<bool()> func);
 
 		/*! Start recording actions taken so they can be undone at some point
 
-			\param anonymousAllowed Legacy interop: prevent empty calls to CommitUndoActions from affecting this
-			                        undo state. Specifically for RunUndoableTransaction.
-			\return Id of UndoEntry created, for passing to either CommitUndoActions or RevertUndoActions
+		    \param anonymousAllowed Legacy interop: prevent empty calls to CommitUndoActions from affecting this
+		                            undo state. Specifically for RunUndoableTransaction.
+		    \return Id of UndoEntry created, for passing to either CommitUndoActions or RevertUndoActions
 		*/
 		[[nodiscard]] std::string BeginUndoActions(bool anonymousAllowed = true);
 
 		/*!  Commit the actions taken since a call to BeginUndoActions.
 
-			\param id Id of UndoEntry created by BeginUndoActions
+		    \param id Id of UndoEntry created by BeginUndoActions
 		*/
 		void CommitUndoActions(const std::string& id);
 
 		/*!  Revert the actions taken since a call to BeginUndoActions.
 
-			\param id Id of UndoEntry created by BeginUndoActions
+		    \param id Id of UndoEntry created by BeginUndoActions
 		*/
 		void RevertUndoActions(const std::string& id);
 
 		/*!  Forget the actions since a call to BeginUndoActions.
 
-			\param id Id of UndoEntry created by BeginUndoActions
+		    \param id Id of UndoEntry created by BeginUndoActions
 		*/
 		void ForgetUndoActions(const std::string& id);
 
 		/*! \return Whether it is possible to perform an Undo
-		*/
+		 */
 		bool CanUndo();
 
 		/*! Undo the last committed action in the undo database.
-		*/
+		 */
 		bool Undo();
 
 		/*! \return Whether it is possible to perform a Redo
-		*/
+		 */
 		bool CanRedo();
 
 		/*! Redo the last committed action in the undo database.
-		*/
+		 */
 		bool Redo();
 
 		std::vector<Ref<User>> GetUsers();
@@ -3097,9 +3196,9 @@ namespace BinaryNinja {
 
 		/*! Navigate to the specified virtual address in the specified view
 
-		 	\param view View name. e.g. ``Linear:ELF``, ``Graph:PE``
-		 	\param offset Virtual address to navigate to
-		 	\return Whether the navigation was successful.
+		    \param view View name. e.g. ``Linear:ELF``, ``Graph:PE``
+		    \param offset Virtual address to navigate to
+		    \return Whether the navigation was successful.
 		*/
 		bool Navigate(const std::string& view, uint64_t offset);
 
@@ -3118,7 +3217,7 @@ namespace BinaryNinja {
 
 		/*! Get the current Session ID for this file.
 
-		 	\see This is used in Logger and LogRegistry to determine what tab logs are sent to.
+		    \see This is used in Logger and LogRegistry to determine what tab logs are sent to.
 
 		    \return Current Session ID
 		*/
@@ -3156,11 +3255,11 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class BinaryDataNotification
 	{
-	  private:
+	private:
 		BNBinaryDataNotification m_callbacks;
 
 		static uint64_t NotificationBarrierCallback(void* ctxt, BNBinaryView* object);
@@ -3185,11 +3284,13 @@ namespace BinaryNinja {
 		static void TagUpdatedCallback(void* ctxt, BNBinaryView* object, BNTagReference* tagRef);
 
 		static void StringFoundCallback(void* ctxt, BNBinaryView* data, BNStringType type, uint64_t offset, size_t len);
-		static void StringRemovedCallback(void* ctxt, BNBinaryView* data, BNStringType type, uint64_t offset, size_t len);
+		static void StringRemovedCallback(
+			void* ctxt, BNBinaryView* data, BNStringType type, uint64_t offset, size_t len);
 		static void TypeDefinedCallback(void* ctxt, BNBinaryView* data, BNQualifiedName* name, BNType* type);
 		static void TypeUndefinedCallback(void* ctxt, BNBinaryView* data, BNQualifiedName* name, BNType* type);
 		static void TypeReferenceChangedCallback(void* ctx, BNBinaryView* data, BNQualifiedName* name, BNType* type);
-		static void TypeFieldReferenceChangedCallback(void* ctx, BNBinaryView* data, BNQualifiedName* name, uint64_t offset);
+		static void TypeFieldReferenceChangedCallback(
+			void* ctx, BNBinaryView* data, BNQualifiedName* name, uint64_t offset);
 		static void SegmentAddedCallback(void* ctx, BNBinaryView* data, BNSegment* segment);
 		static void SegmentRemovedCallback(void* ctx, BNBinaryView* data, BNSegment* segment);
 		static void SegmentUpdatedCallback(void* ctx, BNBinaryView* data, BNSegment* segment);
@@ -3198,14 +3299,21 @@ namespace BinaryNinja {
 		static void SectionRemovedCallback(void* ctx, BNBinaryView* data, BNSection* section);
 		static void SectionUpdatedCallback(void* ctx, BNBinaryView* data, BNSection* section);
 
-		static void ComponentNameUpdatedCallback(void* ctxt, BNBinaryView* data, char* previousName, BNComponent* component);
+		static void ComponentNameUpdatedCallback(
+			void* ctxt, BNBinaryView* data, char* previousName, BNComponent* component);
 		static void ComponentAddedCallback(void* ctxt, BNBinaryView* data, BNComponent* component);
-		static void ComponentRemovedCallback(void* ctxt, BNBinaryView* data, BNComponent* formerParent, BNComponent* component);
-		static void ComponentMovedCallback(void* ctxt, BNBinaryView* data, BNComponent* formerParent, BNComponent* newParent, BNComponent* component);
-		static void ComponentFunctionAddedCallback(void* ctxt, BNBinaryView* data, BNComponent* component, BNFunction* function);
-		static void ComponentFunctionRemovedCallback(void* ctxt, BNBinaryView* data, BNComponent* component, BNFunction* function);
-		static void ComponentDataVariableAddedCallback(void* ctxt, BNBinaryView* data, BNComponent* component, BNDataVariable* var);
-		static void ComponentDataVariableRemovedCallback(void* ctxt, BNBinaryView* data, BNComponent* component, BNDataVariable* var);
+		static void ComponentRemovedCallback(
+			void* ctxt, BNBinaryView* data, BNComponent* formerParent, BNComponent* component);
+		static void ComponentMovedCallback(
+			void* ctxt, BNBinaryView* data, BNComponent* formerParent, BNComponent* newParent, BNComponent* component);
+		static void ComponentFunctionAddedCallback(
+			void* ctxt, BNBinaryView* data, BNComponent* component, BNFunction* function);
+		static void ComponentFunctionRemovedCallback(
+			void* ctxt, BNBinaryView* data, BNComponent* component, BNFunction* function);
+		static void ComponentDataVariableAddedCallback(
+			void* ctxt, BNBinaryView* data, BNComponent* component, BNDataVariable* var);
+		static void ComponentDataVariableRemovedCallback(
+			void* ctxt, BNBinaryView* data, BNComponent* component, BNDataVariable* var);
 
 		static void ExternalLibraryAddedCallback(void* ctxt, BNBinaryView* data, BNExternalLibrary* library);
 		static void ExternalLibraryUpdatedCallback(void* ctxt, BNBinaryView* data, BNExternalLibrary* library);
@@ -3225,8 +3333,7 @@ namespace BinaryNinja {
 
 		static void RebasedCallback(void* ctxt, BNBinaryView* oldView, BNBinaryView* newView);
 
-	  public:
-
+	public:
 		enum NotificationType : uint64_t
 		{
 			NotificationBarrier = 1ULL << 0,
@@ -3299,12 +3406,15 @@ namespace BinaryNinja {
 			SegmentUpdates = SegmentLifetime | SegmentUpdated,
 			SectionLifetime = SectionAdded | SectionRemoved,
 			SectionUpdates = SectionLifetime | SectionUpdated,
-			ComponentUpdates = ComponentNameUpdated | ComponentAdded | ComponentRemoved | ComponentMoved | ComponentFunctionAdded | ComponentFunctionRemoved | ComponentDataVariableAdded | ComponentDataVariableRemoved,
+			ComponentUpdates = ComponentNameUpdated | ComponentAdded | ComponentRemoved | ComponentMoved
+				| ComponentFunctionAdded | ComponentFunctionRemoved | ComponentDataVariableAdded
+				| ComponentDataVariableRemoved,
 			ExternalLibraryLifetime = ExternalLibraryAdded | ExternalLibraryRemoved,
 			ExternalLibraryUpdates = ExternalLibraryLifetime | ExternalLibraryUpdated,
 			ExternalLocationLifetime = ExternalLocationAdded | ExternalLocationRemoved,
 			ExternalLocationUpdates = ExternalLocationLifetime | ExternalLocationUpdated,
-			TypeArchiveUpdates = TypeArchiveAttached | TypeArchiveDetached | TypeArchiveConnected | TypeArchiveDisconnected,
+			TypeArchiveUpdates =
+				TypeArchiveAttached | TypeArchiveDetached | TypeArchiveConnected | TypeArchiveDisconnected,
 			UndoUpdates = UndoEntryAdded | UndoEntryTaken | RedoEntryTaken
 		};
 
@@ -3486,9 +3596,9 @@ namespace BinaryNinja {
 
 		/*! This notification is posted after the display name for a component is updated.
 
-			\param data BinaryView the Component is contained in
-		 	\param previousName Previous name of the component
-			\param component The component which was modified.
+		    \param data BinaryView the Component is contained in
+		    \param previousName Previous name of the component
+		    \param component The component which was modified.
 		*/
 		virtual void OnComponentNameUpdated(BinaryView* data, std::string& previousName, Component* component)
 		{
@@ -3499,8 +3609,8 @@ namespace BinaryNinja {
 
 		/*! This notification is posted after a Component is added to the tree.
 
-		 	\param data BinaryView the Component was added to
-		 	\param component Component which was added.
+		    \param data BinaryView the Component was added to
+		    \param component Component which was added.
 		*/
 		virtual void OnComponentAdded(BinaryView* data, Component* component)
 		{
@@ -3510,16 +3620,16 @@ namespace BinaryNinja {
 
 		/*! This notification is posted after a Component is removed from the tree.
 
-		 	\param data BinaryView the Component was removed from
-		 	\param formerParent Former parent of the Component
-		 	\param component
-		 	\parblock
+		    \param data BinaryView the Component was removed from
+		    \param formerParent Former parent of the Component
+		    \param component
+		    \parblock
 		    The removed and now "dead" Component object.
 
 		    This "dead" Component can no longer be moved to other components or have components added to it. It
 		    should not be used after this point for storing any objects, and will be destroyed once no more references
 		    are held to it.
-		 	\endparblock
+		    \endparblock
 		*/
 		virtual void OnComponentRemoved(BinaryView* data, Component* formerParent, Component* component)
 		{
@@ -3532,10 +3642,11 @@ namespace BinaryNinja {
 
 		    \param data BinaryView the Component was removed from
 		    \param formerParent Former parent of the Component
-		 	\param newParent New parent which the Component was moved to
-		 	\param component The component that was moved.
+		    \param newParent New parent which the Component was moved to
+		    \param component The component that was moved.
 		*/
-		virtual void OnComponentMoved(BinaryView* data, Component* formerParent, Component* newParent, Component* component)
+		virtual void OnComponentMoved(
+			BinaryView* data, Component* formerParent, Component* newParent, Component* component)
 		{
 			(void)data;
 			(void)formerParent;
@@ -3545,9 +3656,9 @@ namespace BinaryNinja {
 
 		/*! This notification is posted whenever a Function is added to a Component
 
-		 	\param data BinaryView containing the Component and Function
-		 	\param component Component the Function was added to
-		 	\param function The Function which was added
+		    \param data BinaryView containing the Component and Function
+		    \param component Component the Function was added to
+		    \param function The Function which was added
 		*/
 		virtual void OnComponentFunctionAdded(BinaryView* data, Component* component, Function* function)
 		{
@@ -3558,9 +3669,9 @@ namespace BinaryNinja {
 
 		/*! This notification is posted whenever a Function is removed from a Component
 
-		 	\param data BinaryView containing the Component and Function
-		 	\param component Component the Function was removed from
-		 	\param function The Function which was removed
+		    \param data BinaryView containing the Component and Function
+		    \param component Component the Function was removed from
+		    \param function The Function which was removed
 		*/
 		virtual void OnComponentFunctionRemoved(BinaryView* data, Component* component, Function* function)
 		{
@@ -3725,19 +3836,19 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup fileaccessor
+	    \ingroup fileaccessor
 	*/
 	class FileAccessor
 	{
-	  protected:
+	protected:
 		BNFileAccessor m_callbacks;
 
-	  private:
+	private:
 		static uint64_t GetLengthCallback(void* ctxt);
 		static size_t ReadCallback(void* ctxt, void* dest, uint64_t offset, size_t len);
 		static size_t WriteCallback(void* ctxt, uint64_t offset, const void* src, size_t len);
 
-	  public:
+	public:
 		FileAccessor();
 		FileAccessor(BNFileAccessor* accessor);
 		virtual ~FileAccessor() {}
@@ -3752,11 +3863,11 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup fileaccessor
+	    \ingroup fileaccessor
 	*/
 	class CoreFileAccessor : public FileAccessor
 	{
-	  public:
+	public:
 		CoreFileAccessor(BNFileAccessor* accessor);
 
 		virtual bool IsValid() const override { return true; }
@@ -3770,15 +3881,15 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup namelist
+	    \ingroup namelist
 	*/
 	class NameList
 	{
-	  protected:
+	protected:
 		std::string m_join;
 		std::vector<std::string> m_name;
 
-	  public:
+	public:
 		NameList(const BNQualifiedName* name);
 		explicit NameList(const std::string& join, size_t size = 0);
 		NameList(const std::string& name, const std::string& join);
@@ -3810,7 +3921,7 @@ namespace BinaryNinja {
 		virtual const std::string& back() const;
 		virtual void insert(std::vector<std::string>::iterator loc, const std::string& name);
 		virtual void insert(std::vector<std::string>::iterator loc, std::vector<std::string>::iterator b,
-		    std::vector<std::string>::iterator e);
+			std::vector<std::string>::iterator e);
 		virtual void erase(std::vector<std::string>::iterator i);
 		virtual void clear();
 		virtual void push_back(const std::string& name);
@@ -3831,14 +3942,14 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup namelist
+	    \ingroup namelist
 	*/
 	class QualifiedName : public NameList
 	{
 		using NameList::operator+;
 		using NameList::operator=;
-	  public:
 
+	public:
 		QualifiedName();
 		QualifiedName(const BNQualifiedName* name);
 		QualifiedName(const std::string& name);
@@ -3858,14 +3969,14 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup namelist
+	    \ingroup namelist
 	*/
 	class NameSpace : public NameList
 	{
 		using NameList::operator+;
 		using NameList::operator=;
-	  public:
 
+	public:
 		NameSpace();
 		NameSpace(const std::string& name);
 		NameSpace(const std::vector<std::string>& name);
@@ -3884,34 +3995,34 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup types
+	    \ingroup types
 	*/
 	class Symbol : public CoreRefCountObject<BNSymbol, BNNewSymbolReference, BNFreeSymbol>
 	{
-	  public:
+	public:
 		Symbol(BNSymbolType type, const std::string& shortName, const std::string& fullName, const std::string& rawName,
-		    uint64_t addr, BNSymbolBinding binding = NoBinding,
-		    const NameSpace& nameSpace = NameSpace(DEFAULT_INTERNAL_NAMESPACE), uint64_t ordinal = 0);
+			uint64_t addr, BNSymbolBinding binding = NoBinding,
+			const NameSpace& nameSpace = NameSpace(DEFAULT_INTERNAL_NAMESPACE), uint64_t ordinal = 0);
 		Symbol(BNSymbolType type, const std::string& name, uint64_t addr, BNSymbolBinding binding = NoBinding,
-		    const NameSpace& nameSpace = NameSpace(DEFAULT_INTERNAL_NAMESPACE), uint64_t ordinal = 0);
+			const NameSpace& nameSpace = NameSpace(DEFAULT_INTERNAL_NAMESPACE), uint64_t ordinal = 0);
 		Symbol(BNSymbol* sym);
 
 		/*!
-			Symbols are defined as one of the following types:
+		    Symbols are defined as one of the following types:
 
-				=========================== =================================================================
-				BNSymbolType                Description
-				=========================== =================================================================
-				FunctionSymbol              Symbol for function that exists in the current binary
-				ImportAddressSymbol         Symbol defined in the Import Address Table
-				ImportedFunctionSymbol      Symbol for a function that is not defined in the current binary
-				DataSymbol                  Symbol for data in the current binary
-				ImportedDataSymbol          Symbol for data that is not defined in the current binary
-				ExternalSymbol              Symbols for data and code that reside outside the BinaryView
-				LibraryFunctionSymbol       Symbols for functions identified as belonging to a shared library
-				SymbolicFunctionSymbol      Symbols for functions without a concrete implementation or which have been abstractly represented
-				LocalLabelSymbol            Symbol for a local label in the current binary
-				=========================== =================================================================
+		        =========================== =================================================================
+		        BNSymbolType                Description
+		        =========================== =================================================================
+		        FunctionSymbol              Symbol for function that exists in the current binary
+		        ImportAddressSymbol         Symbol defined in the Import Address Table
+		        ImportedFunctionSymbol      Symbol for a function that is not defined in the current binary
+		        DataSymbol                  Symbol for data in the current binary
+		        ImportedDataSymbol          Symbol for data that is not defined in the current binary
+		        ExternalSymbol              Symbols for data and code that reside outside the BinaryView
+		        LibraryFunctionSymbol       Symbols for functions identified as belonging to a shared library
+		        SymbolicFunctionSymbol      Symbols for functions without a concrete implementation or which have been
+		   abstractly represented LocalLabelSymbol            Symbol for a local label in the current binary
+		        =========================== =================================================================
 
 		    \return Symbol type
 		*/
@@ -3938,7 +4049,7 @@ namespace BinaryNinja {
 		std::string GetRawName() const;
 
 		/*!
-			\return Symbol Address
+		    \return Symbol Address
 		*/
 		uint64_t GetAddress() const;
 
@@ -4064,7 +4175,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup lineardisassembly
+	    \ingroup lineardisassembly
 	*/
 	struct LinearDisassemblyLine
 	{
@@ -4073,7 +4184,9 @@ namespace BinaryNinja {
 		Ref<BasicBlock> block;
 		DisassemblyTextLine contents;
 
-		static LinearDisassemblyLine FromAPIObject(BNLinearDisassemblyLine* line);
+		BNLinearDisassemblyLine GetAPIObject() const;
+		static LinearDisassemblyLine FromAPIObject(const BNLinearDisassemblyLine* line);
+		static void FreeAPIObject(BNLinearDisassemblyLine* line);
 	};
 
 	class NamedTypeReference;
@@ -4090,34 +4203,32 @@ namespace BinaryNinja {
 		size_t fieldIndex;
 
 		static TypeDefinitionLine FromAPIObject(BNTypeDefinitionLine* line);
-		static BNTypeDefinitionLine* CreateTypeDefinitionLineList(
-		    const std::vector<TypeDefinitionLine>& lines);
-		static void FreeTypeDefinitionLineList(
-		    BNTypeDefinitionLine* lines, size_t count);
+		static BNTypeDefinitionLine* CreateTypeDefinitionLineList(const std::vector<TypeDefinitionLine>& lines);
+		static void FreeTypeDefinitionLineList(BNTypeDefinitionLine* lines, size_t count);
 	};
 
 	class DisassemblySettings;
 
 	/*!
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class AnalysisCompletionEvent :
-	    public CoreRefCountObject<BNAnalysisCompletionEvent, BNNewAnalysisCompletionEventReference,
-	        BNFreeAnalysisCompletionEvent>
+		public CoreRefCountObject<BNAnalysisCompletionEvent, BNNewAnalysisCompletionEventReference,
+			BNFreeAnalysisCompletionEvent>
 	{
-	  protected:
+	protected:
 		std::function<void()> m_callback;
 		std::recursive_mutex m_mutex;
 
 		static void CompletionCallback(void* ctxt);
 
-	  public:
+	public:
 		AnalysisCompletionEvent(BinaryView* view, const std::function<void()>& callback);
 		void Cancel();
 	};
 
 	/*!
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	struct ActiveAnalysisInfo
 	{
@@ -4127,12 +4238,12 @@ namespace BinaryNinja {
 		size_t submitCount;
 
 		ActiveAnalysisInfo(Ref<Function> f, uint64_t t, size_t uc, size_t sc) :
-		    func(f), analysisTime(t), updateCount(uc), submitCount(sc)
+			func(f), analysisTime(t), updateCount(uc), submitCount(sc)
 		{}
 	};
 
 	/*!
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	struct AnalysisInfo
 	{
@@ -4142,7 +4253,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	struct DataVariable
 	{
@@ -4155,13 +4266,13 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	struct DataVariableAndName
 	{
 		DataVariableAndName() {}
 		DataVariableAndName(uint64_t a, Type* t, bool d, const std::string& n) :
-		    address(a), type(t), autoDiscovered(d), name(n)
+			address(a), type(t), autoDiscovered(d), name(n)
 		{}
 
 		uint64_t address;
@@ -4171,20 +4282,20 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class TagType : public CoreRefCountObject<BNTagType, BNNewTagTypeReference, BNFreeTagType>
 	{
-	  public:
+	public:
 		typedef BNTagTypeType Type;
 
 		TagType(BNTagType* tagType);
 		TagType(BinaryView* view);
 		TagType(BinaryView* view, const std::string& name, const std::string& icon, bool visible = true,
-		    Type type = UserTagType);
+			Type type = UserTagType);
 
 		/*!
-			\return BinaryView for this TagType
+		    \return BinaryView for this TagType
 		*/
 		BinaryView* GetView() const;
 
@@ -4230,9 +4341,9 @@ namespace BinaryNinja {
 		void SetVisible(bool visible);
 
 		/*!
-			One of: UserTagType, NotificationTagType, BookmarksTagType
+		    One of: UserTagType, NotificationTagType, BookmarksTagType
 
-			\return Tag Type.
+		    \return Tag Type.
 		*/
 		Type GetType() const;
 
@@ -4244,7 +4355,7 @@ namespace BinaryNinja {
 
 	class Tag : public CoreRefCountObject<BNTag, BNNewTagReference, BNFreeTag>
 	{
-	  public:
+	public:
 		Tag(BNTag* tag);
 		Tag(Ref<TagType> type, const std::string& data = "");
 
@@ -4270,7 +4381,7 @@ namespace BinaryNinja {
 	class Function;
 
 	/*!
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	struct TagReference
 	{
@@ -4302,11 +4413,11 @@ namespace BinaryNinja {
 
 	/*! The Segment object is returned during BinaryView creation and should not be directly instantiated.
 
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class Segment : public CoreRefCountObject<BNSegment, BNNewSegmentReference, BNFreeSegment>
 	{
-	  public:
+	public:
 		Segment(BNSegment* seg);
 		uint64_t GetStart() const;
 		uint64_t GetLength() const;
@@ -4320,15 +4431,15 @@ namespace BinaryNinja {
 
 	/*! The Section object is returned during BinaryView creation and should not be directly instantiated.
 
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class Section : public CoreRefCountObject<BNSection, BNNewSectionReference, BNFreeSection>
 	{
-	  public:
+	public:
 		Section(BNSection* sec);
 		Section(const std::string& name, uint64_t start, uint64_t length, BNSectionSemantics semantics,
-		    const std::string& type, uint64_t align, uint64_t entrySize, const std::string& linkedSection,
-		    const std::string& infoSection, uint64_t infoData, bool autoDefined);
+			const std::string& type, uint64_t align, uint64_t entrySize, const std::string& linkedSection,
+			const std::string& infoSection, uint64_t infoData, bool autoDefined);
 		std::string GetName() const;
 		std::string GetType() const;
 		uint64_t GetStart() const;
@@ -4377,76 +4488,79 @@ namespace BinaryNinja {
 
 	class QueryMetadataException : public ExceptionWithStackTrace
 	{
-	  public:
+	public:
 		QueryMetadataException(const std::string& error) : ExceptionWithStackTrace(error) {}
 	};
 
 	/*! \c BinaryView implements a view on binary data, and presents a queryable interface of a binary file.
 
-		One key job of BinaryView is file format parsing which allows Binary Ninja to read, write, insert, remove portions
-		of the file given a virtual address. For the purposes of this documentation we define a virtual address as the
-		memory address that the various pieces of the physical file will be loaded at.
+	    One key job of BinaryView is file format parsing which allows Binary Ninja to read, write, insert, remove
+	   portions of the file given a virtual address. For the purposes of this documentation we define a virtual address
+	   as the memory address that the various pieces of the physical file will be loaded at.
 
-		A binary file does not have to have just one BinaryView, thus much of the interface to manipulate disassembly exists
-		within or is accessed through a BinaryView. All files are guaranteed to have at least the \c Raw BinaryView. The
-		\c Raw BinaryView is simply a hex editor, but is helpful for manipulating binary files via their absolute addresses.
+	    A binary file does not have to have just one BinaryView, thus much of the interface to manipulate disassembly
+	   exists within or is accessed through a BinaryView. All files are guaranteed to have at least the \c Raw
+	   BinaryView. The \c Raw BinaryView is simply a hex editor, but is helpful for manipulating binary files via their
+	   absolute addresses.
 
-		BinaryViews are plugins and thus registered with Binary Ninja at startup, and thus should **never** be instantiated
-		directly as this is already done. The list of available BinaryViews can be seen in the BinaryViewType class which
-		provides an iterator and map of the various installed BinaryViews:
+	    BinaryViews are plugins and thus registered with Binary Ninja at startup, and thus should **never** be
+	   instantiated directly as this is already done. The list of available BinaryViews can be seen in the
+	   BinaryViewType class which provides an iterator and map of the various installed BinaryViews:
 
-		\code{.cpp}
-		// Getting a list of valid BinaryViewTypes
-		vector<Ref<BinaryViewType>> types = BinaryViewType::GetViewTypes()
+	    \code{.cpp}
+	    // Getting a list of valid BinaryViewTypes
+	    vector<Ref<BinaryViewType>> types = BinaryViewType::GetViewTypes()
 
-		// Getting a list of valid BinaryViewTypes valid for given data
-		vector<Ref<BinaryViewType>> types = BinaryViewType::GetViewTypesForData(bv);
+	    // Getting a list of valid BinaryViewTypes valid for given data
+	    vector<Ref<BinaryViewType>> types = BinaryViewType::GetViewTypesForData(bv);
 
-		Ref<BinaryViewType> machoType = BinaryViewType::GetByName("Mach-O");
-		\endcode
+	    Ref<BinaryViewType> machoType = BinaryViewType::GetByName("Mach-O");
+	    \endcode
 
-		\see BinaryViewType
+	    \see BinaryViewType
 
-		\b In the python console:
-		\code{.py}
-		>>> list(BinaryViewType)
-		[<view type: 'Raw'>, <view type: 'ELF'>, <view type: 'Mach-O'>, <view type: 'PE'>]
-		>>> BinaryViewType['ELF']
-		<view type: 'ELF'>
-		\endcode
+	    \b In the python console:
+	    \code{.py}
+	    >>> list(BinaryViewType)
+	    [<view type: 'Raw'>, <view type: 'ELF'>, <view type: 'Mach-O'>, <view type: 'PE'>]
+	    >>> BinaryViewType['ELF']
+	    <view type: 'ELF'>
+	    \endcode
 
-		To open a file with a given BinaryView the following code is recommended:
+	    To open a file with a given BinaryView the following code is recommended:
 
-		\code{.cpp}
-		auto bv = Load("/bin/ls");
-		\endcode
+	    \code{.cpp}
+	    auto bv = Load("/bin/ls");
+	    \endcode
 
-		\remark By convention in the rest of this document we will use bv to mean an open and, analyzed, BinaryView of an executable file.
+	    \remark By convention in the rest of this document we will use bv to mean an open and, analyzed, BinaryView of
+	   an executable file.
 
-		When a BinaryView is open on an executable view analysis is automatically run unless specific named parameters are used
-		to disable updates. If such a parameter is used, updates can be triggered using the \c UpdateAnalysisAndWait() method
-		which disassembles the executable and returns when all disassembly and analysis is complete:
+	    When a BinaryView is open on an executable view analysis is automatically run unless specific named parameters
+	   are used to disable updates. If such a parameter is used, updates can be triggered using the \c
+	   UpdateAnalysisAndWait() method which disassembles the executable and returns when all disassembly and analysis is
+	   complete:
 
-		\code{.cpp}
-		bv->UpdateAnalysisAndWait();
-		\endcode
+	    \code{.cpp}
+	    bv->UpdateAnalysisAndWait();
+	    \endcode
 
-		Since BinaryNinja's analysis is multi-threaded this can also be done in the background
-		by using the \c UpdateAnalysis method instead.
+	    Since BinaryNinja's analysis is multi-threaded this can also be done in the background
+	    by using the \c UpdateAnalysis method instead.
 
-		\note An important note on the \c \*User\*() methods. Binary Ninja makes a distinction between edits
-		performed by the user and actions performed by auto analysis.  Auto analysis actions that can quickly be recalculated
-		are not saved to the database. Auto analysis actions that take a long time and all user edits are stored in the
-		database (e.g. \c RemoveUserFunction rather than \c RemoveFunction ). Thus use \c \*User\*() methods if saving
-		to the database is desired.
+	    \note An important note on the \c \*User\*() methods. Binary Ninja makes a distinction between edits
+	    performed by the user and actions performed by auto analysis.  Auto analysis actions that can quickly be
+	   recalculated are not saved to the database. Auto analysis actions that take a long time and all user edits are
+	   stored in the database (e.g. \c RemoveUserFunction rather than \c RemoveFunction ). Thus use \c \*User\*()
+	   methods if saving to the database is desired.
 
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class BinaryView : public CoreRefCountObject<BNBinaryView, BNNewViewReference, BNFreeBinaryView>
 	{
 		std::unique_ptr<MemoryMap> m_memoryMap;
 
-	  protected:
+	protected:
 		Ref<FileMetadata> m_file;  //!< The underlying file
 
 		/*! BinaryView constructor
@@ -4459,9 +4573,9 @@ namespace BinaryNinja {
 		/*! PerformRead provides a mapping between the flat file and virtual offsets in the file.
 
 		    \note This method **may** be overridden by custom BinaryViews. Use AddAutoSegment to provide
-		    	  data without overriding this method.
+		          data without overriding this method.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \param dest the address to write len number of bytes.
 		    \param offset the virtual offset to find and read len bytes from
@@ -4480,7 +4594,7 @@ namespace BinaryNinja {
 		    \note This method **may** be overridden by custom BinaryViews. Use AddAutoSegment to provide
 		          data without overriding this method.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 		    \param offset the virtual offset to find and write len bytes to
 		    \param data the address to read len number of bytes from
 		    \param len the number of bytes to read from data and write to offset
@@ -4495,11 +4609,11 @@ namespace BinaryNinja {
 		}
 
 		/*! PerformInsert provides a mapping between the flat file and virtual offsets in the file,
-				inserting `len` bytes from `data` to virtual address `offset`
+		        inserting `len` bytes from `data` to virtual address `offset`
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \param offset the virtual offset to find and insert len bytes into
 		    \param data the address to read len number of bytes from
@@ -4515,13 +4629,13 @@ namespace BinaryNinja {
 		}
 
 		/*! PerformRemove provides a mapping between the flat file and virtual offsets in the file,
-		    	removing `len` bytes from virtual address `offset`
+		        removing `len` bytes from virtual address `offset`
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
-			\param offset the virtual offset to find and remove bytes from
+		    \param offset the virtual offset to find and remove bytes from
 		    \param len the number of bytes to be removed
 		    \return length of data removed, 0 on error
 		*/
@@ -4536,7 +4650,7 @@ namespace BinaryNinja {
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \param offset a virtual address to be checked
 		    \return one of Original, Changed, Inserted
@@ -4551,7 +4665,7 @@ namespace BinaryNinja {
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \param offset the virtual address to check
 		    \return whether the offset is valid
@@ -4562,7 +4676,7 @@ namespace BinaryNinja {
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \param offset the virtual address to check
 		    \return whether the offset is readable
@@ -4573,7 +4687,7 @@ namespace BinaryNinja {
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \param offset the virtual address to check
 		    \return whether the offset is writable
@@ -4584,7 +4698,7 @@ namespace BinaryNinja {
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \param offset the virtual address to check
 		    \return whether the offset is executable
@@ -4598,22 +4712,24 @@ namespace BinaryNinja {
 		*/
 		virtual bool PerformIsOffsetBackedByFile(uint64_t offset);
 
-		/*! PerformGetNextValidOffset implements a query for the next valid readable, writable, or executable virtual memory address after `offset`
+		/*! PerformGetNextValidOffset implements a query for the next valid readable, writable, or executable virtual
+		   memory address after `offset`
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \param offset a virtual address to start checking from
 		    \return the next valid address
 		*/
 		virtual uint64_t PerformGetNextValidOffset(uint64_t offset);
 
-		/*! PerformGetStart implements a query for the first readable, writable, or executable virtual address in the BinaryView
+		/*! PerformGetStart implements a query for the first readable, writable, or executable virtual address in the
+		   BinaryView
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \return the first virtual address in the BinaryView
 		*/
@@ -4625,7 +4741,7 @@ namespace BinaryNinja {
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \return whether the BinaryView is executable
 		*/
@@ -4635,7 +4751,7 @@ namespace BinaryNinja {
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \return either LittleEndian or BigEndian
 		*/
@@ -4645,7 +4761,7 @@ namespace BinaryNinja {
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \return whether the BinaryView is relocatable
 		*/
@@ -4655,7 +4771,7 @@ namespace BinaryNinja {
 
 		    \note This method **may** be overridden by custom BinaryViews.
 
-			\warning This method **must not** be called directly.
+		    \warning This method **must not** be called directly.
 
 		    \return the address size for this BinaryView
 		*/
@@ -4665,12 +4781,12 @@ namespace BinaryNinja {
 		void PerformDefineRelocation(Architecture* arch, BNRelocationInfo& info, uint64_t target, uint64_t reloc);
 		void PerformDefineRelocation(Architecture* arch, BNRelocationInfo& info, Ref<Symbol> sym, uint64_t reloc);
 
-	  public:
+	public:
 		void NotifyDataWritten(uint64_t offset, size_t len);
 		void NotifyDataInserted(uint64_t offset, size_t len);
 		void NotifyDataRemoved(uint64_t offset, uint64_t len);
 
-	  private:
+	private:
 		static bool InitCallback(void* ctxt);
 		static void FreeCallback(void* ctxt);
 		static size_t ReadCallback(void* ctxt, void* dest, uint64_t offset, size_t len);
@@ -4693,14 +4809,14 @@ namespace BinaryNinja {
 		static size_t GetAddressSizeCallback(void* ctxt);
 		static bool SaveCallback(void* ctxt, BNFileAccessor* file);
 
-	  public:
+	public:
 		BinaryView(BNBinaryView* view);
 
 		virtual bool Init() { return true; }
 
 
 		/*!
-			\return FileMetadata for this BinaryView
+		    \return FileMetadata for this BinaryView
 		*/
 		FileMetadata* GetFile() const { return m_file; }
 
@@ -4711,20 +4827,20 @@ namespace BinaryNinja {
 		std::string GetTypeName() const;
 
 		/*!
-			\return Whether the file has unsaved modifications
+		    \return Whether the file has unsaved modifications
 		*/
 		bool IsModified() const;
 
 		/*!
-			\return Whether auto-analysis results have changed.
+		    \return Whether auto-analysis results have changed.
 		*/
 		bool IsAnalysisChanged() const;
 
 		/*! Writes the current database (.bndb) out to the specified file.
 
-		 	\param path path and filename to write the bndb to. Should have ".bndb" appended to it.
-		 	\param settings Special save options
-		 	\return Whether the save was successful
+		    \param path path and filename to write the bndb to. Should have ".bndb" appended to it.
+		    \param settings Special save options
+		    \return Whether the save was successful
 		*/
 		bool CreateDatabase(const std::string& path, Ref<SaveSettings> settings = new SaveSettings());
 
@@ -4736,63 +4852,63 @@ namespace BinaryNinja {
 		    \return Whether the save was successful
 		*/
 		bool CreateDatabase(const std::string& path,
-		    const std::function<bool(size_t progress, size_t total)>& progressCallback,
-		    Ref<SaveSettings> settings = new SaveSettings());
+			const std::function<bool(size_t progress, size_t total)>& progressCallback,
+			Ref<SaveSettings> settings = new SaveSettings());
 		bool SaveAutoSnapshot(Ref<SaveSettings> settings = new SaveSettings());
 		bool SaveAutoSnapshot(const std::function<bool(size_t progress, size_t total)>& progressCallback,
-		    Ref<SaveSettings> settings = new SaveSettings());
+			Ref<SaveSettings> settings = new SaveSettings());
 
 		/*! Run a function in a context in which any changes made to analysis will be added to an undo state.
-			If the function returns false or throws an exception, any changes made within will be reverted.
+		    If the function returns false or throws an exception, any changes made within will be reverted.
 
-			\param func Function to run in undo context
-			\return Return status of function
-			\throws std::exception If the called function throws an exception
+		    \param func Function to run in undo context
+		    \return Return status of function
+		    \throws std::exception If the called function throws an exception
 		 */
 		bool RunUndoableTransaction(std::function<bool()> func);
 
 		/*! Start recording actions taken so they can be undone at some point
 
-			\param anonymousAllowed Legacy interop: prevent empty calls to CommitUndoActions from affecting this
-			                        undo state. Specifically for RunUndoableTransaction.
-			\return Id of UndoEntry created, for passing to either CommitUndoActions or RevertUndoActions
+		    \param anonymousAllowed Legacy interop: prevent empty calls to CommitUndoActions from affecting this
+		                            undo state. Specifically for RunUndoableTransaction.
+		    \return Id of UndoEntry created, for passing to either CommitUndoActions or RevertUndoActions
 		*/
 		[[nodiscard]] std::string BeginUndoActions(bool anonymousAllowed = true);
 
 		/*!  Commit the actions taken since a call to BeginUndoActions.
 
-			\param id Id of UndoEntry created by BeginUndoActions
+		    \param id Id of UndoEntry created by BeginUndoActions
 		*/
 		void CommitUndoActions(const std::string& id);
 
 		/*!  Revert the actions taken since a call to BeginUndoActions.
 
-			\param id Id of UndoEntry created by BeginUndoActions
+		    \param id Id of UndoEntry created by BeginUndoActions
 		*/
 		void RevertUndoActions(const std::string& id);
 
 		/*!  Forget the actions taken since a call to BeginUndoActions.
 
-			\param id Id of UndoEntry created by BeginUndoActions
+		    \param id Id of UndoEntry created by BeginUndoActions
 		*/
 		void ForgetUndoActions(const std::string& id);
 
 		/*!
-			\return Whether it is possible to perform an Undo
+		    \return Whether it is possible to perform an Undo
 		*/
 		bool CanUndo();
 
 		/*! Undo the last committed action in the undo database.
-		*/
+		 */
 		bool Undo();
 
 		/*!
-			\return Whether it is possible to perform a Redo
+		    \return Whether it is possible to perform a Redo
 		*/
 		bool CanRedo();
 
 		/*! Redo the last committed action in the undo database.
-		*/
+		 */
 		bool Redo();
 
 		/*!
@@ -4810,11 +4926,11 @@ namespace BinaryNinja {
 		uint64_t GetCurrentOffset();
 
 		/*!
-			Navigate to the specified virtual address in the specified view
+		    Navigate to the specified virtual address in the specified view
 
-		 	\param view View name. e.g. ``Linear:ELF``, ``Graph:PE``
-		 	\param offset Virtual address to navigate to
-		 	\return Whether the navigation was successful.
+		    \param view View name. e.g. ``Linear:ELF``, ``Graph:PE``
+		    \param offset Virtual address to navigate to
+		    \return Whether the navigation was successful.
 		*/
 		bool Navigate(const std::string& view, uint64_t offset);
 
@@ -4837,16 +4953,16 @@ namespace BinaryNinja {
 
 		/*! Write writes `len` bytes data at address `dest` to virtual address `offset`
 
-			\param offset virtual address to write to
-			\param data address to read from
-			\param len number of bytes to write
-			\return amount of bytes written
+		    \param offset virtual address to write to
+		    \param data address to read from
+		    \param len number of bytes to write
+		    \return amount of bytes written
 		*/
 		size_t Write(uint64_t offset, const void* data, size_t len);
 
 		/*! WriteBuffer writes the contents of a DataBuffer into a virtual address
 
-			\param offset virtual address to write to
+		    \param offset virtual address to write to
 		    \param data DataBuffer containing the bytes to write
 		    \return amount of bytes written
 		*/
@@ -4854,16 +4970,16 @@ namespace BinaryNinja {
 
 		/*! Insert inserts `len` bytes data at address `dest` starting from virtual address `offset`
 
-			\param offset virtual address to start inserting from
-			\param data address to read from
-			\param len number of bytes to write
-			\return amount of bytes written
+		    \param offset virtual address to start inserting from
+		    \param data address to read from
+		    \param len number of bytes to write
+		    \return amount of bytes written
 		*/
 		size_t Insert(uint64_t offset, const void* data, size_t len);
 
 		/*! InsertBuffer inserts the contents of a DataBuffer starting from a virtual address
 
-			\param offset virtual address to start inserting from
+		    \param offset virtual address to start inserting from
 		    \param data DataBuffer containing the bytes to write
 		    \return amount of bytes written
 		*/
@@ -4871,7 +4987,7 @@ namespace BinaryNinja {
 
 		/*! PerformRemove removes `len` bytes from virtual address `offset`
 
-			\param offset the virtual offset to find and remove bytes from
+		    \param offset the virtual offset to find and remove bytes from
 		    \param len the number of bytes to be removed
 		    \return length of data removed, 0 on error
 		*/
@@ -4925,7 +5041,8 @@ namespace BinaryNinja {
 		bool IsOffsetWritableSemantics(uint64_t offset) const;
 		bool IsOffsetExternSemantics(uint64_t offset) const;
 
-		/*! GetNextValidOffset implements a query for the next valid readable, writable, or executable virtual memory address after `offset`
+		/*! GetNextValidOffset implements a query for the next valid readable, writable, or executable virtual memory
+		   address after `offset`
 
 		    \param offset a virtual address to start checking from
 		    \return the next valid address
@@ -4938,7 +5055,8 @@ namespace BinaryNinja {
 		*/
 		uint64_t GetImageBase() const;
 
-		/*! GetOriginalImageBase queries for the original image base in the BinaryView, unaffected by any rebasing operations
+		/*! GetOriginalImageBase queries for the original image base in the BinaryView, unaffected by any rebasing
+		   operations
 
 		    \return the original image base of the BinaryView
 		*/
@@ -4988,7 +5106,7 @@ namespace BinaryNinja {
 		uint64_t GetLength() const;
 
 		/*! GetEntryPoint returns the entry point of the executable in the BinaryView
-					    \return the entry point
+		                \return the entry point
 		*/
 		uint64_t GetEntryPoint() const;
 
@@ -5074,7 +5192,8 @@ namespace BinaryNinja {
 		*/
 		void UnregisterNotification(BinaryDataNotification* notify);
 
-		/*! Adds an analysis option. Analysis options elaborate the analysis phase. The user must start analysis by calling either UpdateAnalysis or UpdateAnalysisAndWait
+		/*! Adds an analysis option. Analysis options elaborate the analysis phase. The user must start analysis by
+		   calling either UpdateAnalysis or UpdateAnalysisAndWait
 
 		    \param name Name of the analysis option. Available options are "linearsweep" and "signaturematcher"
 		*/
@@ -5099,7 +5218,7 @@ namespace BinaryNinja {
 
 		/*! adds an function to all entry function list
 
-			\param func Function to add
+		    \param func Function to add
 		*/
 		void AddToEntryFunctions(Function* func);
 
@@ -5112,7 +5231,7 @@ namespace BinaryNinja {
 
 		/*! Add a new user function of the given platform at the virtual address
 
-			\param platform Platform for the function to be loaded
+		    \param platform Platform for the function to be loaded
 		    \param addr Virtual adddress of the function to be loaded
 		*/
 		Ref<Function> CreateUserFunction(Platform* platform, uint64_t start);
@@ -5130,7 +5249,7 @@ namespace BinaryNinja {
 		bool HasInitialAnalysis();
 
 		/*! Controls the analysis hold for this BinaryView. Enabling analysis hold defers all future
-		 	analysis updates, therefore causing UpdateAnalysis and UpdateAnalysisAndWait to take no action.
+		    analysis updates, therefore causing UpdateAnalysis and UpdateAnalysisAndWait to take no action.
 
 		    \param enable Whether to enable or disable the analysis hold
 		*/
@@ -5141,23 +5260,24 @@ namespace BinaryNinja {
 
 		/*! start the analysis running and dont return till it is complete
 
-			Analysis of BinaryViews does not occur automatically, the user must start analysis by calling either
-		 	UpdateAnalysis or UpdateAnalysisAndWait. An analysis update **must** be run after changes are made which could change
-		    analysis results such as adding functions.
+		    Analysis of BinaryViews does not occur automatically, the user must start analysis by calling either
+		    UpdateAnalysis or UpdateAnalysisAndWait. An analysis update **must** be run after changes are made which
+		   could change analysis results such as adding functions.
 		*/
 		void UpdateAnalysisAndWait();
 
 		/*! asynchronously starts the analysis running and returns immediately.
 
-			Analysis of BinaryViews does not occur automatically, the user must start analysis by calling either
-		 	UpdateAnalysis or UpdateAnalysisAndWait. An analysis update **must** be run after changes are made which could change
-		    analysis results such as adding functions.
+		    Analysis of BinaryViews does not occur automatically, the user must start analysis by calling either
+		    UpdateAnalysis or UpdateAnalysisAndWait. An analysis update **must** be run after changes are made which
+		   could change analysis results such as adding functions.
 		*/
 		void UpdateAnalysis();
 
 		/*! Abort the currently running analysis
 
-			This method should be considered non-recoverable and generally only used when shutdown is imminent after stopping.
+		    This method should be considered non-recoverable and generally only used when shutdown is imminent after
+		   stopping.
 		*/
 		void AbortAnalysis();
 
@@ -5295,7 +5415,7 @@ namespace BinaryNinja {
 
 		/*! Get code references made by a particular "ReferenceSource"
 
-			A ReferenceSource contains a given function, architecture of that function, and an address within it.
+		    A ReferenceSource contains a given function, architecture of that function, and an address within it.
 
 		    \param src reference source
 		    \return List of virtual addresses referenced by this source
@@ -5304,9 +5424,9 @@ namespace BinaryNinja {
 
 		/*! Get code references from a range of addresses.
 
-			A ReferenceSource contains a given function, architecture of that function, and an address within it.
+		    A ReferenceSource contains a given function, architecture of that function, and an address within it.
 
-			The 2nd parameter is the length of the range. The start of the range is set in ReferenceSource::addr
+		    The 2nd parameter is the length of the range. The start of the range is set in ReferenceSource::addr
 
 		    \param src reference source
 		    \param len Length of query
@@ -5383,21 +5503,21 @@ namespace BinaryNinja {
 
 		/*! Returns a list of references to a specific type field
 
-			\param type QualifiedName of the type
-			\param offset Offset of the field, relative to the start of the type
-			\return vector of TypeFieldReferences
+		    \param type QualifiedName of the type
+		    \param offset Offset of the field, relative to the start of the type
+		    \return vector of TypeFieldReferences
 		*/
 		std::vector<TypeFieldReference> GetCodeReferencesForTypeField(const QualifiedName& type, uint64_t offset);
 
 		/*! Returns a list of virtual addresses of data which references the type \c type .
 
-			Note, the returned addresses are the actual start of the queried type field. For example, suppose there is a
-			DataVariable at \c 0x1000 that has type \c A , and type \c A contains type \c B at offset \c 0x10 .
-			Then <tt>GetDataReferencesForTypeField(bQualifiedName, 0x8)</tt> will return \c 0x1018 for it.
+		    Note, the returned addresses are the actual start of the queried type field. For example, suppose there is a
+		    DataVariable at \c 0x1000 that has type \c A , and type \c A contains type \c B at offset \c 0x10 .
+		    Then <tt>GetDataReferencesForTypeField(bQualifiedName, 0x8)</tt> will return \c 0x1018 for it.
 
-			\param type QualifiedName of the type
-			\param offset Offset of the field, relative to the start of the type
-			\return List of DataVariable start addresses containing references to the type field
+		    \param type QualifiedName of the type
+		    \param offset Offset of the field, relative to the start of the type
+		    \return List of DataVariable start addresses containing references to the type field
 		*/
 		std::vector<uint64_t> GetDataReferencesForTypeField(const QualifiedName& type, uint64_t offset);
 
@@ -5413,258 +5533,261 @@ namespace BinaryNinja {
 
 		/*! Returns a list of type references to a specific type field
 
-			\param type QualifiedName of the type
-			\param offset Offset of the field, relative to the start of the type
-			\return vector of TypeReferenceSources
+		    \param type QualifiedName of the type
+		    \param offset Offset of the field, relative to the start of the type
+		    \return vector of TypeReferenceSources
 		*/
 		std::vector<TypeReferenceSource> GetTypeReferencesForTypeField(const QualifiedName& type, uint64_t offset);
 
 		/*! Returns a list of types referenced by code at ReferenceSource \c src
 
-			If no function is specified, references from all functions and containing the address will be returned.
-		 	If no architecture is specified, the architecture of the function will be used.
+		    If no function is specified, references from all functions and containing the address will be returned.
+		    If no architecture is specified, the architecture of the function will be used.
 
-			\param src Source of the reference to check
-		 	\return vector of TypeReferenceSources
+		    \param src Source of the reference to check
+		    \return vector of TypeReferenceSources
 		*/
 		std::vector<TypeReferenceSource> GetCodeReferencesForTypeFrom(ReferenceSource src);
 
 		/*! Returns a list of types referenced by code at ReferenceSource \c src
 
-			If no function is specified, references from all functions and containing the address will be returned.
-		 	If no architecture is specified, the architecture of the function will be used.
+		    If no function is specified, references from all functions and containing the address will be returned.
+		    If no architecture is specified, the architecture of the function will be used.
 
-			\param src Source location to check
-			\param len Length of the query
-			\return vector of TypeReferenceSources
+		    \param src Source location to check
+		    \param len Length of the query
+		    \return vector of TypeReferenceSources
 		*/
 		std::vector<TypeReferenceSource> GetCodeReferencesForTypeFrom(ReferenceSource src, uint64_t len);
 
 		/*! Returns a list of type fields referenced by code at ReferenceSource \c src
 
-			If no function is specified, references from all functions and containing the address will be returned.
-		 	If no architecture is specified, the architecture of the function will be used.
+		    If no function is specified, references from all functions and containing the address will be returned.
+		    If no architecture is specified, the architecture of the function will be used.
 
-			\param src Source location to check
-			\return vector of TypeReferenceSources
+		    \param src Source location to check
+		    \return vector of TypeReferenceSources
 		*/
 		std::vector<TypeReferenceSource> GetCodeReferencesForTypeFieldFrom(ReferenceSource src);
 
 		/*! Returns a list of type fields referenced by code at ReferenceSource \c src
 
-			If no function is specified, references from all functions and containing the address will be returned.
-		 	If no architecture is specified, the architecture of the function will be used.
+		    If no function is specified, references from all functions and containing the address will be returned.
+		    If no architecture is specified, the architecture of the function will be used.
 
-			\param src Source location to check
-			\param len Length of the query
-			\return vector of TypeReferenceSources
+		    \param src Source location to check
+		    \param len Length of the query
+		    \return vector of TypeReferenceSources
 		*/
 		std::vector<TypeReferenceSource> GetCodeReferencesForTypeFieldFrom(ReferenceSource src, uint64_t len);
 
 		/*! Returns a list of offsets in the QualifiedName specified by name, which are referenced by code.
 
-			\param type Name of type to query for references
-			\return List of offsets
+		    \param type Name of type to query for references
+		    \return List of offsets
 		*/
 		std::vector<uint64_t> GetAllFieldsReferenced(const QualifiedName& type);
 
 		/*! Returns a map from field offset to a list of sizes of the accesses to the specified type.
 
-			\param type Name of type to query for references
-			\return A map from field offset to the	size of the code accesses to it
+		    \param type Name of type to query for references
+		    \return A map from field offset to the	size of the code accesses to it
 		*/
 		std::map<uint64_t, std::vector<size_t>> GetAllSizesReferenced(const QualifiedName& type);
 
 		/*! Returns a map from field offset to a list of incoming types written to the specified type.
 
-			\param type Name of type to query for references
-			\return A map from field offset to a list of incoming types written to it
+		    \param type Name of type to query for references
+		    \return A map from field offset to a list of incoming types written to it
 		*/
 		std::map<uint64_t, std::vector<Confidence<Ref<Type>>>> GetAllTypesReferenced(const QualifiedName& type);
 
 		/*! Returns a list of types related to the type field access.
 
-			\param type Name of type to query for references
-			\param offset Offset of the field, relative to the start of the type
-			\return A list of sizes of accesses to the type
+		    \param type Name of type to query for references
+		    \param offset Offset of the field, relative to the start of the type
+		    \return A list of sizes of accesses to the type
 		*/
 		std::vector<size_t> GetSizesReferenced(const QualifiedName& type, uint64_t offset);
 
 		/*! Returns a list of types referenced by a particular type field
 
-			\param type Name of type to query for references
-			\param offset Offset of the field, relative to the start of the type
-			\return A list of types referenced
+		    \param type Name of type to query for references
+		    \param offset Offset of the field, relative to the start of the type
+		    \return A list of types referenced
 		*/
 		std::vector<Confidence<Ref<Type>>> GetTypesReferenced(const QualifiedName& type, uint64_t offset);
 
 		std::unordered_set<QualifiedName> GetOutgoingDirectTypeReferences(const QualifiedName& type);
 		std::unordered_set<QualifiedName> GetOutgoingRecursiveTypeReferences(const QualifiedName& type);
-		std::unordered_set<QualifiedName> GetOutgoingRecursiveTypeReferences(const std::unordered_set<QualifiedName>& types);
+		std::unordered_set<QualifiedName> GetOutgoingRecursiveTypeReferences(
+			const std::unordered_set<QualifiedName>& types);
 		std::unordered_set<QualifiedName> GetIncomingDirectTypeReferences(const QualifiedName& type);
 		std::unordered_set<QualifiedName> GetIncomingRecursiveTypeReferences(const QualifiedName& type);
-		std::unordered_set<QualifiedName> GetIncomingRecursiveTypeReferences(const std::unordered_set<QualifiedName>& types);
+		std::unordered_set<QualifiedName> GetIncomingRecursiveTypeReferences(
+			const std::unordered_set<QualifiedName>& types);
 
-		Ref<Structure> CreateStructureBasedOnFieldAccesses(const QualifiedName& type); // Unimplemented!
+		Ref<Structure> CreateStructureBasedOnFieldAccesses(const QualifiedName& type);  // Unimplemented!
 
 		/*! Returns a list of virtual addresses called by the call site in the ReferenceSource
 
-			If no function is specified, call sites from
-			all functions and containing the address will be considered. If no architecture is specified, the
-			architecture of the function will be used.
+		    If no function is specified, call sites from
+		    all functions and containing the address will be considered. If no architecture is specified, the
+		    architecture of the function will be used.
 
-			\param addr ReferenceSource to get callees to
-			\return A list of addresses referencing the ReferenceSource
+		    \param addr ReferenceSource to get callees to
+		    \return A list of addresses referencing the ReferenceSource
 		*/
 		std::vector<uint64_t> GetCallees(ReferenceSource addr);
 
 		/*! Returns a list of ReferenceSource objects (xrefs or cross-references) that call the provided virtual address
 
-			In this case, tail calls, jumps, and ordinary calls are considered.
+		    In this case, tail calls, jumps, and ordinary calls are considered.
 
-			\param addr Address to check callers for
-			\return A list of ReferenceSources calling this address
+		    \param addr Address to check callers for
+		    \return A list of ReferenceSources calling this address
 		*/
 		std::vector<ReferenceSource> GetCallers(uint64_t addr);
 
 		/*! Returns the Symbol at the provided virtual address
 
-			\param addr Virtual address to query for symbol
-			\param nameSpace The optional namespace of the symbols to retrieve
-			\return The symbol located at that address
+		    \param addr Virtual address to query for symbol
+		    \param nameSpace The optional namespace of the symbols to retrieve
+		    \return The symbol located at that address
 		*/
 		Ref<Symbol> GetSymbolByAddress(uint64_t addr, const NameSpace& nameSpace = NameSpace());
 
 		/*! Retrieves a Symbol object for the given a raw (mangled) name.
 
-			\param name Raw (mangled) name of the symbol
-			\param nameSpace The optional namespace of the symbols to retrieve
-			\return The symbol with that raw name
+		    \param name Raw (mangled) name of the symbol
+		    \param nameSpace The optional namespace of the symbols to retrieve
+		    \return The symbol with that raw name
 		*/
 		Ref<Symbol> GetSymbolByRawName(const std::string& name, const NameSpace& nameSpace = NameSpace());
 
 		/*! Retrieves a list of symbols with a given name
 
-			\param name Name to search for
-			\param nameSpace The optional namespace of the symbols to retrieve
-			\return List of symbols with that name
+		    \param name Name to search for
+		    \param nameSpace The optional namespace of the symbols to retrieve
+		    \return List of symbols with that name
 		*/
 		std::vector<Ref<Symbol>> GetSymbolsByName(const std::string& name, const NameSpace& nameSpace = NameSpace());
 
 		/*! Retrieves the list of all Symbol objects with a given raw name
 
-			\param name RawName to search for
-			\param nameSpace The optional namespace of the symbols to retrieve
-			\return A list of symbols
+		    \param name RawName to search for
+		    \param nameSpace The optional namespace of the symbols to retrieve
+		    \return A list of symbols
 		*/
 		std::vector<Ref<Symbol>> GetSymbolsByRawName(const std::string& name, const NameSpace& nameSpace = NameSpace());
 
 		/*! Retrieves the list of all Symbol objects
 
-			\param nameSpace The optional namespace of the symbols to retrieve
-			\return A list of symbols
+		    \param nameSpace The optional namespace of the symbols to retrieve
+		    \return A list of symbols
 		*/
 		std::vector<Ref<Symbol>> GetSymbols(const NameSpace& nameSpace = NameSpace());
 
 		/*! Retrieves a list of symbols in a given range
 
-			\param start Virtual address start of the range
-			\param len Length of the range
-			\param nameSpace The optional namespace of the symbols to retrieve
-			\return A list of symbols for a given type
+		    \param start Virtual address start of the range
+		    \param len Length of the range
+		    \param nameSpace The optional namespace of the symbols to retrieve
+		    \return A list of symbols for a given type
 		*/
 		std::vector<Ref<Symbol>> GetSymbols(uint64_t start, uint64_t len, const NameSpace& nameSpace = NameSpace());
 
 		/*! Retrieves a list of all Symbol objects of the provided symbol type
 
-			\param type The symbol type
-			\param nameSpace The optional namespace of the symbols to retrieve
-			\return A list of symbols for a given type
+		    \param type The symbol type
+		    \param nameSpace The optional namespace of the symbols to retrieve
+		    \return A list of symbols for a given type
 		*/
 		std::vector<Ref<Symbol>> GetSymbolsOfType(BNSymbolType type, const NameSpace& nameSpace = NameSpace());
 
 		/*! Retrieves a list of all Symbol objects of the provided symbol type in the given range
 
-			\param type The symbol type
-			\param start Virtual address start of the range
-			\param len Length of the range
-			\param nameSpace The optional namespace of the symbols to retrieve
-			\return A list of symbols for a given type in the given range
+		    \param type The symbol type
+		    \param start Virtual address start of the range
+		    \param len Length of the range
+		    \param nameSpace The optional namespace of the symbols to retrieve
+		    \return A list of symbols for a given type in the given range
 		*/
 		std::vector<Ref<Symbol>> GetSymbolsOfType(
-		    BNSymbolType type, uint64_t start, uint64_t len, const NameSpace& nameSpace = NameSpace());
+			BNSymbolType type, uint64_t start, uint64_t len, const NameSpace& nameSpace = NameSpace());
 
 		/*! Get the list of visible symbols
 
-			\param nameSpace The optional namespace of the symbols to retrieve
-			\return A list of visible symbols
+		    \param nameSpace The optional namespace of the symbols to retrieve
+		    \return A list of visible symbols
 		*/
 		std::vector<Ref<Symbol>> GetVisibleSymbols(const NameSpace& nameSpace = NameSpace());
 
 		/*! Adds a symbol to the internal list of automatically discovered Symbol objects in a given namespace
 
-			\warning If multiple symbols for the same address are defined, only the most recent symbol will ever be used.
+		    \warning If multiple symbols for the same address are defined, only the most recent symbol will ever be
+		   used.
 
-			\param sym Symbol to define
+		    \param sym Symbol to define
 		*/
 		void DefineAutoSymbol(Ref<Symbol> sym);
 
 		/*! Defines an "Auto" symbol, and a Variable/Function alongside it
 
-			\param platform Platform for the Type being defined
-			\param sym Symbol being definedd
-			\param type Type being defined
-			\return The defined symbol
+		    \param platform Platform for the Type being defined
+		    \param sym Symbol being definedd
+		    \param type Type being defined
+		    \return The defined symbol
 		*/
 		Ref<Symbol> DefineAutoSymbolAndVariableOrFunction(Ref<Platform> platform, Ref<Symbol> sym, Ref<Type> type);
 
 		/*! Undefine an automatically defined symbol
 
-			\param sym The symbol to undefine
+		    \param sym The symbol to undefine
 		*/
 		void UndefineAutoSymbol(Ref<Symbol> sym);
 
 		/*! Define a user symbol
 
-			\param sym Symbol to define
+		    \param sym Symbol to define
 		*/
 		void DefineUserSymbol(Ref<Symbol> sym);
 
 		/*! Undefine a user symbol
 
-			\param sym Symbol to undefinee
+		    \param sym Symbol to undefinee
 		*/
 		void UndefineUserSymbol(Ref<Symbol> sym);
 
 		/*! Defines an imported Function \c func with a ImportedFunctionSymbol type
 
-			\param importAddressSym Symbol for the imported function
-			\param func Function to define as an imported function
-			\param type Optional type for the function
+		    \param importAddressSym Symbol for the imported function
+		    \param func Function to define as an imported function
+		    \param type Optional type for the function
 		*/
 		void DefineImportedFunction(Ref<Symbol> importAddressSym, Ref<Function> func, Ref<Type> type = nullptr);
 
 		/*! The current debug info object for this binary view
 
-			\return The current debug info object for this binary view
+		    \return The current debug info object for this binary view
 		*/
 		Ref<DebugInfo> GetDebugInfo();
 
 		/*! Sets the debug info and applies its contents to the current BinaryView
 
-			\param newDebugInfo
+		    \param newDebugInfo
 		*/
 		void ApplyDebugInfo(Ref<DebugInfo> newDebugInfo);
 
 		/*! Sets the debug info for the current binary view
 
-			\param newDebugInfo Sets the debug info for the current binary view
+		    \param newDebugInfo Sets the debug info for the current binary view
 		*/
 		void SetDebugInfo(Ref<DebugInfo> newDebugInfo);
 
 		/*! Determine is a debug info object is currently being applied
 
-			\return True if a debug info object is currently being applied
+		    \return True if a debug info object is currently being applied
 		*/
 		bool IsApplyingDebugInfo() const;
 
@@ -5673,85 +5796,85 @@ namespace BinaryNinja {
 
 		/*! Add a new TagType to this binaryview
 
-			\param tagType TagType to add
+		    \param tagType TagType to add
 		*/
 		void AddTagType(Ref<TagType> tagType);
 
 		/*! Remove a TagType from this binaryview
 
-			\param tagType TagType to remove
+		    \param tagType TagType to remove
 		*/
 		void RemoveTagType(Ref<TagType> tagType);
 
 		/*! Get a TagType by name
 
-			\param name Name of the TagType
-			\return The TagType, if it was found
+		    \param name Name of the TagType
+		    \return The TagType, if it was found
 		*/
 		Ref<TagType> GetTagType(const std::string& name);
 
 		/*! Get a TagType by name and TagType::Type
 
-			\param name Name of the TagType
-			\param type Type of the TagType
-			\return The TagType, if it was found
+		    \param name Name of the TagType
+		    \param type Type of the TagType
+		    \return The TagType, if it was found
 		*/
 		Ref<TagType> GetTagType(const std::string& name, TagType::Type type);
 
 		/*! Get a TagType by name
 
-			\param name Name of the TagType
-			\return The TagType, if it was found
+		    \param name Name of the TagType
+		    \return The TagType, if it was found
 		*/
 		Ref<TagType> GetTagTypeByName(const std::string& name);
 
 		/*! Get a TagType by name and TagType::Type
 
-			\param name Name of the TagType
-			\param type Type of the TagType
-			\return The TagType, if it was found
+		    \param name Name of the TagType
+		    \param type Type of the TagType
+		    \return The TagType, if it was found
 		*/
 		Ref<TagType> GetTagTypeByName(const std::string& name, TagType::Type type);
 
 		/*! Get a TagType by its ID
 
-			\param id ID of the TagType
-			\return The TagType, if it was found
+		    \param id ID of the TagType
+		    \return The TagType, if it was found
 		*/
 		Ref<TagType> GetTagTypeById(const std::string& id);
 
 		/*! Get a TagType by its ID and TagType::Type
 
-			\param id ID of the TagType
-			\param type Type of the TagType
-			\return The TagType, if it was found
+		    \param id ID of the TagType
+		    \param type Type of the TagType
+		    \return The TagType, if it was found
 		*/
 		Ref<TagType> GetTagTypeById(const std::string& id, TagType::Type type);
 
 		/*! Get the list of all defined TagTypes
 
-			\return Get the list of all defined TagTypes
+		    \return Get the list of all defined TagTypes
 		*/
 		std::vector<Ref<TagType>> GetTagTypes();
 
 		/*! Add a Tag
 
-			\param tag The tag to add
-			\param user Whether this was added by a user or automatically by analysis
+		    \param tag The tag to add
+		    \param user Whether this was added by a user or automatically by analysis
 		*/
 		void AddTag(Ref<Tag> tag, bool user = false);
 
 		/*! Remove a tag
 
-			\param tag The tag to remove
-			\param user Whether the tag being removed is a user tag
+		    \param tag The tag to remove
+		    \param user Whether the tag being removed is a user tag
 		*/
 		void RemoveTag(Ref<Tag> tag, bool user = false);
 
 		/*! Get a tag by its ID
 
-			\param tagId the tag ID
-			\return The tag, if it was found
+		    \param tagId the tag ID
+		    \return The tag, if it was found
 		*/
 		Ref<Tag> GetTag(const std::string& tagId);
 
@@ -5786,61 +5909,61 @@ namespace BinaryNinja {
 		void RemoveTagReference(const TagReference& ref);
 
 		Ref<Tag> CreateAutoDataTag(
-		    uint64_t addr, const std::string& tagTypeName, const std::string& data, bool unique = false);
+			uint64_t addr, const std::string& tagTypeName, const std::string& data, bool unique = false);
 		Ref<Tag> CreateUserDataTag(
-		    uint64_t addr, const std::string& tagTypeName, const std::string& data, bool unique = false);
+			uint64_t addr, const std::string& tagTypeName, const std::string& data, bool unique = false);
 
 		Ref<Tag> CreateAutoDataTag(uint64_t addr, Ref<TagType> tagType, const std::string& data, bool unique = false);
 		Ref<Tag> CreateUserDataTag(uint64_t addr, Ref<TagType> tagType, const std::string& data, bool unique = false);
 
 		/*! Lookup a component by its GUID
 
-			\param guid GUID of the component to look up
-			\return The component with that GUID
+		    \param guid GUID of the component to look up
+		    \return The component with that GUID
 		*/
 		std::optional<Ref<Component>> GetComponentByGuid(std::string guid);
 
 		/*! Lookup a component by its pathname
 
-			\note This is a convenience method, and for performance-sensitive lookups, GetComponentByGuid is very
-		 	highly recommended.
+		    \note This is a convenience method, and for performance-sensitive lookups, GetComponentByGuid is very
+		    highly recommended.
 
-		 	\see GetComponentByGuid, Component::GetGuid
+		    \see GetComponentByGuid, Component::GetGuid
 
-			All lookups are absolute from the root component, and are case-sensitive. Pathnames are delimited with "/"
+		    All lookups are absolute from the root component, and are case-sensitive. Pathnames are delimited with "/"
 
-		 	Lookups are done using the display name of the component, which is liable to change when it or its siblings
-		 	are moved around.
+		    Lookups are done using the display name of the component, which is liable to change when it or its siblings
+		    are moved around.
 
-		 	\see Component::GetDisplayName
+		    \see Component::GetDisplayName
 
-			\param path Path of the desired component
-			\return The component at that path
+		    \param path Path of the desired component
+		    \return The component at that path
 		*/
 		std::optional<Ref<Component>> GetComponentByPath(std::string path);
 
 		/*! Get the root component for the BinaryView (read-only)
 
-			This Component cannot be removed, and houses all unparented Components.
+		    This Component cannot be removed, and houses all unparented Components.
 
-			\return The Root Component
+		    \return The Root Component
 		*/
 		Ref<Component> GetRootComponent();
 
 		/*! Create a component
 
-			This component will be added to the root component and initialized with the name "Component"
+		    This component will be added to the root component and initialized with the name "Component"
 
-			\return The created Component
+		    \return The created Component
 		*/
 		Ref<Component> CreateComponent();
 
 		/*! Create a component as a subcomponent of the component with a given Guid
 
-			This component will be initialized with the name "Component"
+		    This component will be initialized with the name "Component"
 
-			\param parentGUID Guid of the component this component will be added to
-			\return The created Component
+		    \param parentGUID Guid of the component this component will be added to
+		    \return The created Component
 		*/
 		Ref<Component> CreateComponent(std::string parentGUID);
 
@@ -5848,8 +5971,8 @@ namespace BinaryNinja {
 
 		    This component will be initialized with the name "Component"
 
-		 	\param parent Parent Component
-		 	\return The created Component
+		    \param parent Parent Component
+		    \return The created Component
 		*/
 		Ref<Component> CreateComponent(Ref<Component> parent);
 
@@ -5871,15 +5994,15 @@ namespace BinaryNinja {
 
 		/*! Remove a component from the tree entirely. This will also by nature remove all subcomponents.
 
-			\param component Component to remove
-			\return Whether removal was successful
+		    \param component Component to remove
+		    \return Whether removal was successful
 		*/
 		bool RemoveComponent(Ref<Component> component);
 
 		/*! Remove a component from the tree entirely. This will also by nature remove all subcomponents.
 
-			\param guid Guid of the Component to remove
-			\return Whether removal was successful
+		    \param guid Guid of the Component to remove
+		    \return Whether removal was successful
 		*/
 		bool RemoveComponent(std::string guid);
 
@@ -5887,141 +6010,141 @@ namespace BinaryNinja {
 		std::vector<Ref<Component>> GetDataVariableParentComponents(DataVariable var) const;
 
 		/*! Heuristically determine if a string exists at the given address. This API checks for the following settings:
-			"analysis.unicode.utf8" - default true enables UTF-8 string detection
-			"analysis.unicode.utf16" - default true enables UTF-16 string detection
-			"analysis.unicode.utf32" - default true enables UTF-32 string detection
-			"analysis.unicode.blocks" - selects the Unicode blocks to use for detection
+		    "analysis.unicode.utf8" - default true enables UTF-8 string detection
+		    "analysis.unicode.utf16" - default true enables UTF-16 string detection
+		    "analysis.unicode.utf32" - default true enables UTF-32 string detection
+		    "analysis.unicode.blocks" - selects the Unicode blocks to use for detection
 
-			\param addr Address to check
-			\param value String value to populate
-			\param allowShortStrings Whether to allow short strings < 4 characters
-			\param allowLargeStrings If false strings must be less than "rendering.strings.maxAnnotationLength" (default 32)
-				If true strings must be less than "analysis.limits.maxStringLength" (default 16384)
-			\param childWidth Width of the characters
-			\return The type of string annotation found
+		    \param addr Address to check
+		    \param value String value to populate
+		    \param allowShortStrings Whether to allow short strings < 4 characters
+		    \param allowLargeStrings If false strings must be less than "rendering.strings.maxAnnotationLength" (default
+		   32) If true strings must be less than "analysis.limits.maxStringLength" (default 16384) \param childWidth
+		   Width of the characters \return The type of string annotation found
 
 		*/
-		std::optional<BNStringType> CheckForStringAnnotationType(uint64_t addr, std::string& value,
-			bool allowShortStrings, bool allowLargeStrings, size_t childWidth);
+		std::optional<BNStringType> CheckForStringAnnotationType(
+			uint64_t addr, std::string& value, bool allowShortStrings, bool allowLargeStrings, size_t childWidth);
 
 		/*! Check whether the given architecture supports assembling instructions
 
-			\param arch Architecture to check
-			\return Whether the given architecture supports assembling instructions
+		    \param arch Architecture to check
+		    \return Whether the given architecture supports assembling instructions
 		*/
 		bool CanAssemble(Architecture* arch);
 
 		/*! Check whether the "Never Branch" patch is available for a given architecture at a given address
 
-			\param arch Architecture to check
-			\param addr Address of the instruction to be patched
-			\return Whether the "Never Branch" patch is available
+		    \param arch Architecture to check
+		    \param addr Address of the instruction to be patched
+		    \return Whether the "Never Branch" patch is available
 		*/
 		bool IsNeverBranchPatchAvailable(Architecture* arch, uint64_t addr);
 
 		/*! Check whether the "Always Branch" patch is available for a given architecture at a given address
 
-			\param arch Architecture to check
-			\param addr Address of the instruction to be patched
-			\return Whether the "Always Branch" patch is available
+		    \param arch Architecture to check
+		    \param addr Address of the instruction to be patched
+		    \return Whether the "Always Branch" patch is available
 		*/
 		bool IsAlwaysBranchPatchAvailable(Architecture* arch, uint64_t addr);
 
 		/*! Check whether the "Invert Branch" patch is available for a given architecture at a given address
 
-			\param arch Architecture to check
-			\param addr Address of the instruction to be patched
-			\return Whether the "Invert Branch" patch is available
+		    \param arch Architecture to check
+		    \param addr Address of the instruction to be patched
+		    \return Whether the "Invert Branch" patch is available
 		*/
 		bool IsInvertBranchPatchAvailable(Architecture* arch, uint64_t addr);
 
 		/*! Check whether the "Skip and Return Zero" patch is available for a given architecture at a given address
 
-			\param arch Architecture to check
-			\param addr Address of the instruction to be patched
-			\return Whether the "Skip and Return Zero" patch is available
+		    \param arch Architecture to check
+		    \param addr Address of the instruction to be patched
+		    \return Whether the "Skip and Return Zero" patch is available
 		*/
 		bool IsSkipAndReturnZeroPatchAvailable(Architecture* arch, uint64_t addr);
 
 		/*! Check whether the "Skip and Return Value" patch is available for a given architecture at a given address
 
-			\param arch Architecture to check
-			\param addr Address of the instruction to be patched
-			\return Whether the "Skip and Return Value" patch is available
+		    \param arch Architecture to check
+		    \param addr Address of the instruction to be patched
+		    \return Whether the "Skip and Return Value" patch is available
 		*/
 		bool IsSkipAndReturnValuePatchAvailable(Architecture* arch, uint64_t addr);
 
 		/*! Convert the instruction at the given address to a nop
 
-			\param arch Architecture of the instruction to convert
-			\param addr Address of the instruction to be patched
-			\return Whether the patch was successful
+		    \param arch Architecture of the instruction to convert
+		    \param addr Address of the instruction to be patched
+		    \return Whether the patch was successful
 		*/
 		bool ConvertToNop(Architecture* arch, uint64_t addr);
 
 		/*! Convert the conditional branch at the given address to always branch
 
-			\param arch Architecture of the instruction to convert
-			\param addr Address of the instruction to be patched
-			\return Whether the patch was successful
+		    \param arch Architecture of the instruction to convert
+		    \param addr Address of the instruction to be patched
+		    \return Whether the patch was successful
 		*/
 		bool AlwaysBranch(Architecture* arch, uint64_t addr);
 
 		/*! Convert the conditional branch at the given address to branch under inverted conditions
 
-			\param arch Architecture of the instruction to convert
-			\param addr Address of the instruction to be patched
-			\return Whether the patch was successful
+		    \param arch Architecture of the instruction to convert
+		    \param addr Address of the instruction to be patched
+		    \return Whether the patch was successful
 		*/
 		bool InvertBranch(Architecture* arch, uint64_t addr);
 
 		/*! Convert the given instruction to skip the rest of the function and return 0
 
-			\param arch Architecture of the instruction to convert
-			\param addr Address of the instruction to be patched
-			\param value Value to return
-			\return Whether the patch was successful
+		    \param arch Architecture of the instruction to convert
+		    \param addr Address of the instruction to be patched
+		    \param value Value to return
+		    \return Whether the patch was successful
 		*/
 		bool SkipAndReturnValue(Architecture* arch, uint64_t addr, uint64_t value);
 
 		/*! Get the length of the instruction at a given address
 
-			\param arch Architecture of the instruction
-			\param addr Address of the start of the instruction
-			\return The length of the instruction
+		    \param arch Architecture of the instruction
+		    \param addr Address of the start of the instruction
+		    \return The length of the instruction
 		*/
 		size_t GetInstructionLength(Architecture* arch, uint64_t addr);
 
 		/*! Get the string at an address
 
-			\param[in] addr Address of the string
-			\param[out] strRef Reference to a StringReference the string reference will be writen to.
-			\return Whether a string was at th given address
+		    \param[in] addr Address of the string
+		    \param[out] strRef Reference to a StringReference the string reference will be writen to.
+		    \return Whether a string was at th given address
 		*/
 		bool GetStringAtAddress(uint64_t addr, BNStringReference& strRef);
 
 		/*! Get the list of strings located within the view
 
-			\return The list of strings
+		    \return The list of strings
 		*/
 		std::vector<BNStringReference> GetStrings();
 
 		/*! Get the list of strings located within a range
 
-			\param start Starting virtual address of the range
-			\param len Length of the range
-			\return The list of strings
+		    \param start Starting virtual address of the range
+		    \param len Length of the range
+		    \return The list of strings
 		*/
 		std::vector<BNStringReference> GetStrings(uint64_t start, uint64_t len);
 
 		/*! Sets up a call back function to be called when analysis has been completed.
 
-			This is helpful when using `UpdateAnalysis` which does not wait for analysis completion before returning.
+		    This is helpful when using `UpdateAnalysis` which does not wait for analysis completion before returning.
 
-			The callee of this function is not responsible for maintaining the lifetime of the returned AnalysisCompletionEvent object
+		    The callee of this function is not responsible for maintaining the lifetime of the returned
+		   AnalysisCompletionEvent object
 
-			\param callback A function to be called with no parameters when analysis has completed.
-			\return An initialized AnalysisCompletionEvent object.
+		    \param callback A function to be called with no parameters when analysis has completed.
+		    \return An initialized AnalysisCompletionEvent object.
 		*/
 		Ref<AnalysisCompletionEvent> AddAnalysisCompletionEvent(const std::function<void()>& callback);
 
@@ -6031,139 +6154,141 @@ namespace BinaryNinja {
 
 		/*! Returns the virtual address of the Function that occurs after the virtual address `addr`
 
-			\param addr Address to start searching
-			\return Next function start
+		    \param addr Address to start searching
+		    \return Next function start
 		*/
 		uint64_t GetNextFunctionStartAfterAddress(uint64_t addr);
 
 		/*! Returns the virtual address of the BasicBlock that occurs after the virtual address `addr`
 
-			\param addr Address to start searching
-			\return Next basic block start
+		    \param addr Address to start searching
+		    \return Next basic block start
 		*/
 		uint64_t GetNextBasicBlockStartAfterAddress(uint64_t addr);
 
 		/*! Retrieves the virtual address of the next non-code byte.
 
-			\param addr Address to start searching
-			\return address of the next non-code byte
+		    \param addr Address to start searching
+		    \return address of the next non-code byte
 		*/
 		uint64_t GetNextDataAfterAddress(uint64_t addr);
 
 		/*! Retrieves the address of the next DataVariable.
 
-			\param addr Address to start searching
-			\return address of the next DataVariable
+		    \param addr Address to start searching
+		    \return address of the next DataVariable
 		*/
 		uint64_t GetNextDataVariableStartAfterAddress(uint64_t addr);
 
 		/*! Returns the virtual address of the Function that occurs prior to the
-			virtual address provided
+		    virtual address provided
 
-			\param addr Address to start searching
-			\return the virtual address of the previous Function
+		    \param addr Address to start searching
+		    \return the virtual address of the previous Function
 		*/
 		uint64_t GetPreviousFunctionStartBeforeAddress(uint64_t addr);
 
 		/*! Returns the virtual address of the Basic Block that occurs prior to the
-			virtual address provided
+		    virtual address provided
 
-			\param addr Address to start searching
-			\return The virtual address of the previous Basic Block
+		    \param addr Address to start searching
+		    \return The virtual address of the previous Basic Block
 		*/
 		uint64_t GetPreviousBasicBlockStartBeforeAddress(uint64_t addr);
 
 		/*! Returns the ending virtual address of the Basic Block that occurs prior to the
-			virtual address provided
+		    virtual address provided
 
-			\param addr Address to start searching
-			\return The ending virtual address of the previous Basic Block
+		    \param addr Address to start searching
+		    \return The ending virtual address of the previous Basic Block
 		*/
 		uint64_t GetPreviousBasicBlockEndBeforeAddress(uint64_t addr);
 
 		/*! Returns the virtual address of the previous data (non-code) byte
 
-			\param addr Address to start searching
-			\return The virtual address of the previous non-code byte
+		    \param addr Address to start searching
+		    \return The virtual address of the previous non-code byte
 		*/
 		uint64_t GetPreviousDataBeforeAddress(uint64_t addr);
 
 		/*! Returns the virtual address of the previous DataVariable
 
-			\param addr Address to start searching
-			\return The virtual address of the previous DataVariable
+		    \param addr Address to start searching
+		    \return The virtual address of the previous DataVariable
 		*/
 		uint64_t GetPreviousDataVariableStartBeforeAddress(uint64_t addr);
 
 		bool ParsePossibleValueSet(const std::string& value, BNRegisterValueType state, PossibleValueSet& result,
-		    uint64_t here, std::string& errors);
+			uint64_t here, std::string& errors);
 
 		/*! Parse a single type and name from a string containing their definition
 
-			\param[in] text Text containing the type definition
-			\param[out] result Reference into which the resulting type and name will be written
-			\param[out] errors Reference to a list into which any parse errors will be written
-			\param[in] typesAllowRedefinition List of types whose names are allowed to be overwritten (legacy cruft?)
-			\param[in] importDependencies If Type Library / Type Archive types should be imported during parsing
-			\return Whether parsing was successful
+		    \param[in] text Text containing the type definition
+		    \param[out] result Reference into which the resulting type and name will be written
+		    \param[out] errors Reference to a list into which any parse errors will be written
+		    \param[in] typesAllowRedefinition List of types whose names are allowed to be overwritten (legacy cruft?)
+		    \param[in] importDependencies If Type Library / Type Archive types should be imported during parsing
+		    \return Whether parsing was successful
 		*/
 		bool ParseTypeString(const std::string& text, QualifiedNameAndType& result, std::string& errors,
-		    const std::set<QualifiedName>& typesAllowRedefinition = {}, bool importDependencies = true);
+			const std::set<QualifiedName>& typesAllowRedefinition = {}, bool importDependencies = true);
 
 		/*! Parse an entire block of source into types, variables, and functions
 
-			\param[in] text Source code to parse
-			\param[out] types Reference to a map of QualifiedNames and Types the parsed types will be writen to
-			\param[out] variables Reference to a list of QualifiedNames and Types the parsed variables will be writen to
-			\param[out] functions Reference to a list of QualifiedNames and Types the parsed functions will be writen to
-			\param[out] errors Reference to a list into which any parse errors will be written
-			\param[in] typesAllowRedefinition List of types whose names are allowed to be overwritten (legacy cruft?)
-			\param[in] importDependencies If Type Library / Type Archive types should be imported during parsing
-			\return Whether parsing was successful
+		    \param[in] text Source code to parse
+		    \param[out] types Reference to a map of QualifiedNames and Types the parsed types will be writen to
+		    \param[out] variables Reference to a list of QualifiedNames and Types the parsed variables will be writen to
+		    \param[out] functions Reference to a list of QualifiedNames and Types the parsed functions will be writen to
+		    \param[out] errors Reference to a list into which any parse errors will be written
+		    \param[in] typesAllowRedefinition List of types whose names are allowed to be overwritten (legacy cruft?)
+		    \param[in] importDependencies If Type Library / Type Archive types should be imported during parsing
+		    \return Whether parsing was successful
 		*/
 		bool ParseTypeString(const std::string& text, std::map<QualifiedName, Ref<Type>>& types,
-		    std::map<QualifiedName, Ref<Type>>& variables, std::map<QualifiedName, Ref<Type>>& functions,
-		    std::string& errors, const std::set<QualifiedName>& typesAllowRedefinition = {}, bool importDependencies = true);
+			std::map<QualifiedName, Ref<Type>>& variables, std::map<QualifiedName, Ref<Type>>& functions,
+			std::string& errors, const std::set<QualifiedName>& typesAllowRedefinition = {},
+			bool importDependencies = true);
 
 		/*! Parse an entire block of source into a structure containing types, variables, and functions
 
-			\param[in] text Source code to parse
-			\param[out] result Reference to a TypeParserResult structure into which types, variables, and functions will be written
-			\param[out] errors Reference to a list into which any parse errors will be written
-			\param[in] typesAllowRedefinition List of types whose names are allowed to be overwritten (legacy cruft?)
-			\param[in] importDependencies If Type Library / Type Archive types should be imported during parsing
-			\return Whether parsing was successful
+		    \param[in] text Source code to parse
+		    \param[out] result Reference to a TypeParserResult structure into which types, variables, and functions will
+		   be written \param[out] errors Reference to a list into which any parse errors will be written \param[in]
+		   typesAllowRedefinition List of types whose names are allowed to be overwritten (legacy cruft?) \param[in]
+		   importDependencies If Type Library / Type Archive types should be imported during parsing \return Whether
+		   parsing was successful
 		*/
-		bool ParseTypesFromSource(const std::string& text, const std::vector<std::string>& options, const std::vector<std::string>& includeDirs, TypeParserResult& result,
-		    std::string& errors, const std::set<QualifiedName>& typesAllowRedefinition = {}, bool importDependencies = true);
+		bool ParseTypesFromSource(const std::string& text, const std::vector<std::string>& options,
+			const std::vector<std::string>& includeDirs, TypeParserResult& result, std::string& errors,
+			const std::set<QualifiedName>& typesAllowRedefinition = {}, bool importDependencies = true);
 
 		/*! Type Container for all types (user and auto) in the BinaryView. Any auto types
-			modified through the Type Container will be converted into user types.
-			\return Full view Type Container
+		    modified through the Type Container will be converted into user types.
+		    \return Full view Type Container
 		 */
 		class TypeContainer GetTypeContainer();
 
 		/*! Type Container for ONLY auto types in the BinaryView. Any changes to types will
-			NOT promote auto types to user types.
-			\return Auto types only Type Container
+		    NOT promote auto types to user types.
+		    \return Auto types only Type Container
 		 */
 		class TypeContainer GetAutoTypeContainer();
 
 		/*! Type Container for ONLY user types in the BinaryView.
-			\return User types only Type Container
+		    \return User types only Type Container
 		 */
 		class TypeContainer GetUserTypeContainer();
 
 		std::map<QualifiedName, Ref<Type>> GetTypes();
 		/*! List of all types, sorted such that types are after all types on which they depend
 
-			Order is guaranteed for any collection of types with no cycles. If you have cycles
-			in type dependencies, order for types in a cycle is not guaranteed.
+		    Order is guaranteed for any collection of types with no cycles. If you have cycles
+		    in type dependencies, order for types in a cycle is not guaranteed.
 
-			\note Dependency order is based on named type references for all non-structure types, i.e.
-			``struct Foo m_foo`` will induce a dependency, whereas ``struct Foo* m_pFoo`` will not.
+		    \note Dependency order is based on named type references for all non-structure types, i.e.
+		    ``struct Foo m_foo`` will induce a dependency, whereas ``struct Foo* m_pFoo`` will not.
 
-			\return Sorted types as defined above
+		    \return Sorted types as defined above
 		*/
 		std::vector<std::pair<QualifiedName, Ref<Type>>> GetDependencySortedTypes();
 		std::vector<QualifiedName> GetTypeNames(const std::string& matching = "");
@@ -6174,9 +6299,12 @@ namespace BinaryNinja {
 		QualifiedName GetTypeNameById(const std::string& id);
 		bool IsTypeAutoDefined(const QualifiedName& name);
 		QualifiedName DefineType(const std::string& id, const QualifiedName& defaultName, Ref<Type> type);
-		std::unordered_map<std::string, QualifiedName> DefineTypes(const std::vector<std::pair<std::string, QualifiedNameAndType>>& types, std::function<bool(size_t, size_t)> progress = {});
+		std::unordered_map<std::string, QualifiedName> DefineTypes(
+			const std::vector<std::pair<std::string, QualifiedNameAndType>>& types,
+			std::function<bool(size_t, size_t)> progress = {});
 		void DefineUserType(const QualifiedName& name, Ref<Type> type);
-		void DefineUserTypes(const std::vector<QualifiedNameAndType>& types, std::function<bool(size_t, size_t)> progress = {});
+		void DefineUserTypes(
+			const std::vector<QualifiedNameAndType>& types, std::function<bool(size_t, size_t)> progress = {});
 		void DefineUserTypes(const std::vector<ParsedType>& types, std::function<bool(size_t, size_t)> progress = {});
 		void UndefineType(const std::string& id);
 		void UndefineUserType(const QualifiedName& name);
@@ -6186,69 +6314,70 @@ namespace BinaryNinja {
 
 		/*! Gives you details of which platform and name was imported to result in the given type name.
 
-			\param name Name of type in the binary view
-			\return A pair with the platform and the name of the type in the platform,
-			        or std::nullopt if it was not imported
+		    \param name Name of type in the binary view
+		    \return A pair with the platform and the name of the type in the platform,
+		            or std::nullopt if it was not imported
 		*/
 		std::optional<std::pair<Ref<Platform>, QualifiedName>> LookupImportedTypePlatform(const QualifiedName& name);
 
 		/*! Make the contents of a type library available for type/import resolution
 
-			\param lib library to register with the view
+		    \param lib library to register with the view
 		*/
 		void AddTypeLibrary(TypeLibrary* lib);
 		/*! Get the type library with the given name
 
-			\param name Library name to lookup
-			\return The Type Library object, or nullptr if one has not been added with this name
+		    \param name Library name to lookup
+		    \return The Type Library object, or nullptr if one has not been added with this name
 		*/
 		Ref<TypeLibrary> GetTypeLibrary(const std::string& name);
 		/*! Get the list of imported type libraries
 
-			\return All imported type libraries
+		    \return All imported type libraries
 		*/
 		std::vector<Ref<TypeLibrary>> GetTypeLibraries();
 
 		/*! Recursively imports a type from the specified type library, or, if no library was explicitly provided,
-			the first type library associated with the current `BinaryView` that provides the name requested.
+		    the first type library associated with the current `BinaryView` that provides the name requested.
 
-			This may have the impact of loading other type libraries as dependencies on other type libraries are lazily resolved
-			when references to types provided by them are first encountered.
+		    This may have the impact of loading other type libraries as dependencies on other type libraries are lazily
+		   resolved when references to types provided by them are first encountered.
 
-			Note that the name actually inserted into the view may not match the name as it exists in the type library in
-			the event of a name conflict. To aid in this, the `Type` object returned is a `NamedTypeReference` to
-			the deconflicted name used.
+		    Note that the name actually inserted into the view may not match the name as it exists in the type library
+		   in the event of a name conflict. To aid in this, the `Type` object returned is a `NamedTypeReference` to the
+		   deconflicted name used.
 
-			\param lib
-			\param name
-			\return A `NamedTypeReference` to the type, taking into account any renaming performed
+		    \param lib
+		    \param name
+		    \return A `NamedTypeReference` to the type, taking into account any renaming performed
 		*/
 		Ref<Type> ImportTypeLibraryType(Ref<TypeLibrary>& lib, const QualifiedName& name);
 		/*! Recursively imports an object from the specified type library, or, if no library was explicitly provided,
-			the first type library associated with the current `BinaryView` that provides the name requested.
+		    the first type library associated with the current `BinaryView` that provides the name requested.
 
-			This may have the impact of loading other type libraries as dependencies on other type libraries are lazily resolved
-			when references to types provided by them are first encountered.
+		    This may have the impact of loading other type libraries as dependencies on other type libraries are lazily
+		   resolved when references to types provided by them are first encountered.
 
-			.. note:: If you are implementing a custom BinaryView and use this method to import object types,
-			you should then call ``RecordImportedObjectLibrary`` with the details of where the object is located.
+		    .. note:: If you are implementing a custom BinaryView and use this method to import object types,
+		    you should then call ``RecordImportedObjectLibrary`` with the details of where the object is located.
 
-			\param lib
-			\param name
-			\return The object type, with any interior `NamedTypeReferences` renamed as necessary to be appropriate for the current view
+		    \param lib
+		    \param name
+		    \return The object type, with any interior `NamedTypeReferences` renamed as necessary to be appropriate for
+		   the current view
 		*/
 		Ref<Type> ImportTypeLibraryObject(Ref<TypeLibrary>& lib, const QualifiedName& name);
 
 
 		/*! Recursively imports a type by guid from the current BinaryView's set of type libraries
 
-			This API is dependent on the set of TypeLibraries for the current BinaryView's Platform,
-			having appropriate metadata to resolve the type by guid. The key "type_guids" must contain
-			a map(string(guid), string(type_name)) or
-			  map(string(guid), tuple(sting(type_name), string(library_name))).
+		    This API is dependent on the set of TypeLibraries for the current BinaryView's Platform,
+		    having appropriate metadata to resolve the type by guid. The key "type_guids" must contain
+		    a map(string(guid), string(type_name)) or
+		      map(string(guid), tuple(sting(type_name), string(library_name))).
 
-			\param guid
-			\return The type, or nullptr if it was not found
+		    \param guid
+		    \return The type, or nullptr if it was not found
 
 		*/
 		Ref<Type> ImportTypeLibraryTypeByGuid(const std::string& guid);
@@ -6256,94 +6385,100 @@ namespace BinaryNinja {
 
 		/* Looks up the name of a type by its guid in the current BinaryView's set of type libraries
 
-			\param guid
-			\return The QualifedName of the type or std::nullopt if it was not found
+		    \param guid
+		    \return The QualifedName of the type or std::nullopt if it was not found
 		 */
 		std::optional<QualifiedName> GetTypeNameByGuid(const std::string& guid);
 
 		/*! Recursively exports ``type`` into ``lib`` as a type with name ``name``
 
-			As other referenced types are encountered, they are either copied into the destination type library or
-			else the type library that provided the referenced type is added as a dependency for the destination library.
+		    As other referenced types are encountered, they are either copied into the destination type library or
+		    else the type library that provided the referenced type is added as a dependency for the destination
+		   library.
 
-			\param lib
-			\param name
-			\param type
+		    \param lib
+		    \param name
+		    \param type
 		*/
 		void ExportTypeToTypeLibrary(TypeLibrary* lib, const QualifiedName& name, Type* type);
 		/*! Recursively exports ``type`` into ``lib`` as an object with name ``name``
 
-			As other referenced types are encountered, they are either copied into the destination type library or
-			else the type library that provided the referenced type is added as a dependency for the destination library.
+		    As other referenced types are encountered, they are either copied into the destination type library or
+		    else the type library that provided the referenced type is added as a dependency for the destination
+		   library.
 
-			\param lib
-			\param name
-			\param type
+		    \param lib
+		    \param name
+		    \param type
 		*/
 		void ExportObjectToTypeLibrary(TypeLibrary* lib, const QualifiedName& name, Type* type);
 
 		/*! Should be called by custom `BinaryView` implementations when they have successfully imported an object
-			from a type library (eg a symbol's type). Values recorded with this function will then be queryable via ``LookupImportedObjectLibrary``.
+		    from a type library (eg a symbol's type). Values recorded with this function will then be queryable via
+		   ``LookupImportedObjectLibrary``.
 
-			\param tgtPlatform Platform of symbol at import site
-			\param tgtAddr Address of symbol at import site
-			\param lib Type Library containing the imported type
-			\param name Name of the object in the type library
+		    \param tgtPlatform Platform of symbol at import site
+		    \param tgtAddr Address of symbol at import site
+		    \param lib Type Library containing the imported type
+		    \param name Name of the object in the type library
 		*/
-		void RecordImportedObjectLibrary(Platform* tgtPlatform, uint64_t tgtAddr, TypeLibrary* lib, const QualifiedName& name);
-		/*! Gives you details of which type library and name was used to determine the type of a symbol at a given address.
+		void RecordImportedObjectLibrary(
+			Platform* tgtPlatform, uint64_t tgtAddr, TypeLibrary* lib, const QualifiedName& name);
+		/*! Gives you details of which type library and name was used to determine the type of a symbol at a given
+		   address.
 
-			\param tgtPlatform Platform of symbol at import site
-			\param tgtAddr Address of symbol at import site
-			\return A pair with the library and name used, or std::nullopt if it was not imported
+		    \param tgtPlatform Platform of symbol at import site
+		    \param tgtAddr Address of symbol at import site
+		    \return A pair with the library and name used, or std::nullopt if it was not imported
 		*/
-		std::optional<std::pair<Ref<TypeLibrary>, QualifiedName>> LookupImportedObjectLibrary(Platform* tgtPlatform, uint64_t tgtAddr);
+		std::optional<std::pair<Ref<TypeLibrary>, QualifiedName>> LookupImportedObjectLibrary(
+			Platform* tgtPlatform, uint64_t tgtAddr);
 
 		/*! Gives you details of which type library and name was imported to result in the given type name.
 
-			\param name Name of type in the binary view
-			\return A pair with the library and the name of the type in the library,
-			        or std::nullopt if it was not imported
+		    \param name Name of type in the binary view
+		    \return A pair with the library and the name of the type in the library,
+		            or std::nullopt if it was not imported
 		 */
 		std::optional<std::pair<Ref<TypeLibrary>, QualifiedName>> LookupImportedTypeLibrary(const QualifiedName& name);
-		/*! Attach a given type archive to the binary view. No types will actually be associated by calling this, just they
-			will become available.
+		/*! Attach a given type archive to the binary view. No types will actually be associated by calling this, just
+		   they will become available.
 
-			\param id Expected id of archive
-			\param path Path to archive
+		    \param id Expected id of archive
+		    \param path Path to archive
 		 */
 		Ref<TypeArchive> AttachTypeArchive(const std::string& id, const std::string& path);
 		/*! Detach from a type archive, breaking all associations to types with the archive
 
-			\param id Id of archive to detach
+		    \param id Id of archive to detach
 		 */
 		void DetachTypeArchive(const std::string& id);
 		/*! Look up a connected archive by its id
 
-			\param id Id of archive
-			\return Archive, if one exists with that id. Otherwise nullptr
+		    \param id Id of archive
+		    \return Archive, if one exists with that id. Otherwise nullptr
 		 */
 		Ref<TypeArchive> GetTypeArchive(const std::string& id) const;
 		/*! Get all attached type archives
 
-			\return All attached archive (id, path) pairs
+		    \return All attached archive (id, path) pairs
 		 */
 		std::unordered_map<std::string, std::string> GetTypeArchives() const;
 		/*! Look up the path for an attached (but not necessarily connected) type archive by its id
 
-			\param id Id of archive
-			\return Archive path, if it is attached. Otherwise nullopt.
+		    \param id Id of archive
+		    \return Archive path, if it is attached. Otherwise nullopt.
 		 */
 		std::optional<std::string> GetTypeArchivePath(const std::string& id) const;
 		/*! Get a list of all available type names in all connected archives, and their archive/type id pair
 
-			\return All type names in a map
+		    \return All type names in a map
 		 */
 		std::unordered_map<QualifiedName, std::map<std::string, std::string>> GetTypeArchiveTypeNames() const;
 
 		/*! Get a list of all types in the analysis that are associated with a specific type archive
 
-			\return Map of all analysis types to their corresponding archive id
+		    \return Map of all analysis types to their corresponding archive id
 		 */
 		std::unordered_map<std::string, std::pair<std::string, std::string>> GetAssociatedTypeArchiveTypes() const;
 		/*! Get a list of all types in the analysis that are associated with a specific type archive
@@ -6356,14 +6491,16 @@ namespace BinaryNinja {
 		    \param id Id of analysis type
 		    \return Pair of archive id and archive type id, if this type is associated. std::nullopt otherwise.
 		 */
-		std::optional<std::pair<std::string, std::string>> GetAssociatedTypeArchiveTypeTarget(const std::string& id) const;
+		std::optional<std::pair<std::string, std::string>> GetAssociatedTypeArchiveTypeTarget(
+			const std::string& id) const;
 		/*! Determine the local source type for a given archive type
 
 		    \param archiveId Id of target archive
 		    \param archiveTypeId Id of target archive type
 		    \return Id of source analysis type, if this type is associated. std::nullopt otherwise.
 		 */
-		std::optional<std::string> GetAssociatedTypeArchiveTypeSource(const std::string& archiveId, const std::string& archiveTypeId) const;
+		std::optional<std::string> GetAssociatedTypeArchiveTypeSource(
+			const std::string& archiveId, const std::string& archiveTypeId) const;
 		/*! Get the current status of any changes pending in a given type
 
 		    \param id Id of type in analysis
@@ -6378,50 +6515,53 @@ namespace BinaryNinja {
 		bool DisassociateTypeArchiveType(const std::string& typeId);
 		/*! Pull a collection of types from a type archive, associating with them and any dependencies
 
-			\param[in] archiveId Id of archive
-			\param[in] archiveTypeIds Ids of desired types
-			\param[out] updatedTypes List of types that were updated
-			\return True if successful
+		    \param[in] archiveId Id of archive
+		    \param[in] archiveTypeIds Ids of desired types
+		    \param[out] updatedTypes List of types that were updated
+		    \return True if successful
 		 */
-		bool PullTypeArchiveTypes(const std::string& archiveId, const std::unordered_set<std::string>& archiveTypeIds, std::unordered_map<std::string, std::string>& updatedTypes);
+		bool PullTypeArchiveTypes(const std::string& archiveId, const std::unordered_set<std::string>& archiveTypeIds,
+			std::unordered_map<std::string, std::string>& updatedTypes);
 		/*! Push a collection of types, and all their dependencies, into a type archive
 
-			\param[in] archiveId Id of archive
-			\param[in] typeIds List of ids of types in analysis
-			\param[out] updatedTypes List of types that were updated
-			\return True if successful
+		    \param[in] archiveId Id of archive
+		    \param[in] typeIds List of ids of types in analysis
+		    \param[out] updatedTypes List of types that were updated
+		    \return True if successful
 		 */
-		bool PushTypeArchiveTypes(const std::string& archiveId, const std::unordered_set<std::string>& typeIds, std::unordered_map<std::string, std::string>& updatedTypes);
+		bool PushTypeArchiveTypes(const std::string& archiveId, const std::unordered_set<std::string>& typeIds,
+			std::unordered_map<std::string, std::string>& updatedTypes);
 
 		bool FindNextData(
-		    uint64_t start, const DataBuffer& data, uint64_t& result, BNFindFlag flags = FindCaseSensitive);
+			uint64_t start, const DataBuffer& data, uint64_t& result, BNFindFlag flags = FindCaseSensitive);
 		bool FindNextText(uint64_t start, const std::string& data, uint64_t& result, Ref<DisassemblySettings> settings,
 			BNFindFlag flags = FindCaseSensitive, const FunctionViewType& viewType = NormalFunctionGraph);
 		bool FindNextConstant(uint64_t start, uint64_t constant, uint64_t& result, Ref<DisassemblySettings> settings,
 			const FunctionViewType& viewType = NormalFunctionGraph);
 
 		bool FindNextData(uint64_t start, uint64_t end, const DataBuffer& data, uint64_t& addr, BNFindFlag flags,
-		    const std::function<bool(size_t current, size_t total)>& progress);
+			const std::function<bool(size_t current, size_t total)>& progress);
 		bool FindNextText(uint64_t start, uint64_t end, const std::string& data, uint64_t& addr,
 			Ref<DisassemblySettings> settings, BNFindFlag flags, const FunctionViewType& viewType,
-		    const std::function<bool(size_t current, size_t total)>& progress);
+			const std::function<bool(size_t current, size_t total)>& progress);
 		bool FindNextConstant(uint64_t start, uint64_t end, uint64_t constant, uint64_t& addr,
 			Ref<DisassemblySettings> settings, const FunctionViewType& viewType,
-		    const std::function<bool(size_t current, size_t total)>& progress);
+			const std::function<bool(size_t current, size_t total)>& progress);
 
 		bool FindAllData(uint64_t start, uint64_t end, const DataBuffer& data, BNFindFlag flags,
-		    const std::function<bool(size_t current, size_t total)>& progress,
-		    const std::function<bool(uint64_t addr, const DataBuffer& match)>& matchCallback);
+			const std::function<bool(size_t current, size_t total)>& progress,
+			const std::function<bool(uint64_t addr, const DataBuffer& match)>& matchCallback);
 		bool FindAllText(uint64_t start, uint64_t end, const std::string& data, Ref<DisassemblySettings> settings,
 			BNFindFlag flags, const FunctionViewType& viewType,
-		    const std::function<bool(size_t current, size_t total)>& progress,
-		    const std::function<bool(uint64_t addr, const std::string& match, const LinearDisassemblyLine& line)>&
-		        matchCallback);
+			const std::function<bool(size_t current, size_t total)>& progress,
+			const std::function<bool(uint64_t addr, const std::string& match, const LinearDisassemblyLine& line)>&
+				matchCallback);
 		bool FindAllConstant(uint64_t start, uint64_t end, uint64_t constant, Ref<DisassemblySettings> settings,
 			const FunctionViewType& viewType, const std::function<bool(size_t current, size_t total)>& progress,
-		    const std::function<bool(uint64_t addr, const LinearDisassemblyLine& line)>& matchCallback);
+			const std::function<bool(uint64_t addr, const LinearDisassemblyLine& line)>& matchCallback);
 
-		bool Search(const std::string& query, const std::function<bool(uint64_t offset, const DataBuffer& buffer)>& otherCallback);
+		bool Search(const std::string& query,
+			const std::function<bool(uint64_t offset, const DataBuffer& buffer)>& otherCallback);
 
 		void Reanalyze();
 
@@ -6429,306 +6569,308 @@ namespace BinaryNinja {
 
 		/*! Displays contents to the user in the UI or on the command-line
 
-			\note This API functions differently on the command-line vs the UI. In the UI, it will be rendered in a new tab. From
-			the command line, a simple text prompt is used.
+		    \note This API functions differently on the command-line vs the UI. In the UI, it will be rendered in a new
+		   tab. From the command line, a simple text prompt is used.
 
-			\param title Title for the report
-			\param contents Contents of the report
+		    \param title Title for the report
+		    \param contents Contents of the report
 		*/
 		void ShowPlainTextReport(const std::string& title, const std::string& contents);
 
 		/*! Displays markdown contents to the user in the UI or on the command-line
 
-			\note This API functions differently on the command-line vs the UI. In the UI, it will be rendered in a new tab. From
-			the command line, a simple text prompt is used.
+		    \note This API functions differently on the command-line vs the UI. In the UI, it will be rendered in a new
+		   tab. From the command line, a simple text prompt is used.
 
-			\param title Title for the report
-			\param contents Markdown contents of the report
-			\param plainText Plaintext contents of the report (used on the command line)
+		    \param title Title for the report
+		    \param contents Markdown contents of the report
+		    \param plainText Plaintext contents of the report (used on the command line)
 		*/
 		void ShowMarkdownReport(const std::string& title, const std::string& contents, const std::string& plainText);
 
 		/*! Displays HTML contents to the user in the UI or on the command-line
 
-			\note This API functions differently on the command-line vs the UI. In the UI, it will be rendered in a new tab. From
-			the command line, a simple text prompt is used.
+		    \note This API functions differently on the command-line vs the UI. In the UI, it will be rendered in a new
+		   tab. From the command line, a simple text prompt is used.
 
-			\param title Title for the report
-			\param contents HTML contents of the report
-			\param plainText Plaintext contents of the report (used on the command line)
+		    \param title Title for the report
+		    \param contents HTML contents of the report
+		    \param plainText Plaintext contents of the report (used on the command line)
 		*/
 		void ShowHTMLReport(const std::string& title, const std::string& contents, const std::string& plainText);
 
 		/*! Displays a flow graph in UI applications and nothing in command-line applications.
 
-			\note This API has no effect outside of the UI
+		    \note This API has no effect outside of the UI
 
-			\param title Title for the report
-			\param graph FlowGraph object to be rendered.
+		    \param title Title for the report
+		    \param graph FlowGraph object to be rendered.
 		*/
 		void ShowGraphReport(const std::string& title, FlowGraph* graph);
 
 		/*! Prompts the user to input an unsigned integer with the given prompt and title
 
-			\param[out] result Reference to the uint64_t the result will be copied to
-			\param[in] prompt Prompt for the input
-			\param[in] title Title for the input popup when used in UI
-			\return Whether an integer was successfully received
+		    \param[out] result Reference to the uint64_t the result will be copied to
+		    \param[in] prompt Prompt for the input
+		    \param[in] title Title for the input popup when used in UI
+		    \return Whether an integer was successfully received
 		*/
 		bool GetAddressInput(uint64_t& result, const std::string& prompt, const std::string& title);
 
 		/*! Prompts the user to input an unsigned integer with the given prompt and title
 
-			\param[out] result Reference to the uint64_t the result will be copied to
-			\param[in] prompt Prompt for the input
-			\param[in] title Title for the input popup when used in UI
-		 	\param[in] currentAddress Address to use for relative inputs
-			\return Whether an integer was successfully received
+		    \param[out] result Reference to the uint64_t the result will be copied to
+		    \param[in] prompt Prompt for the input
+		    \param[in] title Title for the input popup when used in UI
+		    \param[in] currentAddress Address to use for relative inputs
+		    \return Whether an integer was successfully received
 		*/
 		bool GetAddressInput(
-		    uint64_t& result, const std::string& prompt, const std::string& title, uint64_t currentAddress);
+			uint64_t& result, const std::string& prompt, const std::string& title, uint64_t currentAddress);
 
 		/*! A mock object that is a placeholder during development of this feature.
 
-			\return MemoryMap object
+		    \return MemoryMap object
 		*/
 		MemoryMap* GetMemoryMap() { return m_memoryMap.get(); }
 
 		/*! Begin a bulk segment addition operation.
 
-			This function prepares the `BinaryView` for bulk addition of both auto and user-defined segments.
-			During the bulk operation, segments can be added using `AddAutoSegment`, `AddAutoSegments`,
-			`AddUserSegment`, or `AddUserSegments` without immediately triggering the MemoryMap update process.
-			The queued segments will not take effect until `EndBulkAddSegments` is called.
+		    This function prepares the `BinaryView` for bulk addition of both auto and user-defined segments.
+		    During the bulk operation, segments can be added using `AddAutoSegment`, `AddAutoSegments`,
+		    `AddUserSegment`, or `AddUserSegments` without immediately triggering the MemoryMap update process.
+		    The queued segments will not take effect until `EndBulkAddSegments` is called.
 
-			\sa EndBulkAddSegments
-			\sa CancelBulkAddSegments
+		    \sa EndBulkAddSegments
+		    \sa CancelBulkAddSegments
 		*/
 		void BeginBulkAddSegments();
 
 		/*! Finalize and apply all queued segments (auto and user) added during a bulk segment addition operation.
 
-			This function commits all segments that were queued since the last call to `BeginBulkAddSegments`.
-			The MemoryMap update process is executed at this point, applying all changes in one batch for
-			improved performance.
+		    This function commits all segments that were queued since the last call to `BeginBulkAddSegments`.
+		    The MemoryMap update process is executed at this point, applying all changes in one batch for
+		    improved performance.
 
-			\note This function must be called after `BeginBulkAddSegments` to apply the queued segments.
+		    \note This function must be called after `BeginBulkAddSegments` to apply the queued segments.
 
-			\sa BeginBulkAddSegments
-			\sa CancelBulkAddSegments
+		    \sa BeginBulkAddSegments
+		    \sa CancelBulkAddSegments
 		*/
 		void EndBulkAddSegments();
 
 		/*! Cancel a bulk segment addition operation.
 
-			This function discards all auto and user segments that were queued since the last call to
-			`BeginBulkAddSegments` without applying them. It allows you to abandon the changes in case
-			they are no longer needed.
+		    This function discards all auto and user segments that were queued since the last call to
+		    `BeginBulkAddSegments` without applying them. It allows you to abandon the changes in case
+		    they are no longer needed.
 
-			\note If no bulk operation is in progress, calling this function has no effect.
+		    \note If no bulk operation is in progress, calling this function has no effect.
 
-			\sa BeginBulkAddSegments
-			\sa EndBulkAddSegments
+		    \sa BeginBulkAddSegments
+		    \sa EndBulkAddSegments
 		*/
 		void CancelBulkAddSegments();
 
 		/*! Add an analysis segment that specifies how data from the raw file is mapped into a virtual address space
 
-			Note that the segment added may have different size attributes than requested
+		    Note that the segment added may have different size attributes than requested
 
-			\param start Starting virtual address
-			\param length Length within the virtual address space
-			\param dataOffset Data offset in the raw file
-			\param dataLength Length of the data to map from the raw file
-			\param flags Segment r/w/x flags
+		    \param start Starting virtual address
+		    \param length Length within the virtual address space
+		    \param dataOffset Data offset in the raw file
+		    \param dataLength Length of the data to map from the raw file
+		    \param flags Segment r/w/x flags
 		*/
 		void AddAutoSegment(uint64_t start, uint64_t length, uint64_t dataOffset, uint64_t dataLength, uint32_t flags);
 
 		/*! Add analysis segments that specify how data from the raw file is mapped into a virtual address space
 
-			\param segments Segments to add to the BinaryView
+		    \param segments Segments to add to the BinaryView
 
-			Note that the segments added may have different size attributes than requested
+		    Note that the segments added may have different size attributes than requested
 		*/
 		void AddAutoSegments(const std::vector<BNSegmentInfo>& segments);
 
 		/*! Removes an automatically generated segment from the current segment mapping
 
-			\warning This action is not persistent across saving of a BNDB and must be re-applied each time a BNDB is loaded.
+		    \warning This action is not persistent across saving of a BNDB and must be re-applied each time a BNDB is
+		   loaded.
 
-			\param start Virtual address of the start of the segment
-			\param length Length of the segment
+		    \param start Virtual address of the start of the segment
+		    \param length Length of the segment
 		*/
 		void RemoveAutoSegment(uint64_t start, uint64_t length);
 
-		/*! Creates a user-defined segment that specifies how data from the raw file is mapped into a virtual address space
+		/*! Creates a user-defined segment that specifies how data from the raw file is mapped into a virtual address
+		   space
 
-			\param start Starting virtual address
-			\param length Length within the virtual address space
-			\param dataOffset Data offset in the raw file
-			\param dataLength Length of the data to map from the raw file
-			\param flags Segment r/w/x flags
+		    \param start Starting virtual address
+		    \param length Length within the virtual address space
+		    \param dataOffset Data offset in the raw file
+		    \param dataLength Length of the data to map from the raw file
+		    \param flags Segment r/w/x flags
 		*/
 		void AddUserSegment(uint64_t start, uint64_t length, uint64_t dataOffset, uint64_t dataLength, uint32_t flags);
 
 		/*! Creates user-defined segments that specify how data from the raw file is mapped into a virtual address space
 
-			\param segments Segments to add to the BinaryView
+		    \param segments Segments to add to the BinaryView
 		*/
 		void AddUserSegments(const std::vector<BNSegmentInfo>& segments);
 
 		/*! Removes a user-defined segment from th current segment mapping
 
-			\param start Virtual address of the start of the segment
-			\param length Length of the segment
+		    \param start Virtual address of the start of the segment
+		    \param length Length of the segment
 		*/
 		void RemoveUserSegment(uint64_t start, uint64_t length);
 
 		/*! Get the list of registered Segments
 
-			\return The list of registered Segments
+		    \return The list of registered Segments
 		*/
 		std::vector<Ref<Segment>> GetSegments();
 
 		/*! Gets the Segment a given virtual address is located in
 
-			\param addr A virtual address
-			\return The Segment that virtual address is located im
+		    \param addr A virtual address
+		    \return The Segment that virtual address is located im
 		*/
 		Ref<Segment> GetSegmentAt(uint64_t addr);
 
 		/*! Retrieves the virtual addreses that maps to the given file offset, if possible.
 
-			\param[in] offset Raw file offset
-			\param[out] addr Reference to a uint64_t the address will be written to
-			\return Whether an address was successfully mapped
+		    \param[in] offset Raw file offset
+		    \param[out] addr Reference to a uint64_t the address will be written to
+		    \return Whether an address was successfully mapped
 		*/
 		bool GetAddressForDataOffset(uint64_t offset, uint64_t& addr);
 
 		bool GetDataOffsetForAddress(uint64_t addr, uint64_t& offset);
 
 		/*! Creates an analysis-defined section that can help inform analysis by clarifying what types of data exist in
-			what ranges
+		    what ranges
 
-		 	Note that all data specified must already be mapped by an existing segment.
+		    Note that all data specified must already be mapped by an existing segment.
 
-			\param name Name of the section
-			\param start Virtual address of the start of the section
-			\param length Length of the section
-			\param semantics SectionSemantics of the section
-			\param type Optional type of the section
-			\param align Optional byte alignment
-			\param entrySize Entry Size of the section
-			\param linkedSection Optional namee of a linked section
-			\param infoSection Optional name of an associated informational section
-			\param infoData Optional Info Data
+		    \param name Name of the section
+		    \param start Virtual address of the start of the section
+		    \param length Length of the section
+		    \param semantics SectionSemantics of the section
+		    \param type Optional type of the section
+		    \param align Optional byte alignment
+		    \param entrySize Entry Size of the section
+		    \param linkedSection Optional namee of a linked section
+		    \param infoSection Optional name of an associated informational section
+		    \param infoData Optional Info Data
 		*/
 		void AddAutoSection(const std::string& name, uint64_t start, uint64_t length,
-		    BNSectionSemantics semantics = DefaultSectionSemantics, const std::string& type = "", uint64_t align = 1,
-		    uint64_t entrySize = 0, const std::string& linkedSection = "", const std::string& infoSection = "",
-		    uint64_t infoData = 0);
+			BNSectionSemantics semantics = DefaultSectionSemantics, const std::string& type = "", uint64_t align = 1,
+			uint64_t entrySize = 0, const std::string& linkedSection = "", const std::string& infoSection = "",
+			uint64_t infoData = 0);
 
 		/*! Remove an automatically defined section by name
 
-			\param name Name of the section
+		    \param name Name of the section
 		*/
 		void RemoveAutoSection(const std::string& name);
 
 		/*! Creates a user-defined section that can help inform analysis by clarifying what types of data exist in
-			what ranges
+		    what ranges
 
-		 	Note that all data specified must already be mapped by an existing segment.
+		    Note that all data specified must already be mapped by an existing segment.
 
-			\param name Name of the section
-			\param start Virtual address of the start of the section
-			\param length Length of the section
-			\param semantics SectionSemantics of the section
-			\param type Optional type of the section
-			\param align Optional byte alignment
-			\param entrySize Entry Size of the section
-			\param linkedSection Optional namee of a linked section
-			\param infoSection Optional name of an associated informational section
-			\param infoData Optional Info Data
+		    \param name Name of the section
+		    \param start Virtual address of the start of the section
+		    \param length Length of the section
+		    \param semantics SectionSemantics of the section
+		    \param type Optional type of the section
+		    \param align Optional byte alignment
+		    \param entrySize Entry Size of the section
+		    \param linkedSection Optional namee of a linked section
+		    \param infoSection Optional name of an associated informational section
+		    \param infoData Optional Info Data
 		*/
 		void AddUserSection(const std::string& name, uint64_t start, uint64_t length,
-		    BNSectionSemantics semantics = DefaultSectionSemantics, const std::string& type = "", uint64_t align = 1,
-		    uint64_t entrySize = 0, const std::string& linkedSection = "", const std::string& infoSection = "",
-		    uint64_t infoData = 0);
+			BNSectionSemantics semantics = DefaultSectionSemantics, const std::string& type = "", uint64_t align = 1,
+			uint64_t entrySize = 0, const std::string& linkedSection = "", const std::string& infoSection = "",
+			uint64_t infoData = 0);
 
 		/*! Remove a user defined section by name
 
-			\param name Name of the section to remove
+		    \param name Name of the section to remove
 		*/
 		void RemoveUserSection(const std::string& name);
 
 		/*! Get the list of defined sections
 
-			\return The list of defined sections
+		    \return The list of defined sections
 		*/
 		std::vector<Ref<Section>> GetSections();
 
 		/*! Get the list of sections containing \c addr
 
-			\param addr Address to check
-			\return List of sections containing \c addr
+		    \param addr Address to check
+		    \return List of sections containing \c addr
 		*/
 		std::vector<Ref<Section>> GetSectionsAt(uint64_t addr);
 
 		/*! Get a Section by name
 
-			\param name Name of the Section
-			\return The Section with that name
+		    \param name Name of the Section
+		    \return The Section with that name
 		*/
 		Ref<Section> GetSectionByName(const std::string& name);
 
 		/*! Create unique names for all items in the input list, modifying them if they are not unique
 
-			\code{.cpp}
+		    \code{.cpp}
 		    std::vector<std::string> names = bv.GetUniqueSectionNames({"sect1", "sect1", "sect2"});
-			// names == {'sect1', 'sect1#1', 'sect2'}
-		 	\endcode
+		    // names == {'sect1', 'sect1#1', 'sect2'}
+		    \endcode
 
-			\param names List of names
-			\return List of unique names
+		    \param names List of names
+		    \return List of unique names
 		*/
 		std::vector<std::string> GetUniqueSectionNames(const std::vector<std::string>& names);
 
 		/*! Get the list of allocated ranges
 		   \deprecated This API has been deprecated in favor of GetMappedAddressRanges in 4.1.5902
 
-			\return The list of allocated ranges
+		    \return The list of allocated ranges
 		*/
 		std::vector<BNAddressRange> GetAllocatedRanges();
 
 		/*! Get the list of ranges mapped into the address space
 
-			\return The list of mapped ranges
+		    \return The list of mapped ranges
 		*/
 		std::vector<BNAddressRange> GetMappedAddressRanges();
 
 		/*! Get the list of ranges that are mapped into the address space and are backed by a target object
 
-			\return The list of backed ranges
+		    \return The list of backed ranges
 		*/
 		std::vector<BNAddressRange> GetBackedAddressRanges();
 
 		/*! Get the comment placed at an address
 
-			\param addr Address at which to check for a comment
-			\return Comment at that address
+		    \param addr Address at which to check for a comment
+		    \return Comment at that address
 		*/
 		std::string GetCommentForAddress(uint64_t addr) const;
 
 		/*! Get the list of commented addresses
 
-			\return list of addresses with comments defined at them
+		    \return list of addresses with comments defined at them
 		*/
 		std::vector<uint64_t> GetCommentedAddresses() const;
 
 		/*! Set the comment at an address
 
-			\param addr Address at which to place a comment
-			\param comment Comment to place
+		    \param addr Address at which to place a comment
+		    \param comment Comment to place
 		*/
 		void SetCommentForAddress(uint64_t addr, const std::string& comment);
 
@@ -6754,70 +6896,75 @@ namespace BinaryNinja {
 
 		/*! Returns a list of namespaces for the current BinaryView
 
-			\return A list of namespaces for the current BinaryView
+		    \return A list of namespaces for the current BinaryView
 		*/
 		std::set<NameSpace> GetNameSpaces() const;
 
 		/*! Internal namespace for the current BinaryView
 
-			\return Internal namespace for the current BinaryView
+		    \return Internal namespace for the current BinaryView
 		*/
 		static NameSpace GetInternalNameSpace();
 
 		/*! External namespace for the current BinaryView
 
-			\return External namespace for the current BinaryView
+		    \return External namespace for the current BinaryView
 		*/
 		static NameSpace GetExternalNameSpace();
 
 		/*! Evaluates a string expression to an integer value.
 
-			The parser uses the following rules:
+		    The parser uses the following rules:
 
-			- Symbols are defined by the lexer as ``[A-Za-z0-9_:<>][A-Za-z0-9_:$\-<>]+`` or anything enclosed in either single or double quotes
-			- Symbols are everything in ``bv.GetSymbols()``, unnamed DataVariables (i.e. ``data_00005000``), unnamed functions (i.e. ``sub_00005000``), or section names (i.e. ``.text``)
-			- Numbers are defaulted to hexadecimal thus `_printf + 10` is equivalent to `printf + 0x10` If decimal numbers required use the decimal prefix.
-			- Since numbers and symbols can be ambiguous its recommended that you prefix your numbers with the following:
+		    - Symbols are defined by the lexer as ``[A-Za-z0-9_:<>][A-Za-z0-9_:$\-<>]+`` or anything enclosed in either
+		   single or double quotes
+		    - Symbols are everything in ``bv.GetSymbols()``, unnamed DataVariables (i.e. ``data_00005000``), unnamed
+		   functions (i.e. ``sub_00005000``), or section names (i.e. ``.text``)
+		    - Numbers are defaulted to hexadecimal thus `_printf + 10` is equivalent to `printf + 0x10` If decimal
+		   numbers required use the decimal prefix.
+		    - Since numbers and symbols can be ambiguous its recommended that you prefix your numbers with the
+		   following:
 
-					- ``0x`` - Hexadecimal
-					- ``0n`` - Decimal
-					- ``0`` - Octal
+		            - ``0x`` - Hexadecimal
+		            - ``0n`` - Decimal
+		            - ``0`` - Octal
 
-			- In the case of an ambiguous number/symbol (one with no prefix) for instance ``12345`` we will first attempt
-			  to look up the string as a symbol, if a symbol is found its address is used, otherwise we attempt to convert
-			  it to a hexadecimal number.
-			- The following operations are valid: ``+, -, \*, /, %, (), &, \|, ^, ~``
-			- In addition to the above operators there are dereference operators similar to BNIL style IL:
+		    - In the case of an ambiguous number/symbol (one with no prefix) for instance ``12345`` we will first
+		   attempt to look up the string as a symbol, if a symbol is found its address is used, otherwise we attempt to
+		   convert it to a hexadecimal number.
+		    - The following operations are valid: ``+, -, \*, /, %, (), &, \|, ^, ~``
+		    - In addition to the above operators there are dereference operators similar to BNIL style IL:
 
-					- ``[<expression>]`` - read the `current address size` at ``<expression>``
-					- ``[<expression>].b`` - read the byte at ``<expression>``
-					- ``[<expression>].w`` - read the word (2 bytes) at ``<expression>``
-					- ``[<expression>].d`` - read the dword (4 bytes) at ``<expression>``
-					- ``[<expression>].q`` - read the quadword (8 bytes) at ``<expression>``
+		            - ``[<expression>]`` - read the `current address size` at ``<expression>``
+		            - ``[<expression>].b`` - read the byte at ``<expression>``
+		            - ``[<expression>].w`` - read the word (2 bytes) at ``<expression>``
+		            - ``[<expression>].d`` - read the dword (4 bytes) at ``<expression>``
+		            - ``[<expression>].q`` - read the quadword (8 bytes) at ``<expression>``
 
-			- The ``$here`` (or more succinctly: ``$``) keyword can be used in calculations and is defined as the ``here`` parameter, or the currently selected address
-			- The ``$start``/``$end`` keyword represents the address of the first/last bytes in the file respectively
+		    - The ``$here`` (or more succinctly: ``$``) keyword can be used in calculations and is defined as the
+		   ``here`` parameter, or the currently selected address
+		    - The ``$start``/``$end`` keyword represents the address of the first/last bytes in the file respectively
 
 
-			\param[in] view View object for relative selections
-			\param[in] expression Expression to parse
-			\param[out] offset Parsed expression
-			\param[in] here The location for $here
-			\param[out] errorString Any errors that occurred during parsing
-			\return Whether the parsing was successful
+		    \param[in] view View object for relative selections
+		    \param[in] expression Expression to parse
+		    \param[out] offset Parsed expression
+		    \param[in] here The location for $here
+		    \param[out] errorString Any errors that occurred during parsing
+		    \return Whether the parsing was successful
 		*/
 		static bool ParseExpression(Ref<BinaryView> view, const std::string& expression, uint64_t& offset,
-		    uint64_t here, std::string& errorString);
+			uint64_t here, std::string& errorString);
 
 		/*! Check whether this BinaryView has any defined symbols
 
-			\return Whether this BinaryView has any defined symbols
+		    \return Whether this BinaryView has any defined symbols
 		*/
 		bool HasSymbols() const;
 
 		/*! Check whether this BinaryView has any defined DataVariables
 
-			\return Whether this BinaryView has any defined DataVariables
+		    \return Whether this BinaryView has any defined DataVariables
 		*/
 		bool HasDataVariables() const;
 
@@ -6826,78 +6973,80 @@ namespace BinaryNinja {
 
 		/*! Create a logger with a session ID tied to this BinaryView.
 
-		 	Whenever this logger is used, if "Log Scope" is set to "Current Tab", it will only be shown for tabs
-		 	Displaying this BinaryView
+		    Whenever this logger is used, if "Log Scope" is set to "Current Tab", it will only be shown for tabs
+		    Displaying this BinaryView
 
-		 	\see Logger
-		 	\see LogRegistry
+		    \see Logger
+		    \see LogRegistry
 
-			\param name Name for the logger
-			\return The created Logger
+		    \param name Name for the logger
+		    \return The created Logger
 		*/
 		Ref<Logger> CreateLogger(const std::string& name);
 
 		/*! Add a magic value to the expression parser
 
-			If the magic value already exists, its value gets updated.
-			The magic value can be used in the expression by a `$` followed by its name, e.g., `$foobar`.
-		 	It is optional to include the `$` when calling this function, i.e., calling with `foobar` and `$foobar`
-		 	has the same effect.
+		    If the magic value already exists, its value gets updated.
+		    The magic value can be used in the expression by a `$` followed by its name, e.g., `$foobar`.
+		    It is optional to include the `$` when calling this function, i.e., calling with `foobar` and `$foobar`
+		    has the same effect.
 
-			\param name Name for the magic value to add or update
-			\param value Value for the magic value
+		    \param name Name for the magic value to add or update
+		    \param value Value for the magic value
 		*/
 		void AddExpressionParserMagicValue(const std::string& name, uint64_t value);
 
 		/*! Remove a magic value from the expression parser
 
-			If the magic value gets referenced after removal, an error will occur during the parsing.
+		    If the magic value gets referenced after removal, an error will occur during the parsing.
 
-			\param name Name for the magic value to remove
-			\param value Value for the magic value
+		    \param name Name for the magic value to remove
+		    \param value Value for the magic value
 		*/
 		void RemoveExpressionParserMagicValue(const std::string& name);
 
 		/*! Add a list of magic value to the expression parser
 
-		 	The vector `names` and `values` must have the same size. The ith name in the `names` will correspond to
-		 	the ith value in the `values`.
+		    The vector `names` and `values` must have the same size. The ith name in the `names` will correspond to
+		    the ith value in the `values`.
 
-			If a magic value already exists, its value gets updated.
-			The magic value can be used in the expression by a `$` followed by its name, e.g., `$foobar`.
-		 	It is optional to include the `$` when calling this function, i.e., calling with `foobar` and `$foobar`
-		 	has the same effect.
+		    If a magic value already exists, its value gets updated.
+		    The magic value can be used in the expression by a `$` followed by its name, e.g., `$foobar`.
+		    It is optional to include the `$` when calling this function, i.e., calling with `foobar` and `$foobar`
+		    has the same effect.
 
-			\param name Names for the magic values to add or update
-			\param value Values for the magic value
+		    \param name Names for the magic values to add or update
+		    \param value Values for the magic value
 		*/
 		void AddExpressionParserMagicValues(const std::vector<std::string>& names, const std::vector<uint64_t>& values);
 
 		/*! Remove a list of magic value from the expression parser
 
-			If any of the magic values gets referenced after removal, an error will occur during the parsing.
+		    If any of the magic values gets referenced after removal, an error will occur during the parsing.
 
-			\param name Names for the magic value to remove
+		    \param name Names for the magic value to remove
 		*/
 		void RemoveExpressionParserMagicValues(const std::vector<std::string>& names);
 
 		/*! Get the value of an expression parser magic value
 
-		 	If the queried magic value exists, the function returns true and the magic value is returned in `value`.
-		 	If the queried magic value does not exist, the function returns false.
+		    If the queried magic value exists, the function returns true and the magic value is returned in `value`.
+		    If the queried magic value does not exist, the function returns false.
 
-			\param[in] name Name for the magic value to query
-			\param[out] value Value for the magic value
-		 	\return Whether the magic value exists
+		    \param[in] name Name for the magic value to query
+		    \param[out] value Value for the magic value
+		    \return Whether the magic value exists
 		*/
 		bool GetExpressionParserMagicValue(const std::string& name, uint64_t* value);
 
-		Ref<ExternalLibrary> AddExternalLibrary(const std::string& name, Ref<ProjectFile> backingFile, bool isAuto = false);
+		Ref<ExternalLibrary> AddExternalLibrary(
+			const std::string& name, Ref<ProjectFile> backingFile, bool isAuto = false);
 		void RemoveExternalLibrary(const std::string& name);
 		Ref<ExternalLibrary> GetExternalLibrary(const std::string& name);
 		std::vector<Ref<ExternalLibrary>> GetExternalLibraries();
 
-		Ref<ExternalLocation> AddExternalLocation(Ref<Symbol> sourceSymbol, Ref<ExternalLibrary> library, std::optional<std::string> targetSymbol, std::optional<uint64_t> targetAddress, bool isAuto = false);
+		Ref<ExternalLocation> AddExternalLocation(Ref<Symbol> sourceSymbol, Ref<ExternalLibrary> library,
+			std::optional<std::string> targetSymbol, std::optional<uint64_t> targetAddress, bool isAuto = false);
 		void RemoveExternalLocation(Ref<Symbol> sourceSymbol);
 		Ref<ExternalLocation> GetExternalLocation(Ref<Symbol> sourceSymbol);
 		std::vector<Ref<ExternalLocation>> GetExternalLocations();
@@ -6916,13 +7065,10 @@ namespace BinaryNinja {
 		BNBinaryView* m_object;
 
 	public:
-		MemoryMap(BNBinaryView* view): m_object(view) {}
+		MemoryMap(BNBinaryView* view) : m_object(view) {}
 		~MemoryMap() = default;
 
-		void SetLogicalMemoryMapEnabled(bool enabled)
-		{
-			BNSetLogicalMemoryMapEnabled(m_object, enabled);
-		}
+		void SetLogicalMemoryMapEnabled(bool enabled) { BNSetLogicalMemoryMapEnabled(m_object, enabled); }
 
 		bool AddBinaryMemoryRegion(const std::string& name, uint64_t start, Ref<BinaryView> source, uint32_t flags = 0)
 		{
@@ -6939,10 +7085,7 @@ namespace BinaryNinja {
 			return BNAddRemoteMemoryRegion(m_object, name.c_str(), start, source->GetCallbacks(), flags);
 		}
 
-		bool RemoveMemoryRegion(const std::string& name)
-		{
-			return BNRemoveMemoryRegion(m_object, name.c_str());
-		}
+		bool RemoveMemoryRegion(const std::string& name) { return BNRemoveMemoryRegion(m_object, name.c_str()); }
 
 		std::string GetActiveMemoryRegionAt(uint64_t addr)
 		{
@@ -6962,10 +7105,7 @@ namespace BinaryNinja {
 			return BNSetMemoryRegionFlags(m_object, name.c_str(), flags);
 		}
 
-		bool IsMemoryRegionEnabled(const std::string& name)
-		{
-			return BNIsMemoryRegionEnabled(m_object, name.c_str());
-		}
+		bool IsMemoryRegionEnabled(const std::string& name) { return BNIsMemoryRegionEnabled(m_object, name.c_str()); }
 
 		bool SetMemoryRegionEnabled(const std::string& name, bool enabled)
 		{
@@ -6982,28 +7122,22 @@ namespace BinaryNinja {
 			return BNSetMemoryRegionRebaseable(m_object, name.c_str(), rebaseable);
 		}
 
-		uint8_t GetMemoryRegionFill(const std::string& name)
-		{
-			return BNGetMemoryRegionFill(m_object, name.c_str());
-		}
+		uint8_t GetMemoryRegionFill(const std::string& name) { return BNGetMemoryRegionFill(m_object, name.c_str()); }
 
 		bool SetMemoryRegionFill(const std::string& name, uint8_t fill)
 		{
 			return BNSetMemoryRegionFill(m_object, name.c_str(), fill);
 		}
 
-		void Reset()
-		{
-			BNResetMemoryMap(m_object);
-		}
+		void Reset() { BNResetMemoryMap(m_object); }
 	};
 
 	/*!
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class Relocation : public CoreRefCountObject<BNRelocation, BNNewRelocationReference, BNFreeRelocation>
 	{
-	  public:
+	public:
 		Relocation(BNRelocation* reloc);
 		BNRelocationInfo GetInfo() const;
 		Architecture* GetArchitecture() const;
@@ -7014,13 +7148,13 @@ namespace BinaryNinja {
 
 
 	/*!
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class BinaryData : public BinaryView
 	{
 		BinaryData(BNBinaryView* view);
 
-	  public:
+	public:
 		BinaryData(FileMetadata* file);
 		BinaryData(FileMetadata* file, const DataBuffer& data);
 		BinaryData(FileMetadata* file, const void* data, size_t len);
@@ -7028,20 +7162,20 @@ namespace BinaryNinja {
 		BinaryData(FileMetadata* file, FileAccessor* accessor);
 
 		/*!
-			Open a raw file from a given path.
-			This is lifted out into a method because this operation can fail.
-			\param file Metadata structure
-			\param path Path to file to open
-			\return Reference to binary data if successful, nullptr reference otherwise
+		    Open a raw file from a given path.
+		    This is lifted out into a method because this operation can fail.
+		    \param file Metadata structure
+		    \param path Path to file to open
+		    \return Reference to binary data if successful, nullptr reference otherwise
 		 */
 		static Ref<BinaryData> CreateFromFilename(FileMetadata* file, const std::string& path);
 
 		/*!
-			Open a raw file from a given path.
-			This is lifted out into a method because this operation can fail.
-			\param file Metadata structure
-			\param accessor File accessor object for reading file contents
-			\return Reference to binary data if successful, nullptr reference otherwise
+		    Open a raw file from a given path.
+		    This is lifted out into a method because this operation can fail.
+		    \param file Metadata structure
+		    \param accessor File accessor object for reading file contents
+		    \return Reference to binary data if successful, nullptr reference otherwise
 		 */
 		static Ref<BinaryData> CreateFromFile(FileMetadata* file, FileAccessor* accessor);
 	};
@@ -7049,7 +7183,7 @@ namespace BinaryNinja {
 	class Platform;
 
 	/*! The \c BinaryViewType object is used internally and should not be directly instantiated.
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class BinaryViewType : public StaticCoreRefCountObject<BNBinaryViewType>
 	{
@@ -7063,62 +7197,62 @@ namespace BinaryNinja {
 			std::function<Ref<Platform>(BinaryView*, Metadata*)> action;
 		};
 
-	  protected:
+	protected:
 		std::string m_nameForRegister, m_longNameForRegister;
 
 		static BNBinaryView* CreateCallback(void* ctxt, BNBinaryView* data);
 		static BNBinaryView* ParseCallback(void* ctxt, BNBinaryView* data);
 		static bool IsValidCallback(void* ctxt, BNBinaryView* data);
 		static bool IsDeprecatedCallback(void* ctxt);
-		static bool IsForceLoadableCallback(void *ctxt);
+		static bool IsForceLoadableCallback(void* ctxt);
 		static BNSettings* GetSettingsCallback(void* ctxt, BNBinaryView* data);
 
 		BinaryViewType(BNBinaryViewType* type);
 
-	  public:
+	public:
 		BinaryViewType(const std::string& name, const std::string& longName);
 		virtual ~BinaryViewType() {}
 
 		/*! Register a BinaryViewType
 
-			\param type BinaryViewType to register
+		    \param type BinaryViewType to register
 		*/
 		static void Register(BinaryViewType* type);
 
 		/*! Get a BinaryViewType by name
 
-			\param name Name of the registered BinaryViewType
-			\return The BinaryViewType, if one was registered
+		    \param name Name of the registered BinaryViewType
+		    \return The BinaryViewType, if one was registered
 		*/
 		static Ref<BinaryViewType> GetByName(const std::string& name);
 
 		/*! Get the list of registered View Types
 
-			\return Get the list of registered View Types
+		    \return Get the list of registered View Types
 		*/
 		static std::vector<Ref<BinaryViewType>> GetViewTypes();
 
 		/*! Get the list of valid view types for a BinaryView
 
-			\param data BinaryView for a binary
-			\return List of valid view types
+		    \param data BinaryView for a binary
+		    \return List of valid view types
 		*/
 		static std::vector<Ref<BinaryViewType>> GetViewTypesForData(BinaryView* data);
 
 		/*! Register an Architecture for a specific view type
 
-			\param name Name of the view type
-			\param id ID of the architecture
-			\param endian Endianness of the architecture
-			\param arch Architecture
+		    \param name Name of the view type
+		    \param id ID of the architecture
+		    \param endian Endianness of the architecture
+		    \param arch Architecture
 		*/
 		static void RegisterArchitecture(const std::string& name, uint32_t id, BNEndianness endian, Architecture* arch);
 
 		/*! Register an Architecture for this view type
 
-			\param id ID of the architecture
-			\param endian Endianness of the architecture
-			\param arch Architecture
+		    \param id ID of the architecture
+		    \param endian Endianness of the architecture
+		    \param arch Architecture
 		*/
 		void RegisterArchitecture(uint32_t id, BNEndianness endian, Architecture* arch);
 
@@ -7126,63 +7260,63 @@ namespace BinaryNinja {
 
 		    \param id ID of the architecture
 		    \param endian Endianness of the architecture
-			\return The architecture, if it was found
+		    \return The architecture, if it was found
 		*/
 		Ref<Architecture> GetArchitecture(uint32_t id, BNEndianness endian);
 
 		/*! Register a Platform for a specific view type
 
-			\param name Name of the BinaryViewType
-			\param id ID of the platform
-			\param arch Architecture to register this platform with
-			\param platform The Platform to register
+		    \param name Name of the BinaryViewType
+		    \param id ID of the platform
+		    \param arch Architecture to register this platform with
+		    \param platform The Platform to register
 		*/
 		static void RegisterPlatform(const std::string& name, uint32_t id, Architecture* arch, Platform* platform);
 
 		/*! Register a Platform as a default for a specific view type
 
-			\param name Name of the BinaryViewType
-			\param arch Architecture to register this platform with
-			\param platform The Platform to register
+		    \param name Name of the BinaryViewType
+		    \param arch Architecture to register this platform with
+		    \param platform The Platform to register
 		*/
 		static void RegisterDefaultPlatform(const std::string& name, Architecture* arch, Platform* platform);
 
 		/*! Register a Platform for this view type
 
-			\param id ID of the platform
-			\param arch Architecture to register this platform with
-			\param platform The Platform to register
+		    \param id ID of the platform
+		    \param arch Architecture to register this platform with
+		    \param platform The Platform to register
 		*/
 		void RegisterPlatform(uint32_t id, Architecture* arch, Platform* platform);
 
 		/*! Register a Platform as a default for this view type
 
-			\param arch Architecture to register this platform with
-			\param platform The Platform to register
+		    \param arch Architecture to register this platform with
+		    \param platform The Platform to register
 		*/
 		void RegisterDefaultPlatform(Architecture* arch, Platform* platform);
 
 		/*! Get a platform by ID and architecture
 
-			\param id ID of the platform
-			\param arch Architecture of the Platform
-			\return The Platform, if it was found.
+		    \param id ID of the platform
+		    \param arch Architecture of the Platform
+		    \return The Platform, if it was found.
 		*/
 		Ref<Platform> GetPlatform(uint32_t id, Architecture* arch);
 
 		void RegisterPlatformRecognizer(uint64_t id, BNEndianness endian,
-		    const std::function<Ref<Platform>(BinaryView* view, Metadata*)>& callback);
+			const std::function<Ref<Platform>(BinaryView* view, Metadata*)>& callback);
 		Ref<Platform> RecognizePlatform(uint64_t id, BNEndianness endian, BinaryView* view, Metadata* metadata);
 
 		/*! Get the name this platform was registered with
 
-			\return The name of the platform
+		    \return The name of the platform
 		*/
 		std::string GetName();
 
 		/*! Get the "Long Name" this platform was registered with
 
-			\return The "Long Name" this platform was registered with
+		    \return The "Long Name" this platform was registered with
 		*/
 		std::string GetLongName();
 
@@ -7190,28 +7324,28 @@ namespace BinaryNinja {
 
 		/*! Create a BinaryView for this BinaryViewType given the data from an existing BinaryView
 
-			\param data An existing BinaryView, typically with the \c Raw type
-			\return The BinaryView created by this BinaryViewType
+		    \param data An existing BinaryView, typically with the \c Raw type
+		    \return The BinaryView created by this BinaryViewType
 		*/
 		virtual Ref<BinaryView> Create(BinaryView* data) = 0;
 
 		/*! Create ephemeral BinaryView to generate information for preview
 
-			\param data An existing BinaryView, typically with the \c Raw type
-			\return The BinaryView created by this BinaryViewType
+		    \param data An existing BinaryView, typically with the \c Raw type
+		    \return The BinaryView created by this BinaryViewType
 		*/
 		virtual Ref<BinaryView> Parse(BinaryView* data);
 
 		/*! Check whether this BinaryViewType is valid for given data
 
-			\param data An existing BinaryView, typically with the \c Raw type
-			\return Whether this BinaryViewType is valid for given data
+		    \param data An existing BinaryView, typically with the \c Raw type
+		    \return Whether this BinaryViewType is valid for given data
 		*/
 		virtual bool IsTypeValidForData(BinaryView* data) = 0;
 
 		/*! Check whether this BinaryViewType can be forced to load a binary, even if IsTypeValidForData returns false
 
-			\return Whether this BinaryViewType can be forced to load a binary
+		    \return Whether this BinaryViewType can be forced to load a binary
 		*/
 		virtual bool IsForceLoadable();
 
@@ -7220,18 +7354,18 @@ namespace BinaryNinja {
 
 		static void RegisterBinaryViewFinalizationEvent(const std::function<void(BinaryView* view)>& callback);
 		static void RegisterBinaryViewInitialAnalysisCompletionEvent(
-		    const std::function<void(BinaryView* view)>& callback);
+			const std::function<void(BinaryView* view)>& callback);
 
 		static void BinaryViewEventCallback(void* ctxt, BNBinaryView* view);
 		static BNPlatform* PlatformRecognizerCallback(void* ctxt, BNBinaryView* view, BNMetadata* metadata);
 	};
 
 	/*!
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class CoreBinaryViewType : public BinaryViewType
 	{
-	  public:
+	public:
 		CoreBinaryViewType(BNBinaryViewType* type);
 		virtual Ref<BinaryView> Create(BinaryView* data) override;
 		virtual Ref<BinaryView> Parse(BinaryView* data) override;
@@ -7243,34 +7377,34 @@ namespace BinaryNinja {
 
 	/*! Thrown whenever a read is performed out of bounds.
 
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class ReadException : public ExceptionWithStackTrace
 	{
-	  public:
+	public:
 		ReadException() : ExceptionWithStackTrace("read out of bounds") {}
 	};
 
 	/*! BinaryReader is a convenience class for reading binary data
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class BinaryReader
 	{
 		Ref<BinaryView> m_view;
 		BNBinaryReader* m_stream;
 
-	  public:
+	public:
 		/*! Create a BinaryReader instance given a BinaryView and endianness.
 
-			\param data BinaryView to read from
-			\param endian Byte order to read with. One of LittleEndian, BigEndian
+		    \param data BinaryView to read from
+		    \param endian Byte order to read with. One of LittleEndian, BigEndian
 		*/
 		BinaryReader(BinaryView* data, BNEndianness endian = LittleEndian);
 		~BinaryReader();
 
 		/*! Get the endianness set for this reader.
 
-			\return The endianness set for this reader.
+		    \return The endianness set for this reader.
 		*/
 		BNEndianness GetEndianness() const;
 
@@ -7283,15 +7417,15 @@ namespace BinaryNinja {
 		/*! Read from the current cursor position into buffer `dest`
 
 		    \throws ReadException
-			\param dest Address to write the read bytes to
-			\param len Number of bytes to write
+		    \param dest Address to write the read bytes to
+		    \param len Number of bytes to write
 		*/
 		void Read(void* dest, size_t len);
 		/*! Read from the current cursor position into a DataBuffer
 
 		    \throws ReadException
-			\param len Number of bytes to read
-			\return DataBuffer containing the bytes read
+		    \param len Number of bytes to read
+		    \return DataBuffer containing the bytes read
 		*/
 		DataBuffer Read(size_t len);
 		template <typename T>
@@ -7302,44 +7436,44 @@ namespace BinaryNinja {
 		/*! Read a string of fixed length from the current cursor position
 
 		    \throws ReadException
-			\param len Length of the string
-			\return the string
+		    \param len Length of the string
+		    \return the string
 		*/
 		std::string ReadString(size_t len);
 
 		/*! Read a null-terminated string from the current cursor position
 
 		    \throws ReadException
-			\param maxLength Maximum length of the string, default is no limit (-1)
-			\return the string
+		    \param maxLength Maximum length of the string, default is no limit (-1)
+		    \return the string
 		*/
 		std::string ReadCString(size_t maxLength = -1);
 
 		/*! Read a uint8_t from the current cursor position and advance the cursor by 1 byte
 
 		    \throws ReadException
-			\return The read value
+		    \return The read value
 		*/
 		uint8_t Read8();
 
 		/*! Read a uint16_t from the current cursor position and advance the cursor by 2 bytes
 
 		    \throws ReadException
-			\return The read value
+		    \return The read value
 		*/
 		uint16_t Read16();
 
 		/*! Read a uint32_t from the current cursor position and advance the cursor by 4 bytes
 
 		    \throws ReadException
-			\return The read value
+		    \return The read value
 		*/
 		uint32_t Read32();
 
 		/*! Read a uint64_t from the current cursor position and advance the cursor by 8 bytes
 
 		    \throws ReadException
-			\return The read value
+		    \return The read value
 		*/
 		uint64_t Read64();
 
@@ -7352,26 +7486,26 @@ namespace BinaryNinja {
 		uint64_t ReadPointer();
 
 		/*! Read a uint16_t from the current cursor position, explicitly as a little endian value,
-			and advance the cursor by 4 bytes
+		    and advance the cursor by 4 bytes
 
 		    \throws ReadException
-			\return The read value
+		    \return The read value
 		*/
 		uint16_t ReadLE16();
 
 		/*! Read a uint16_t from the current cursor position, explicitly as a little endian value,
-			and advance the cursor by 4 bytes
+		    and advance the cursor by 4 bytes
 
 		    \throws ReadException
-			\return The read value
+		    \return The read value
 		*/
 		uint32_t ReadLE32();
 
 		/*! Read a uint16_t from the current cursor position, explicitly as a little endian value,
-			and advance the cursor by 4 bytes
+		    and advance the cursor by 4 bytes
 
 		    \throws ReadException
-			\return The read value
+		    \return The read value
 		*/
 		uint64_t ReadLE64();
 
@@ -7384,26 +7518,26 @@ namespace BinaryNinja {
 		uint64_t ReadLEPointer();
 
 		/*! Read a uint16_t from the current cursor position, explicitly as a big endian value,
-			and advance the cursor by 4 bytes
+		    and advance the cursor by 4 bytes
 
 		    \throws ReadException
-			\return The read value
+		    \return The read value
 		*/
 		uint16_t ReadBE16();
 
 		/*! Read a uint16_t from the current cursor position, explicitly as a big endian value,
-			and advance the cursor by 4 bytes
+		    and advance the cursor by 4 bytes
 
 		    \throws ReadException
-			\return The read value
+		    \return The read value
 		*/
 		uint32_t ReadBE32();
 
 		/*! Read a uint16_t from the current cursor position, explicitly as a big endian value,
-			and advance the cursor by 4 bytes
+		    and advance the cursor by 4 bytes
 
 		    \throws ReadException
-			\return The read value
+		    \return The read value
 		*/
 		uint64_t ReadBE64();
 
@@ -7417,32 +7551,32 @@ namespace BinaryNinja {
 
 		/*! Try reading a value, returning false whenever that read fails
 
-			\param dest Address to write the bytes to
-			\param len Number of bytes to read
-			\return Whether the read succeeded
+		    \param dest Address to write the bytes to
+		    \param len Number of bytes to read
+		    \return Whether the read succeeded
 		*/
 		bool TryRead(void* dest, size_t len);
 
 		/*! Try reading a value into a databuffer
 
-			\param dest Reference to a DataBuffer to write to
-			\param len Amount of bytes to read
-			\return Whether the read succeeded
+		    \param dest Reference to a DataBuffer to write to
+		    \param len Amount of bytes to read
+		    \return Whether the read succeeded
 		*/
 		bool TryRead(DataBuffer& dest, size_t len);
 
 		/*! Try reading a string
 
-			\param dest Reference to a string to write to
-			\param len Length of the string to be read
-			\return Whether the read succeeded
+		    \param dest Reference to a string to write to
+		    \param len Length of the string to be read
+		    \return Whether the read succeeded
 		*/
 		bool TryReadString(std::string& dest, size_t len);
 
 		/*! Try reading a uint8_t
 
-			\param result Reference to a uint8_t to write to
-			\return Whether the read succeeded.
+		    \param result Reference to a uint8_t to write to
+		    \return Whether the read succeeded.
 		*/
 		bool TryRead8(uint8_t& result);
 
@@ -7455,108 +7589,108 @@ namespace BinaryNinja {
 
 		/*! Try reading a uint32_t
 
-			\param result Reference to a uint32_t to write to
-			\return Whether the read succeeded.
+		    \param result Reference to a uint32_t to write to
+		    \return Whether the read succeeded.
 		*/
 		bool TryRead32(uint32_t& result);
 
 		/*! Try reading a uint64_t
 
-			\param result Reference to a uint64_t to write to
-			\return Whether the read succeeded.
+		    \param result Reference to a uint64_t to write to
+		    \return Whether the read succeeded.
 		*/
 		bool TryRead64(uint64_t& result);
 
 		/*! Try reading a pointer (size of BinaryView::GetAddressSize())
 
-			\param result Reference to a uint64_t to write to
-			\return Whether the read succeeded.
+		    \param result Reference to a uint64_t to write to
+		    \return Whether the read succeeded.
 		*/
 		bool TryReadPointer(uint64_t& result);
 
 		/*! Try reading a uint16_t, explicitly as little endian
 
-			\param result Reference to a uint16_t to write to
-			\return Whether the read succeeded.
+		    \param result Reference to a uint16_t to write to
+		    \return Whether the read succeeded.
 		*/
 		bool TryReadLE16(uint16_t& result);
 
 		/*! Try reading a uint32_t, explicitly as little endian
 
-			\param result Reference to a uint32_t to write to
-			\return Whether the read succeeded.
+		    \param result Reference to a uint32_t to write to
+		    \return Whether the read succeeded.
 		*/
 		bool TryReadLE32(uint32_t& result);
 
 		/*! Try reading a uint64_t, explicitly as little endian
 
-			\param result Reference to a uint64_t to write to
-			\return Whether the read succeeded.
+		    \param result Reference to a uint64_t to write to
+		    \return Whether the read succeeded.
 		*/
 		bool TryReadLE64(uint64_t& result);
 
 		/*! Try reading a pointer (size of BinaryView::GetAddressSize()) as little-endian
 
-			\param result Reference to a uint64_t to write to
-			\return Whether the read succeeded.
+		    \param result Reference to a uint64_t to write to
+		    \return Whether the read succeeded.
 		*/
 		bool TryReadLEPointer(uint64_t& result);
 
 		/*! Try reading a uint16_t, explicitly as big endian
 
-			\param result Reference to a uint16_t to write to
-			\return Whether the read succeeded.
+		    \param result Reference to a uint16_t to write to
+		    \return Whether the read succeeded.
 		*/
 		bool TryReadBE16(uint16_t& result);
 
 		/*! Try reading a uint32_t, explicitly as big endian
 
-			\param result Reference to a uint32_t to write to
-			\return Whether the read succeeded.
+		    \param result Reference to a uint32_t to write to
+		    \return Whether the read succeeded.
 		*/
 		bool TryReadBE32(uint32_t& result);
 
 		/*! Try reading a uint64_t, explicitly as big endian
 
-			\param result Reference to a uint64_t to write to
-			\return Whether the read succeeded.
+		    \param result Reference to a uint64_t to write to
+		    \return Whether the read succeeded.
 		*/
 		bool TryReadBE64(uint64_t& result);
 
 		/*! Try reading a pointer (size of BinaryView::GetAddressSize()) as big-endian
 
-			\param result Reference to a uint64_t to write to
-			\return Whether the read succeeded.
+		    \param result Reference to a uint64_t to write to
+		    \return Whether the read succeeded.
 		*/
 		bool TryReadBEPointer(uint64_t& result);
 
 		/*! Get the current cursor position
 
-			\return The current cursor position
+		    \return The current cursor position
 		*/
 		uint64_t GetOffset() const;
 
 		/*! Set the cursor position
 
-			\param offset The new cursor position
+		    \param offset The new cursor position
 		*/
 		void Seek(uint64_t offset);
 
 		/*! Set the cursor position, relative to the current position
 
-			\param offset Offset to the current cursor position
+		    \param offset Offset to the current cursor position
 		*/
 		void SeekRelative(int64_t offset);
 
 		/*! Gets the virtual base offset for the stream
 
-			\return The current virtual base
+		    \return The current virtual base
 		*/
 		uint64_t GetVirtualBase();
 
 		/*! Sets a virtual base offset for the stream
 
-			\param base The new virtual base
+		    \param base The new virtual base
 		*/
 		void SetVirtualBase(uint64_t base);
 
@@ -7568,28 +7702,27 @@ namespace BinaryNinja {
 
 	/*! Raised whenever a write is performed out of bounds.
 
-		\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class WriteException : public ExceptionWithStackTrace
 	{
-	  public:
+	public:
 		WriteException() : ExceptionWithStackTrace("write out of bounds") {}
 	};
 
 	/*! BinaryWriter is a convenience class for writing binary data
-	 	\ingroup binaryview
+	    \ingroup binaryview
 	*/
 	class BinaryWriter
 	{
 		Ref<BinaryView> m_view;
 		BNBinaryWriter* m_stream;
 
-	  public:
-
+	public:
 		/*! Create a BinaryWriter instance given a BinaryView and endianness.
 
-			\param data BinaryView to write to
-			\param endian Byte order to write with. One of LittleEndian, BigEndian
+		    \param data BinaryView to write to
+		    \param endian Byte order to write with. One of LittleEndian, BigEndian
 		*/
 		BinaryWriter(BinaryView* data, BNEndianness endian = LittleEndian);
 		~BinaryWriter();
@@ -7597,7 +7730,7 @@ namespace BinaryNinja {
 
 		/*! Get the endianness set for this writer.
 
-			\return The endianness set for this writer.
+		    \return The endianness set for this writer.
 		*/
 		BNEndianness GetEndianness() const;
 
@@ -7609,143 +7742,143 @@ namespace BinaryNinja {
 
 		/*! Write bytes from an address to the current cursor position
 
-		 	\throws WriteException on out of bounds write
-			\param src Address to read the bytes from
-			\param len Amount of bytes to write
+		    \throws WriteException on out of bounds write
+		    \param src Address to read the bytes from
+		    \param len Amount of bytes to write
 		*/
 		void Write(const void* src, size_t len);
 
 		/*! Write the contents of a DataBuffer to the current cursor position
 
 		    \throws WriteException on out of bounds write
-			\param buf DataBuffer to write from
+		    \param buf DataBuffer to write from
 		*/
 		void Write(const DataBuffer& buf);
 
 		/*! Write the contents of a string to the current cursor position
 
 		    \throws WriteException on out of bounds write
-			\param str String to write
+		    \param str String to write
 		*/
 		void Write(const std::string& str);
 
 		/*! Write a uint8_t to the current cursor position
 
 		    \throws WriteException on out of bounds write
-			\param val uint8_t to write
+		    \param val uint8_t to write
 		*/
 		void Write8(uint8_t val);
 
 		/*! Write a uint16_t to the current cursor position
 
 		    \throws WriteException on out of bounds write
-			\param val uint16_t to write
+		    \param val uint16_t to write
 		*/
 		void Write16(uint16_t val);
 
 		/*! Write a uint32_t to the current cursor position
 
 		    \throws WriteException on out of bounds write
-			\param val uint32_t to write
+		    \param val uint32_t to write
 		*/
 		void Write32(uint32_t val);
 
 		/*! Write a uint64_t to the current cursor position
 
 		    \throws WriteException on out of bounds write
-			\param val uint64_t to write
+		    \param val uint64_t to write
 		*/
 		void Write64(uint64_t val);
 
 		/*! Write a uint16_t to the current cursor position, explicitly as little endian
 
 		    \throws WriteException on out of bounds write
-			\param val uint16_t to write
+		    \param val uint16_t to write
 		*/
 		void WriteLE16(uint16_t val);
 
 		/*! Write a uint32_t to the current cursor position, explicitly as little endian
 
 		    \throws WriteException on out of bounds write
-			\param val uint32_t to write
+		    \param val uint32_t to write
 		*/
 		void WriteLE32(uint32_t val);
 
 		/*! Write a uint64_t to the current cursor position, explicitly as little endian
 
 		    \throws WriteException on out of bounds write
-			\param val uint64_t to write
+		    \param val uint64_t to write
 		*/
 		void WriteLE64(uint64_t val);
 
 		/*! Write a uint16_t to the current cursor position, explicitly as big endian
 
 		    \throws WriteException on out of bounds write
-			\param val uint16_t to write
+		    \param val uint16_t to write
 		*/
 		void WriteBE16(uint16_t val);
 
 		/*! Write a uint32_t to the current cursor position, explicitly as big endian
 
 		    \throws WriteException on out of bounds write
-			\param val uint32_t to write
+		    \param val uint32_t to write
 		*/
 		void WriteBE32(uint32_t val);
 
 		/*! Write a uint64_t to the current cursor position, explicitly as big endian
 
 		    \throws WriteException on out of bounds write
-			\param val uint64_t to write
+		    \param val uint64_t to write
 		*/
 		void WriteBE64(uint64_t val);
 
 		/*! Write bytes from an address to the current cursor position
 
-			\param src Address to read the bytes from
-			\param len Amount of bytes to write
-		 	\return Whether the write succeeded
+		    \param src Address to read the bytes from
+		    \param len Amount of bytes to write
+		    \return Whether the write succeeded
 		*/
 		bool TryWrite(const void* src, size_t len);
 
 		/*! Write from a DataBuffer to the current cursor position
 
-			\param buf DataBuffer to write from
-			\return Whether the write succeeded
+		    \param buf DataBuffer to write from
+		    \return Whether the write succeeded
 		*/
 		bool TryWrite(const DataBuffer& buf);
 
 		/*! Write a string to the current cursor position
 
-			\param str String to write
-			\return Whether the write succeeded
+		    \param str String to write
+		    \return Whether the write succeeded
 		*/
 		bool TryWrite(const std::string& str);
 
 		/*! Write a uint8_t to the current cursor position
 
-			\param val uint8_t to write
-			\return Whether the write succeeded
+		    \param val uint8_t to write
+		    \return Whether the write succeeded
 		*/
 		bool TryWrite8(uint8_t val);
 
 		/*! Write a uint16_t to the current cursor position
 
-			\param val uint16_t to write
-			\return Whether the write succeeded
+		    \param val uint16_t to write
+		    \return Whether the write succeeded
 		*/
 		bool TryWrite16(uint16_t val);
 
 		/*! Write a uint32_t to the current cursor position
 
-			\param val uint32_t to write
-			\return Whether the write succeeded
+		    \param val uint32_t to write
+		    \return Whether the write succeeded
 		*/
 		bool TryWrite32(uint32_t val);
 
 		/*! Write a uint64_t to the current cursor position
 
-			\param val uint64_t to write
-			\return Whether the write succeeded
+		    \param val uint64_t to write
+		    \return Whether the write succeeded
 		*/
 		bool TryWrite64(uint64_t val);
 		bool TryWriteLE16(uint16_t val);
@@ -7757,25 +7890,25 @@ namespace BinaryNinja {
 
 		/*! Get the current cursor position
 
-			\return The current cursor position
+		    \return The current cursor position
 		*/
 		uint64_t GetOffset() const;
 
 		/*! Set the current cursor position
 
-			\param offset The new cursor position
+		    \param offset The new cursor position
 		*/
 		void Seek(uint64_t offset);
 
 		/*! Set the cursor position relative to the current cursor position
 
-			\param offset Offset to the current cursor position
+		    \param offset Offset to the current cursor position
 		*/
 		void SeekRelative(int64_t offset);
 	};
 
 	/*!
-		\ingroup transform
+	    \ingroup transform
 	*/
 	struct TransformParameter
 	{
@@ -7787,32 +7920,32 @@ namespace BinaryNinja {
 
 	    New transformations may be added at runtime, so an instance of a transform is created like
 
-		\code{.cpp}
+	    \code{.cpp}
 
-	 	DataBuffer inputData = binaryView->ReadBuffer(0, 32); // Read the first 32 bytes of the file
-	 	DataBuffer outputDataHash;
+	    DataBuffer inputData = binaryView->ReadBuffer(0, 32); // Read the first 32 bytes of the file
+	    DataBuffer outputDataHash;
 
-		Transform::GetByName("SHA512")->Encode(inputData, outputDataHash); // Writes the SHA512 hash to outputDataHash
+	    Transform::GetByName("SHA512")->Encode(inputData, outputDataHash); // Writes the SHA512 hash to outputDataHash
 
-		\endcode
+	    \endcode
 
-	 	Getting a list of registered transforms:
+	    Getting a list of registered transforms:
 
-	 	<b> From the interactive python console: </b>
-	 	\code{.py}
-	 	list(Transform)
-	 	\endcode
+	    <b> From the interactive python console: </b>
+	    \code{.py}
+	    list(Transform)
+	    \endcode
 
-	 	<b> At Runtime: </b>
-	 	\code{.cpp}
+	    <b> At Runtime: </b>
+	    \code{.cpp}
 	    std::vector<Ref<Transform>> registeredTypes = Transform::GetTransformTypes();
-	 	\endcode
+	    \endcode
 
-		\ingroup transform
+	    \ingroup transform
 	*/
 	class Transform : public StaticCoreRefCountObject<BNTransform>
 	{
-	  protected:
+	protected:
 		BNTransformType m_typeForRegister;
 		std::string m_nameForRegister, m_longNameForRegister, m_groupForRegister;
 
@@ -7821,15 +7954,15 @@ namespace BinaryNinja {
 		static BNTransformParameterInfo* GetParametersCallback(void* ctxt, size_t* count);
 		static void FreeParametersCallback(BNTransformParameterInfo* params, size_t count);
 		static bool DecodeCallback(
-		    void* ctxt, BNDataBuffer* input, BNDataBuffer* output, BNTransformParameter* params, size_t paramCount);
+			void* ctxt, BNDataBuffer* input, BNDataBuffer* output, BNTransformParameter* params, size_t paramCount);
 		static bool EncodeCallback(
-		    void* ctxt, BNDataBuffer* input, BNDataBuffer* output, BNTransformParameter* params, size_t paramCount);
+			void* ctxt, BNDataBuffer* input, BNDataBuffer* output, BNTransformParameter* params, size_t paramCount);
 
 		static std::vector<TransformParameter> EncryptionKeyParameters(size_t fixedKeyLength = 0);
 		static std::vector<TransformParameter> EncryptionKeyAndIVParameters(
-		    size_t fixedKeyLength = 0, size_t fixedIVLength = 0);
+			size_t fixedKeyLength = 0, size_t fixedIVLength = 0);
 
-	  public:
+	public:
 		Transform(BNTransformType type, const std::string& name, const std::string& longName, const std::string& group);
 
 		static void Register(Transform* xform);
@@ -7844,24 +7977,24 @@ namespace BinaryNinja {
 		virtual std::vector<TransformParameter> GetParameters() const;
 
 		virtual bool Decode(const DataBuffer& input, DataBuffer& output,
-		    const std::map<std::string, DataBuffer>& params = std::map<std::string, DataBuffer>());
+			const std::map<std::string, DataBuffer>& params = std::map<std::string, DataBuffer>());
 		virtual bool Encode(const DataBuffer& input, DataBuffer& output,
-		    const std::map<std::string, DataBuffer>& params = std::map<std::string, DataBuffer>());
+			const std::map<std::string, DataBuffer>& params = std::map<std::string, DataBuffer>());
 	};
 
 	/*!
-		\ingroup transform
+	    \ingroup transform
 	*/
 	class CoreTransform : public Transform
 	{
-	  public:
+	public:
 		CoreTransform(BNTransform* xform);
 		virtual std::vector<TransformParameter> GetParameters() const override;
 
 		virtual bool Decode(const DataBuffer& input, DataBuffer& output,
-		    const std::map<std::string, DataBuffer>& params = std::map<std::string, DataBuffer>()) override;
+			const std::map<std::string, DataBuffer>& params = std::map<std::string, DataBuffer>()) override;
 		virtual bool Encode(const DataBuffer& input, DataBuffer& output,
-		    const std::map<std::string, DataBuffer>& params = std::map<std::string, DataBuffer>()) override;
+			const std::map<std::string, DataBuffer>& params = std::map<std::string, DataBuffer>()) override;
 	};
 
 	struct InstructionInfo : public BNInstructionInfo
@@ -7898,7 +8031,7 @@ namespace BinaryNinja {
 	*/
 	class Architecture : public StaticCoreRefCountObject<BNArchitecture>
 	{
-	  protected:
+	protected:
 		std::string m_nameForRegister;
 
 		Architecture(BNArchitecture* arch);
@@ -7912,12 +8045,12 @@ namespace BinaryNinja {
 		static size_t GetOpcodeDisplayLengthCallback(void* ctxt);
 		static BNArchitecture* GetAssociatedArchitectureByAddressCallback(void* ctxt, uint64_t* addr);
 		static bool GetInstructionInfoCallback(
-		    void* ctxt, const uint8_t* data, uint64_t addr, size_t maxLen, BNInstructionInfo* result);
+			void* ctxt, const uint8_t* data, uint64_t addr, size_t maxLen, BNInstructionInfo* result);
 		static bool GetInstructionTextCallback(void* ctxt, const uint8_t* data, uint64_t addr, size_t* len,
-		    BNInstructionTextToken** result, size_t* count);
+			BNInstructionTextToken** result, size_t* count);
 		static void FreeInstructionTextCallback(BNInstructionTextToken* tokens, size_t count);
 		static bool GetInstructionLowLevelILCallback(
-		    void* ctxt, const uint8_t* data, uint64_t addr, size_t* len, BNLowLevelILFunction* il);
+			void* ctxt, const uint8_t* data, uint64_t addr, size_t* len, BNLowLevelILFunction* il);
 		static char* GetRegisterNameCallback(void* ctxt, uint32_t reg);
 		static char* GetFlagNameCallback(void* ctxt, uint32_t flag);
 		static char* GetFlagWriteTypeNameCallback(void* ctxt, uint32_t flags);
@@ -7931,19 +8064,19 @@ namespace BinaryNinja {
 		static uint32_t* GetAllSemanticFlagGroupsCallback(void* ctxt, size_t* count);
 		static BNFlagRole GetFlagRoleCallback(void* ctxt, uint32_t flag, uint32_t semClass);
 		static uint32_t* GetFlagsRequiredForFlagConditionCallback(
-		    void* ctxt, BNLowLevelILFlagCondition cond, uint32_t semClass, size_t* count);
+			void* ctxt, BNLowLevelILFlagCondition cond, uint32_t semClass, size_t* count);
 		static uint32_t* GetFlagsRequiredForSemanticFlagGroupCallback(void* ctxt, uint32_t semGroup, size_t* count);
 		static BNFlagConditionForSemanticClass* GetFlagConditionsForSemanticFlagGroupCallback(
-		    void* ctxt, uint32_t semGroup, size_t* count);
+			void* ctxt, uint32_t semGroup, size_t* count);
 		static void FreeFlagConditionsForSemanticFlagGroupCallback(
-		    void* ctxt, BNFlagConditionForSemanticClass* conditions, size_t count);
+			void* ctxt, BNFlagConditionForSemanticClass* conditions, size_t count);
 		static uint32_t* GetFlagsWrittenByFlagWriteTypeCallback(void* ctxt, uint32_t writeType, size_t* count);
 		static uint32_t GetSemanticClassForFlagWriteTypeCallback(void* ctxt, uint32_t writeType);
 		static size_t GetFlagWriteLowLevelILCallback(void* ctxt, BNLowLevelILOperation op, size_t size,
-		    uint32_t flagWriteType, uint32_t flag, BNRegisterOrConstant* operands, size_t operandCount,
-		    BNLowLevelILFunction* il);
+			uint32_t flagWriteType, uint32_t flag, BNRegisterOrConstant* operands, size_t operandCount,
+			BNLowLevelILFunction* il);
 		static size_t GetFlagConditionLowLevelILCallback(
-		    void* ctxt, BNLowLevelILFlagCondition cond, uint32_t semClass, BNLowLevelILFunction* il);
+			void* ctxt, BNLowLevelILFlagCondition cond, uint32_t semClass, BNLowLevelILFunction* il);
 		static size_t GetSemanticFlagGroupLowLevelILCallback(void* ctxt, uint32_t semGroup, BNLowLevelILFunction* il);
 		static void FreeRegisterListCallback(void* ctxt, uint32_t* regs, size_t len);
 		static void GetRegisterInfoCallback(void* ctxt, uint32_t reg, BNRegisterInfo* result);
@@ -7970,9 +8103,9 @@ namespace BinaryNinja {
 		static bool IsAlwaysBranchPatchAvailableCallback(void* ctxt, const uint8_t* data, uint64_t addr, size_t len);
 		static bool IsInvertBranchPatchAvailableCallback(void* ctxt, const uint8_t* data, uint64_t addr, size_t len);
 		static bool IsSkipAndReturnZeroPatchAvailableCallback(
-		    void* ctxt, const uint8_t* data, uint64_t addr, size_t len);
+			void* ctxt, const uint8_t* data, uint64_t addr, size_t len);
 		static bool IsSkipAndReturnValuePatchAvailableCallback(
-		    void* ctxt, const uint8_t* data, uint64_t addr, size_t len);
+			void* ctxt, const uint8_t* data, uint64_t addr, size_t len);
 
 		static bool ConvertToNopCallback(void* ctxt, uint8_t* data, uint64_t addr, size_t len);
 		static bool AlwaysBranchCallback(void* ctxt, uint8_t* data, uint64_t addr, size_t len);
@@ -7981,56 +8114,56 @@ namespace BinaryNinja {
 
 		virtual void Register(BNCustomArchitecture* callbacks);
 
-	  public:
+	public:
 		Architecture(const std::string& name);
 
 		/*! Register an architecture
 
-			\param arch Architecture to register
+		    \param arch Architecture to register
 		*/
 		static void Register(Architecture* arch);
 
 		/*! Get an Architecture by name
 
-			\param name Name of the architecture
-			\return The architecture, if it was found.
+		    \param name Name of the architecture
+		    \return The architecture, if it was found.
 		*/
 		static Ref<Architecture> GetByName(const std::string& name);
 
 		/*! Get the list of registered Architectures
 
-			\return The list of registered architectures
+		    \return The list of registered architectures
 		*/
 		static std::vector<Ref<Architecture>> GetList();
 
 		/*! Get the name of this architecture
 
-			\return The name of this architecture
+		    \return The name of this architecture
 		*/
 		std::string GetName() const;
 
 		/*! Get the default endianness for this architecture
 
-			\return The default endianness for this architecture
+		    \return The default endianness for this architecture
 		*/
 		virtual BNEndianness GetEndianness() const = 0;
 
 		/*! Get the address size for this architecture
 
-			\return The address size for this architecture
+		    \return The address size for this architecture
 		*/
 		virtual size_t GetAddressSize() const = 0;
 
 		/*! Get the default integer size for this architecture
 
-			\return The default integer size for this architecture
+		    \return The default integer size for this architecture
 		*/
 		virtual size_t GetDefaultIntegerSize() const;
 		virtual size_t GetInstructionAlignment() const;
 
 		/*! Get the maximum instruction length
 
-			\return The maximum instruction length
+		    \return The maximum instruction length
 		*/
 		virtual size_t GetMaxInstructionLength() const;
 		virtual size_t GetOpcodeDisplayLength() const;
@@ -8039,43 +8172,43 @@ namespace BinaryNinja {
 
 		/*! Retrieves an InstructionInfo struct for the instruction at the given virtual address
 
-		 	\note Architecture subclasses should implement this method.
-		 	\note The instruction info object should always set the InstructionInfo.length to the instruction length, \
-					and the branches of the proper types should be added if the instruction is a branch.
+		    \note Architecture subclasses should implement this method.
+		    \note The instruction info object should always set the InstructionInfo.length to the instruction length, \
+		            and the branches of the proper types should be added if the instruction is a branch.
 
-			If the instruction is a branch instruction architecture plugins should add a branch of the proper type:
+		    If the instruction is a branch instruction architecture plugins should add a branch of the proper type:
 
-				===================== ===================================================
-				BNBranchType          Description
-				===================== ===================================================
-				UnconditionalBranch   Branch will always be taken
-				FalseBranch           False branch condition
-				TrueBranch            True branch condition
-				CallDestination       Branch is a call instruction (Branch with Link)
-				FunctionReturn        Branch returns from a function
-				SystemCall            System call instruction
-				IndirectBranch        Branch destination is a memory address or register
-				UnresolvedBranch      Branch destination is an unknown address
-				===================== ===================================================
+		        ===================== ===================================================
+		        BNBranchType          Description
+		        ===================== ===================================================
+		        UnconditionalBranch   Branch will always be taken
+		        FalseBranch           False branch condition
+		        TrueBranch            True branch condition
+		        CallDestination       Branch is a call instruction (Branch with Link)
+		        FunctionReturn        Branch returns from a function
+		        SystemCall            System call instruction
+		        IndirectBranch        Branch destination is a memory address or register
+		        UnresolvedBranch      Branch destination is an unknown address
+		        ===================== ===================================================
 
-			\param[in] data pointer to the instruction data to retrieve info for
+		    \param[in] data pointer to the instruction data to retrieve info for
 		    \param[in] addr address of the instruction data to retrieve info for
-			\param[in] maxLen Maximum length of the instruction data to read
-			\param[out] result Retrieved instruction info
-			\return Whether instruction info was successfully retrieved.
+		    \param[in] maxLen Maximum length of the instruction data to read
+		    \param[out] result Retrieved instruction info
+		    \return Whether instruction info was successfully retrieved.
 		*/
 		virtual bool GetInstructionInfo(const uint8_t* data, uint64_t addr, size_t maxLen, InstructionInfo& result) = 0;
 
 		/*! Retrieves a list of InstructionTextTokens
 
-			\param[in] data pointer to the instruction data to retrieve text for
-			\param[in] addr address of the instruction data to retrieve text for
-			\param[out] len will be written to with the length of the instruction data which was translated
-			\param[out] result
-			\return Whether instruction info was successfully retrieved.
+		    \param[in] data pointer to the instruction data to retrieve text for
+		    \param[in] addr address of the instruction data to retrieve text for
+		    \param[out] len will be written to with the length of the instruction data which was translated
+		    \param[out] result
+		    \return Whether instruction info was successfully retrieved.
 		*/
 		virtual bool GetInstructionText(
-		    const uint8_t* data, uint64_t addr, size_t& len, std::vector<InstructionTextToken>& result) = 0;
+			const uint8_t* data, uint64_t addr, size_t& len, std::vector<InstructionTextToken>& result) = 0;
 
 		/*! Translates an instruction at addr and appends it onto the LowLevelILFunction& il.
 
@@ -8090,114 +8223,114 @@ namespace BinaryNinja {
 
 		/*! Gets a register name from a register index.
 
-			\param reg Register index
-			\return The register name
+		    \param reg Register index
+		    \return The register name
 		*/
 		virtual std::string GetRegisterName(uint32_t reg);
 
 		/*! Gets a flag name from a flag index
 
-			\param flag Flag index
-			\return Flag name
+		    \param flag Flag index
+		    \return Flag name
 		*/
 		virtual std::string GetFlagName(uint32_t flag);
 
 		/*! Gets the flag write type name for the given flag.
 
-			\param flags flag
-			\return Flag name
+		    \param flags flag
+		    \return Flag name
 		*/
 		virtual std::string GetFlagWriteTypeName(uint32_t flags);
 
 		/*! Gets the name of a semantic flag class from the index.
 
-			\param semClass Semantic class index
-			\return The name of the semantic flag class
+		    \param semClass Semantic class index
+		    \return The name of the semantic flag class
 		*/
 		virtual std::string GetSemanticFlagClassName(uint32_t semClass);
 
 		/*! Gets the name of a semantic flag group from the index.
 
-			\param semGroup Semantic flag group index
-			\return Semantic flag group name
+		    \param semGroup Semantic flag group index
+		    \return Semantic flag group name
 		*/
 		virtual std::string GetSemanticFlagGroupName(uint32_t semGroup);
 
 		/*! Get the list of full width register indices
 
-			\return The list of full width register indices
+		    \return The list of full width register indices
 		*/
 		virtual std::vector<uint32_t> GetFullWidthRegisters();
 
 		/*! Get the list of all register indices
 
-			\return The list of all register indices
+		    \return The list of all register indices
 		*/
 		virtual std::vector<uint32_t> GetAllRegisters();
 
 		/*! Get the list of all flag indices
 
-			\return The list of all flag indices
+		    \return The list of all flag indices
 		*/
 		virtual std::vector<uint32_t> GetAllFlags();
 
 		/*! Get the list of all flag write type indices
 
-			\return The list of all flag write type indices
+		    \return The list of all flag write type indices
 		*/
 		virtual std::vector<uint32_t> GetAllFlagWriteTypes();
 
 		/*! Get the list of all semantic flag class indices
 
-			\return The list of all semantic flag class indices
+		    \return The list of all semantic flag class indices
 		*/
 		virtual std::vector<uint32_t> GetAllSemanticFlagClasses();
 
 		/*! Get the list of all semantic flag group indices
 
-			\return The list of all semantic flag group indices
+		    \return The list of all semantic flag group indices
 		*/
 		virtual std::vector<uint32_t> GetAllSemanticFlagGroups();
 
 		/*! Get the role of a given flag.
 
-			\param flag Flag index
-			\param semClass Optional semantic flag class
-			\return Flag role
+		    \param flag Flag index
+		    \param semClass Optional semantic flag class
+		    \return Flag role
 		*/
 		virtual BNFlagRole GetFlagRole(uint32_t flag, uint32_t semClass = 0);
 		virtual std::vector<uint32_t> GetFlagsRequiredForFlagCondition(
-		    BNLowLevelILFlagCondition cond, uint32_t semClass = 0);
+			BNLowLevelILFlagCondition cond, uint32_t semClass = 0);
 		virtual std::vector<uint32_t> GetFlagsRequiredForSemanticFlagGroup(uint32_t semGroup);
 		virtual std::map<uint32_t, BNLowLevelILFlagCondition> GetFlagConditionsForSemanticFlagGroup(uint32_t semGroup);
 		virtual std::vector<uint32_t> GetFlagsWrittenByFlagWriteType(uint32_t writeType);
 		virtual uint32_t GetSemanticClassForFlagWriteType(uint32_t writeType);
 		virtual ExprId GetFlagWriteLowLevelIL(BNLowLevelILOperation op, size_t size, uint32_t flagWriteType,
-		    uint32_t flag, BNRegisterOrConstant* operands, size_t operandCount, LowLevelILFunction& il);
+			uint32_t flag, BNRegisterOrConstant* operands, size_t operandCount, LowLevelILFunction& il);
 		ExprId GetDefaultFlagWriteLowLevelIL(BNLowLevelILOperation op, size_t size, BNFlagRole role,
-		    BNRegisterOrConstant* operands, size_t operandCount, LowLevelILFunction& il);
+			BNRegisterOrConstant* operands, size_t operandCount, LowLevelILFunction& il);
 		virtual ExprId GetFlagConditionLowLevelIL(
-		    BNLowLevelILFlagCondition cond, uint32_t semClass, LowLevelILFunction& il);
+			BNLowLevelILFlagCondition cond, uint32_t semClass, LowLevelILFunction& il);
 		ExprId GetDefaultFlagConditionLowLevelIL(
-		    BNLowLevelILFlagCondition cond, uint32_t semClass, LowLevelILFunction& il);
+			BNLowLevelILFlagCondition cond, uint32_t semClass, LowLevelILFunction& il);
 		virtual ExprId GetSemanticFlagGroupLowLevelIL(uint32_t semGroup, LowLevelILFunction& il);
 
 		/*! Get the register info for a given register index
 
-			\param reg Register index
-			\return Register info
+		    \param reg Register index
+		    \return Register info
 		*/
 		virtual BNRegisterInfo GetRegisterInfo(uint32_t reg);
 
 		/*! Get the register index corresponding to the stack pointer (SP)
 
-			\return The register index corresponding to the stack pointer
+		    \return The register index corresponding to the stack pointer
 		*/
 		virtual uint32_t GetStackPointerRegister();
 
 		/*! Get the register index corresponding to the link register (LR)
 
-			\return The register index corresponding to the link register
+		    \return The register index corresponding to the link register
 		*/
 		virtual uint32_t GetLinkRegister();
 		virtual std::vector<uint32_t> GetGlobalRegisters();
@@ -8205,35 +8338,35 @@ namespace BinaryNinja {
 
 		/*! Get the list of system register indices
 
-			\return The list of system register indices
+		    \return The list of system register indices
 		*/
 		virtual std::vector<uint32_t> GetSystemRegisters();
 
 		/*! Check whether a register is a system register
 
-			\param reg Register index
-			\return Whether a register is a system register
+		    \param reg Register index
+		    \return Whether a register is a system register
 		*/
 		bool IsSystemRegister(uint32_t reg);
 
 		/*! Returns a list of register indices that are modified when \c reg is written to.
 
-			\param reg Register index
-			\return List of register indices modified on write.
+		    \param reg Register index
+		    \return List of register indices modified on write.
 		*/
 		std::vector<uint32_t> GetModifiedRegistersOnWrite(uint32_t reg);
 
 		/*! Get a register index by its name
 
-			\param name Name of the register
-			\return Index of the register
+		    \param name Name of the register
+		    \return Index of the register
 		*/
 		uint32_t GetRegisterByName(const std::string& name);
 
 		/*! Get a register stack name from a register stack number.
 
-			\param regStack Register stack number
-			\return The corresponding register string
+		    \param regStack Register stack number
+		    \return The corresponding register string
 		*/
 		virtual std::string GetRegisterStackName(uint32_t regStack);
 		virtual std::vector<uint32_t> GetAllRegisterStacks();
@@ -8248,18 +8381,18 @@ namespace BinaryNinja {
 
 		/*! Check whether this architecture can assemble instructions
 
-			\return Whether this architecture can assemble instructions
+		    \return Whether this architecture can assemble instructions
 		*/
 		virtual bool CanAssemble();
 
 		/*! Converts the string of assembly instructions \c code loaded at virtual address \c addr to the
-			byte representation of those instructions.
+		    byte representation of those instructions.
 
-			\param[in] code String representation of the instructions to be assembled
-			\param[in] addr Address of the instructions
-			\param[out] result DataBuffer containing the compiled bytes
-			\param[out] errors Any errors that occurred during assembly
-			\return Whether assembly was successful
+		    \param[in] code String representation of the instructions to be assembled
+		    \param[in] addr Address of the instructions
+		    \param[out] result DataBuffer containing the compiled bytes
+		    \param[out] errors Any errors that occurred during assembly
+		    \return Whether assembly was successful
 		*/
 		virtual bool Assemble(const std::string& code, uint64_t addr, DataBuffer& result, std::string& errors);
 
@@ -8294,20 +8427,20 @@ namespace BinaryNinja {
 
 		    \param data Buffer of bytes to check
 		    \param addr the address of the instruction in question
-			\param len amount of bytes to be checked
-			\return If the invert branch patch is available
+		    \param len amount of bytes to be checked
+		    \return If the invert branch patch is available
 		*/
 		virtual bool IsInvertBranchPatchAvailable(const uint8_t* data, uint64_t addr, size_t len);
 
 		/*! Checks if the instruction at addr is a call that can be patched to return zero.
 
-			\note This is used in the UI to determine if "skip and return zero" should be displayed in the
+		    \note This is used in the UI to determine if "skip and return zero" should be displayed in the
 		    right-click context menu when right-clicking on an instruction.
 
 		    \param data Buffer of bytes to check
 		    \param addr the address of the instruction in question
 		    \param len amount of bytes to be checked
-			\return If the skip and return zero patch is available
+		    \return If the skip and return zero patch is available
 		*/
 		virtual bool IsSkipAndReturnZeroPatchAvailable(const uint8_t* data, uint64_t addr, size_t len);
 
@@ -8319,7 +8452,7 @@ namespace BinaryNinja {
 		    \param data Buffer of bytes to check
 		    \param addr the address of the instruction in question
 		    \param len amount of bytes to be checked
-			\return If the skip and return value patch is available
+		    \return If the skip and return value patch is available
 		*/
 		virtual bool IsSkipAndReturnValuePatchAvailable(const uint8_t* data, uint64_t addr, size_t len);
 
@@ -8334,7 +8467,7 @@ namespace BinaryNinja {
 
 		/*! Converts the conditional branch instruction at addr to an unconditional branch.
 
-			\note This is called when the right-click context menu item "always branch" is selected in the UI.
+		    \note This is called when the right-click context menu item "always branch" is selected in the UI.
 
 		    \param[in,out] data Buffer of bytes to convert
 		    \param[in] addr the address of the instruction to be converted
@@ -8345,7 +8478,7 @@ namespace BinaryNinja {
 
 		/*! InvertBranch converts the conditional branch instruction at addr to its invert.
 
-			\note This is called when the right-click context menu item "invert branch" is selected in the UI.
+		    \note This is called when the right-click context menu item "invert branch" is selected in the UI.
 
 		    \param[in,out] data Buffer of bytes to convert
 		    \param[in] addr the address of the instruction to be converted
@@ -8373,86 +8506,89 @@ namespace BinaryNinja {
 
 		// These three binary view type constant APIs are deprecated and should no longer be used. Their implementations
 		// have been removed, and they now have no effects.
-		/*! \deprecated This API has been deprecated. The implementation has been removed, and this function no longer has any effect
-		*/
+		/*! \deprecated This API has been deprecated. The implementation has been removed, and this function no longer
+		 * has any effect
+		 */
 		bool IsBinaryViewTypeConstantDefined(const std::string& type, const std::string& name);
-		/*! \deprecated This API has been deprecated. The implementation has been removed, and this function no longer has any effect
-		*/
+		/*! \deprecated This API has been deprecated. The implementation has been removed, and this function no longer
+		 * has any effect
+		 */
 		uint64_t GetBinaryViewTypeConstant(const std::string& type, const std::string& name, uint64_t defaultValue = 0);
-		/*! \deprecated This API has been deprecated. The implementation has been removed, and this function no longer has any effect
-		*/
+		/*! \deprecated This API has been deprecated. The implementation has been removed, and this function no longer
+		 * has any effect
+		 */
 		void SetBinaryViewTypeConstant(const std::string& type, const std::string& name, uint64_t value);
 
 		/*! Register a calling convention with this architecture
 
-			\param cc calling convention to register
+		    \param cc calling convention to register
 		*/
 		void RegisterCallingConvention(CallingConvention* cc);
 
 		/*! List of registered calling conventions
 
-			\return The list of registered calling conventions
+		    \return The list of registered calling conventions
 		*/
 		std::vector<Ref<CallingConvention>> GetCallingConventions();
 
 		/*! Get a calling convention by name
 
-			\param name Name of the calling convention
-			\return The calling convention
+		    \param name Name of the calling convention
+		    \return The calling convention
 		*/
 		Ref<CallingConvention> GetCallingConventionByName(const std::string& name);
 
 		/*! Set the default calling convention
 
-			\param cc The default calling convention
+		    \param cc The default calling convention
 		*/
 		void SetDefaultCallingConvention(CallingConvention* cc);
 
 		/*! Set the cdecl calling convention
 
-			\param cc The cdecl calling convention
+		    \param cc The cdecl calling convention
 		*/
 		void SetCdeclCallingConvention(CallingConvention* cc);
 
 		/*! Set the stdcall calling convention
 
-			\param cc The stdcall calling convention
+		    \param cc The stdcall calling convention
 		*/
 		void SetStdcallCallingConvention(CallingConvention* cc);
 
 		/*! Set the fastcall calling convention
 
-			\param cc The fastcall calling convention
+		    \param cc The fastcall calling convention
 		*/
 		void SetFastcallCallingConvention(CallingConvention* cc);
 
 		/*! Get the default calling convention
 
-			\return The default calling convention
+		    \return The default calling convention
 		*/
 		Ref<CallingConvention> GetDefaultCallingConvention();
 
 		/*! Get the cdecl calling convention
 
-			\return The cdecl calling convention
+		    \return The cdecl calling convention
 		*/
 		Ref<CallingConvention> GetCdeclCallingConvention();
 
 		/*! Get the stdcall calling convention
 
-			\return The stdcall calling convention
+		    \return The stdcall calling convention
 		*/
 		Ref<CallingConvention> GetStdcallCallingConvention();
 
 		/*! Get the fastcall calling convention
 
-			\return The fastcall calling convention
+		    \return The fastcall calling convention
 		*/
 		Ref<CallingConvention> GetFastcallCallingConvention();
 
 		/*! Get the Architecture standalone platform
 
-			\return Architecture standalone platform
+		    \return Architecture standalone platform
 		*/
 		Ref<Platform> GetStandalonePlatform();
 
@@ -8463,11 +8599,11 @@ namespace BinaryNinja {
 
 	/*!
 
-	 	\ingroup architectures
+	    \ingroup architectures
 	*/
 	class CoreArchitecture : public Architecture
 	{
-	  public:
+	public:
 		CoreArchitecture(BNArchitecture* arch);
 		virtual BNEndianness GetEndianness() const override;
 		virtual size_t GetAddressSize() const override;
@@ -8477,11 +8613,11 @@ namespace BinaryNinja {
 		virtual size_t GetOpcodeDisplayLength() const override;
 		virtual Ref<Architecture> GetAssociatedArchitectureByAddress(uint64_t& addr) override;
 		virtual bool GetInstructionInfo(
-		    const uint8_t* data, uint64_t addr, size_t maxLen, InstructionInfo& result) override;
+			const uint8_t* data, uint64_t addr, size_t maxLen, InstructionInfo& result) override;
 		virtual bool GetInstructionText(
-		    const uint8_t* data, uint64_t addr, size_t& len, std::vector<InstructionTextToken>& result) override;
+			const uint8_t* data, uint64_t addr, size_t& len, std::vector<InstructionTextToken>& result) override;
 		virtual bool GetInstructionLowLevelIL(
-		    const uint8_t* data, uint64_t addr, size_t& len, LowLevelILFunction& il) override;
+			const uint8_t* data, uint64_t addr, size_t& len, LowLevelILFunction& il) override;
 		virtual std::string GetRegisterName(uint32_t reg) override;
 		virtual std::string GetFlagName(uint32_t flag) override;
 		virtual std::string GetFlagWriteTypeName(uint32_t flags) override;
@@ -8496,16 +8632,16 @@ namespace BinaryNinja {
 		virtual std::vector<uint32_t> GetAllSemanticFlagGroups() override;
 		virtual BNFlagRole GetFlagRole(uint32_t flag, uint32_t semClass = 0) override;
 		virtual std::vector<uint32_t> GetFlagsRequiredForFlagCondition(
-		    BNLowLevelILFlagCondition cond, uint32_t semClass = 0) override;
+			BNLowLevelILFlagCondition cond, uint32_t semClass = 0) override;
 		virtual std::vector<uint32_t> GetFlagsRequiredForSemanticFlagGroup(uint32_t semGroup) override;
 		virtual std::map<uint32_t, BNLowLevelILFlagCondition> GetFlagConditionsForSemanticFlagGroup(
-		    uint32_t semGroup) override;
+			uint32_t semGroup) override;
 		virtual std::vector<uint32_t> GetFlagsWrittenByFlagWriteType(uint32_t writeType) override;
 		virtual uint32_t GetSemanticClassForFlagWriteType(uint32_t writeType) override;
 		virtual ExprId GetFlagWriteLowLevelIL(BNLowLevelILOperation op, size_t size, uint32_t flagWriteType,
-		    uint32_t flag, BNRegisterOrConstant* operands, size_t operandCount, LowLevelILFunction& il) override;
+			uint32_t flag, BNRegisterOrConstant* operands, size_t operandCount, LowLevelILFunction& il) override;
 		virtual ExprId GetFlagConditionLowLevelIL(
-		    BNLowLevelILFlagCondition cond, uint32_t semClass, LowLevelILFunction& il) override;
+			BNLowLevelILFlagCondition cond, uint32_t semClass, LowLevelILFunction& il) override;
 		virtual ExprId GetSemanticFlagGroupLowLevelIL(uint32_t semGroup, LowLevelILFunction& il) override;
 		virtual BNRegisterInfo GetRegisterInfo(uint32_t reg) override;
 		virtual uint32_t GetStackPointerRegister() override;
@@ -8540,16 +8676,16 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup architectures
+	    \ingroup architectures
 	*/
 	class ArchitectureExtension : public Architecture
 	{
-	  protected:
+	protected:
 		Ref<Architecture> m_base;
 
 		virtual void Register(BNCustomArchitecture* callbacks) override;
 
-	  public:
+	public:
 		ArchitectureExtension(const std::string& name, Architecture* base);
 
 		Ref<Architecture> GetBaseArchitecture() const { return m_base; }
@@ -8562,11 +8698,11 @@ namespace BinaryNinja {
 		virtual size_t GetOpcodeDisplayLength() const override;
 		virtual Ref<Architecture> GetAssociatedArchitectureByAddress(uint64_t& addr) override;
 		virtual bool GetInstructionInfo(
-		    const uint8_t* data, uint64_t addr, size_t maxLen, InstructionInfo& result) override;
+			const uint8_t* data, uint64_t addr, size_t maxLen, InstructionInfo& result) override;
 		virtual bool GetInstructionText(
-		    const uint8_t* data, uint64_t addr, size_t& len, std::vector<InstructionTextToken>& result) override;
+			const uint8_t* data, uint64_t addr, size_t& len, std::vector<InstructionTextToken>& result) override;
 		virtual bool GetInstructionLowLevelIL(
-		    const uint8_t* data, uint64_t addr, size_t& len, LowLevelILFunction& il) override;
+			const uint8_t* data, uint64_t addr, size_t& len, LowLevelILFunction& il) override;
 		virtual std::string GetRegisterName(uint32_t reg) override;
 		virtual std::string GetFlagName(uint32_t flag) override;
 		virtual std::string GetFlagWriteTypeName(uint32_t flags) override;
@@ -8580,16 +8716,16 @@ namespace BinaryNinja {
 		virtual std::vector<uint32_t> GetAllSemanticFlagGroups() override;
 		virtual BNFlagRole GetFlagRole(uint32_t flag, uint32_t semClass = 0) override;
 		virtual std::vector<uint32_t> GetFlagsRequiredForFlagCondition(
-		    BNLowLevelILFlagCondition cond, uint32_t semClass = 0) override;
+			BNLowLevelILFlagCondition cond, uint32_t semClass = 0) override;
 		virtual std::vector<uint32_t> GetFlagsRequiredForSemanticFlagGroup(uint32_t semGroup) override;
 		virtual std::map<uint32_t, BNLowLevelILFlagCondition> GetFlagConditionsForSemanticFlagGroup(
-		    uint32_t semGroup) override;
+			uint32_t semGroup) override;
 		virtual std::vector<uint32_t> GetFlagsWrittenByFlagWriteType(uint32_t writeType) override;
 		virtual uint32_t GetSemanticClassForFlagWriteType(uint32_t writeType) override;
 		virtual ExprId GetFlagWriteLowLevelIL(BNLowLevelILOperation op, size_t size, uint32_t flagWriteType,
-		    uint32_t flag, BNRegisterOrConstant* operands, size_t operandCount, LowLevelILFunction& il) override;
+			uint32_t flag, BNRegisterOrConstant* operands, size_t operandCount, LowLevelILFunction& il) override;
 		virtual ExprId GetFlagConditionLowLevelIL(
-		    BNLowLevelILFlagCondition cond, uint32_t semClass, LowLevelILFunction& il) override;
+			BNLowLevelILFlagCondition cond, uint32_t semClass, LowLevelILFunction& il) override;
 		virtual ExprId GetSemanticFlagGroupLowLevelIL(uint32_t semGroup, LowLevelILFunction& il) override;
 		virtual BNRegisterInfo GetRegisterInfo(uint32_t reg) override;
 		virtual uint32_t GetStackPointerRegister() override;
@@ -8624,16 +8760,16 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup architectures
+	    \ingroup architectures
 	*/
 	class ArchitectureHook : public CoreArchitecture
 	{
-	  protected:
+	protected:
 		Ref<Architecture> m_base;
 
 		virtual void Register(BNCustomArchitecture* callbacks) override;
 
-	  public:
+	public:
 		ArchitectureHook(Architecture* base);
 	};
 
@@ -8642,7 +8778,7 @@ namespace BinaryNinja {
 	class Enumeration;
 
 	/*!
-		\ingroup variable
+	    \ingroup variable
 	*/
 	struct Variable : public BNVariable
 	{
@@ -8676,12 +8812,12 @@ namespace BinaryNinja {
 		Variable location;
 
 		FunctionParameter() = default;
-		FunctionParameter(const std::string& name, Confidence<Ref<Type>> type): name(name), type(type), defaultLocation(true)
+		FunctionParameter(const std::string& name, Confidence<Ref<Type>> type) :
+			name(name), type(type), defaultLocation(true)
 		{}
 
 		FunctionParameter(const std::string& name, const Confidence<Ref<Type>>& type, bool defaultLocation,
-		    const Variable& location):
-		    name(name), type(type), defaultLocation(defaultLocation), location(location)
+			const Variable& location) : name(name), type(type), defaultLocation(defaultLocation), location(location)
 		{}
 	};
 
@@ -8691,19 +8827,11 @@ namespace BinaryNinja {
 		Ref<Type> type;
 
 		QualifiedNameAndType() = default;
-		QualifiedNameAndType(const std::string& name, const Ref<Type>& type): name(name), type(type)
-		{}
-		QualifiedNameAndType(const QualifiedName& name, const Ref<Type>& type): name(name), type(type)
-		{}
+		QualifiedNameAndType(const std::string& name, const Ref<Type>& type) : name(name), type(type) {}
+		QualifiedNameAndType(const QualifiedName& name, const Ref<Type>& type) : name(name), type(type) {}
 
-		bool operator<(const QualifiedNameAndType& other) const
-		{
-			return name < other.name;
-		}
-		bool operator==(const QualifiedNameAndType& other) const
-		{
-			return name == other.name && type == other.type;
-		}
+		bool operator<(const QualifiedNameAndType& other) const { return name < other.name; }
+		bool operator==(const QualifiedNameAndType& other) const { return name == other.name && type == other.type; }
 	};
 
 	struct TypeAndId
@@ -8712,12 +8840,11 @@ namespace BinaryNinja {
 		Ref<Type> type;
 
 		TypeAndId() = default;
-		TypeAndId(const std::string& id, const Ref<Type>& type): id(id), type(type)
-		{}
+		TypeAndId(const std::string& id, const Ref<Type>& type) : id(id), type(type) {}
 	};
 
 	/*!
-		\ingroup typeparser
+	    \ingroup typeparser
 	*/
 	struct ParsedType
 	{
@@ -8726,9 +8853,10 @@ namespace BinaryNinja {
 		bool isUser;
 
 		ParsedType() = default;
-		ParsedType(const std::string& name, const Ref<Type>& type, bool isUser): name(name), type(type), isUser(isUser)
+		ParsedType(const std::string& name, const Ref<Type>& type, bool isUser) : name(name), type(type), isUser(isUser)
 		{}
-		ParsedType(const QualifiedName& name, const Ref<Type>& type, bool isUser): name(name), type(type), isUser(isUser)
+		ParsedType(const QualifiedName& name, const Ref<Type>& type, bool isUser) :
+			name(name), type(type), isUser(isUser)
 		{}
 
 		bool operator<(const ParsedType& other) const
@@ -8740,7 +8868,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup typeparser
+	    \ingroup typeparser
 	*/
 	struct TypeParserResult
 	{
@@ -8750,7 +8878,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup typeparser
+	    \ingroup typeparser
 	*/
 	struct TypeParserError
 	{
@@ -8761,19 +8889,17 @@ namespace BinaryNinja {
 		uint64_t column;
 
 		TypeParserError() = default;
-		TypeParserError(BNTypeParserErrorSeverity severity, const std::string& message):
+		TypeParserError(BNTypeParserErrorSeverity severity, const std::string& message) :
 			severity(severity), message(message), fileName(""), line(0), column(0)
-		{
-
-		}
+		{}
 	};
 
 	/*!
-		\ingroup types
+	    \ingroup types
 	*/
 	class Type : public CoreRefCountObject<BNType, BNNewTypeReference, BNFreeType>
 	{
-	  public:
+	public:
 		Type(BNType* type);
 
 		bool operator==(const Type& other);
@@ -8782,21 +8908,21 @@ namespace BinaryNinja {
 
 		/*! Retrieve the Type Class for this Structure
 
-		 	One of:
+		    One of:
 
 		        VoidTypeClass
-				BoolTypeClass
-				IntegerTypeClass
-				FloatTypeClass
-				StructureTypeClass
-				EnumerationTypeClass
-				PointerTypeClass
-				ArrayTypeClass
-				FunctionTypeClass
-				VarArgsTypeClass
-				ValueTypeClass
-				NamedTypeReferenceClass
-				WideCharTypeClass
+		        BoolTypeClass
+		        IntegerTypeClass
+		        FloatTypeClass
+		        StructureTypeClass
+		        EnumerationTypeClass
+		        PointerTypeClass
+		        ArrayTypeClass
+		        FunctionTypeClass
+		        VarArgsTypeClass
+		        ValueTypeClass
+		        NamedTypeReferenceClass
+		        WideCharTypeClass
 
 		    \return The type class
 		*/
@@ -8816,14 +8942,14 @@ namespace BinaryNinja {
 		QualifiedName GetTypeName() const;
 
 		/*! Whether the type is signed
-		*/
+		 */
 		Confidence<bool> IsSigned() const;
 
 		/*! Whether the type is constant
 
 		*/
 		Confidence<bool> IsConst() const;
-		Confidence<bool> IsVolatile() const; // Unimplemented!
+		Confidence<bool> IsVolatile() const;  // Unimplemented!
 		bool IsSystemCall() const;
 
 
@@ -8892,7 +9018,7 @@ namespace BinaryNinja {
 		    \return The underlying NamedTypeReference
 		*/
 		Ref<NamedTypeReference> GetNamedTypeReference() const;
-		Confidence<BNMemberScope> GetScope() const; // Unimplemented!
+		Confidence<BNMemberScope> GetScope() const;  // Unimplemented!
 		Confidence<int64_t> GetStackAdjustment() const;
 		QualifiedName GetStructureName() const;
 		Ref<NamedTypeReference> GetRegisteredName() const;
@@ -8913,18 +9039,17 @@ namespace BinaryNinja {
 
 		std::string GetString(Platform* platform = nullptr, BNTokenEscapingType escaping = NoTokenEscapingType) const;
 		std::string GetTypeAndName(const QualifiedName& name, BNTokenEscapingType escaping = NoTokenEscapingType) const;
-		std::string GetStringBeforeName(Platform* platform = nullptr, BNTokenEscapingType escaping = NoTokenEscapingType) const;
-		std::string GetStringAfterName(Platform* platform = nullptr, BNTokenEscapingType escaping = NoTokenEscapingType) const;
+		std::string GetStringBeforeName(
+			Platform* platform = nullptr, BNTokenEscapingType escaping = NoTokenEscapingType) const;
+		std::string GetStringAfterName(
+			Platform* platform = nullptr, BNTokenEscapingType escaping = NoTokenEscapingType) const;
 
-		std::vector<InstructionTextToken> GetTokens(
-		    Platform* platform = nullptr, uint8_t baseConfidence = BN_FULL_CONFIDENCE,
-		    BNTokenEscapingType escaping = NoTokenEscapingType) const;
-		std::vector<InstructionTextToken> GetTokensBeforeName(
-		    Platform* platform = nullptr, uint8_t baseConfidence = BN_FULL_CONFIDENCE,
-		    BNTokenEscapingType escaping = NoTokenEscapingType) const;
-		std::vector<InstructionTextToken> GetTokensAfterName(
-		    Platform* platform = nullptr, uint8_t baseConfidence = BN_FULL_CONFIDENCE,
-		    BNTokenEscapingType escaping = NoTokenEscapingType) const;
+		std::vector<InstructionTextToken> GetTokens(Platform* platform = nullptr,
+			uint8_t baseConfidence = BN_FULL_CONFIDENCE, BNTokenEscapingType escaping = NoTokenEscapingType) const;
+		std::vector<InstructionTextToken> GetTokensBeforeName(Platform* platform = nullptr,
+			uint8_t baseConfidence = BN_FULL_CONFIDENCE, BNTokenEscapingType escaping = NoTokenEscapingType) const;
+		std::vector<InstructionTextToken> GetTokensAfterName(Platform* platform = nullptr,
+			uint8_t baseConfidence = BN_FULL_CONFIDENCE, BNTokenEscapingType escaping = NoTokenEscapingType) const;
 
 		Ref<Type> Duplicate() const;
 
@@ -8961,131 +9086,129 @@ namespace BinaryNinja {
 
 		/*! Create a Type object from a Structure object
 
-		 	Structure objects can be generated using the StructureBuilder class.
+		    Structure objects can be generated using the StructureBuilder class.
 
 		    \param strct Structure object
 		    \return The created Type object
 		*/
 		static Ref<Type> StructureType(Structure* strct);
 		static Ref<Type> NamedType(NamedTypeReference* ref, size_t width = 0, size_t align = 1,
-		    const Confidence<bool>& cnst = Confidence<bool>(false, 0),
-		    const Confidence<bool>& vltl = Confidence<bool>(false, 0));
+			const Confidence<bool>& cnst = Confidence<bool>(false, 0),
+			const Confidence<bool>& vltl = Confidence<bool>(false, 0));
 		static Ref<Type> NamedType(const QualifiedName& name, Type* type);
 		static Ref<Type> NamedType(const std::string& id, const QualifiedName& name, Type* type);
 		static Ref<Type> NamedType(BinaryView* view, const QualifiedName& name);
 		static Ref<Type> EnumerationType(Architecture* arch, Enumeration* enm, size_t width = 0,
-		    const Confidence<bool>& isSigned = Confidence<bool>(false, 0));
+			const Confidence<bool>& isSigned = Confidence<bool>(false, 0));
 		static Ref<Type> EnumerationType(
-		    Enumeration* enm, size_t width, const Confidence<bool>& isSigned = Confidence<bool>(false, 0));
+			Enumeration* enm, size_t width, const Confidence<bool>& isSigned = Confidence<bool>(false, 0));
 
 		/*! Create a Pointer type, which points to another Type
 
-			\code{.cpp}
-		 	// Creating a "char *" type
-		 	auto arch = bv->GetDefaultArchitecture();
+		    \code{.cpp}
+		    // Creating a "char *" type
+		    auto arch = bv->GetDefaultArchitecture();
 		    auto charPointerType = Type::PointerType(arch, Type::IntegerType(1, false));
-		 	\endcode
+		    \endcode
 
-			\param arch Architecture, used to calculate the proper pointer width
-			\param type Type that this Type points to
-			\param cnst Whether this type is const
-			\param vltl Whether this type is volatile
-			\param refType Reference Type, one of "PointerReferenceType", "ReferenceReferenceType", "RValueReferenceType", "NoReference"
-			\return The created type
+		    \param arch Architecture, used to calculate the proper pointer width
+		    \param type Type that this Type points to
+		    \param cnst Whether this type is const
+		    \param vltl Whether this type is volatile
+		    \param refType Reference Type, one of "PointerReferenceType", "ReferenceReferenceType",
+		   "RValueReferenceType", "NoReference" \return The created type
 		*/
 		static Ref<Type> PointerType(Architecture* arch, const Confidence<Ref<Type>>& type,
-		    const Confidence<bool>& cnst = Confidence<bool>(false, 0),
-		    const Confidence<bool>& vltl = Confidence<bool>(false, 0), BNReferenceType refType = PointerReferenceType);
+			const Confidence<bool>& cnst = Confidence<bool>(false, 0),
+			const Confidence<bool>& vltl = Confidence<bool>(false, 0), BNReferenceType refType = PointerReferenceType);
 
 		/*! Create a Pointer type, which points to another Type
 
-			\code{.cpp}
-			// Creating a "char *" type in a binary compiled for 64 bit address spaces
-			auto charPointerType = Type::PointerType(8, Type::IntegerType(1, false));
-			\endcode
+		    \code{.cpp}
+		    // Creating a "char *" type in a binary compiled for 64 bit address spaces
+		    auto charPointerType = Type::PointerType(8, Type::IntegerType(1, false));
+		    \endcode
 
-			\param width Width of the pointer in bytes
-			\param type Type that this type points to
-			\param cnst Whether this type is const
-			\param vltl Whether this type is volatile
-			\param refType Reference Type, one of "PointerReferenceType", "ReferenceReferenceType", "RValueReferenceType", "NoReference"
-			\return The created type
+		    \param width Width of the pointer in bytes
+		    \param type Type that this type points to
+		    \param cnst Whether this type is const
+		    \param vltl Whether this type is volatile
+		    \param refType Reference Type, one of "PointerReferenceType", "ReferenceReferenceType",
+		   "RValueReferenceType", "NoReference" \return The created type
 		*/
 		static Ref<Type> PointerType(size_t width, const Confidence<Ref<Type>>& type,
-		    const Confidence<bool>& cnst = Confidence<bool>(false, 0),
-		    const Confidence<bool>& vltl = Confidence<bool>(false, 0), BNReferenceType refType = PointerReferenceType);
+			const Confidence<bool>& cnst = Confidence<bool>(false, 0),
+			const Confidence<bool>& vltl = Confidence<bool>(false, 0), BNReferenceType refType = PointerReferenceType);
 
 		/*! Create an Array Type
 
-			\param type Type for Elements contained in this Array
-			\param elem Number of elements
-			\return The created Type
+		    \param type Type for Elements contained in this Array
+		    \param elem Number of elements
+		    \return The created Type
 		*/
 		static Ref<Type> ArrayType(const Confidence<Ref<Type>>& type, uint64_t elem);
 
 		/*! Create a Function Type
 
-			\code{.cpp}
+		    \code{.cpp}
 		    Ref<Type> retType = Type::VoidType();
 
-			std::vector<FunctionParameter> params
-			auto cc = bv->GetDefaultPlatform()->GetDefaultCallingConvention();
+		    std::vector<FunctionParameter> params
+		    auto cc = bv->GetDefaultPlatform()->GetDefaultCallingConvention();
 
 		    params.push_back({"arg0",
-				Type::IntegerType(8, false),
-				true,
-				Variable()});
+		        Type::IntegerType(8, false),
+		        true,
+		        Variable()});
 
 		    auto functionType = Type::FunctionType(retType, cc, params);
 		    \endcode
 
-			\param returnValue Return value Type
-			\param callingConvention Calling convention for the function
-			\param params list of FunctionParameter s
-			\param varArg Whether this function has variadic arguments, default false
-			\param stackAdjust Stack adjustment for this function, default 0
-			\return The created function types
+		    \param returnValue Return value Type
+		    \param callingConvention Calling convention for the function
+		    \param params list of FunctionParameter s
+		    \param varArg Whether this function has variadic arguments, default false
+		    \param stackAdjust Stack adjustment for this function, default 0
+		    \return The created function types
 		*/
 		static Ref<Type> FunctionType(const Confidence<Ref<Type>>& returnValue,
-		    const Confidence<Ref<CallingConvention>>& callingConvention, const std::vector<FunctionParameter>& params,
-		    const Confidence<bool>& varArg = Confidence<bool>(false, 0),
-		    const Confidence<int64_t>& stackAdjust = Confidence<int64_t>(0, 0));
+			const Confidence<Ref<CallingConvention>>& callingConvention, const std::vector<FunctionParameter>& params,
+			const Confidence<bool>& varArg = Confidence<bool>(false, 0),
+			const Confidence<int64_t>& stackAdjust = Confidence<int64_t>(0, 0));
 
 		/*! Create a Function Type
 
-			\code{.cpp}
+		    \code{.cpp}
 		    Ref<Type> retType = Type::VoidType();
 
-			std::vector<FunctionParameter> params
-			auto cc = bv->GetDefaultPlatform()->GetDefaultCallingConvention();
+		    std::vector<FunctionParameter> params
+		    auto cc = bv->GetDefaultPlatform()->GetDefaultCallingConvention();
 
 		    params.push_back({"arg0",
-				Type::IntegerType(8, false),
-				true,
-				Variable()});
+		        Type::IntegerType(8, false),
+		        true,
+		        Variable()});
 
 		    auto functionType = Type::FunctionType(retType, cc, params);
 		    \endcode
 
-			\param returnValue Return value Type
-			\param callingConvention Calling convention for the function
-			\param params list of FunctionParameters
-			\param varArg Whether this function has variadic arguments, default false
-			\param stackAdjust Stack adjustment for this function, default 0
-		 	\param regStackAdjust Register stack adjustmemt
-		 	\param returnRegs Return registers
-			\return The created function types
+		    \param returnValue Return value Type
+		    \param callingConvention Calling convention for the function
+		    \param params list of FunctionParameters
+		    \param varArg Whether this function has variadic arguments, default false
+		    \param stackAdjust Stack adjustment for this function, default 0
+		    \param regStackAdjust Register stack adjustmemt
+		    \param returnRegs Return registers
+		    \return The created function types
 		*/
 		static Ref<Type> FunctionType(const Confidence<Ref<Type>>& returnValue,
-		    const Confidence<Ref<CallingConvention>>& callingConvention,
-		    const std::vector<FunctionParameter>& params,
-		    const Confidence<bool>& hasVariableArguments,
-		    const Confidence<bool>& canReturn,
-		    const Confidence<int64_t>& stackAdjust,
-		    const std::map<uint32_t, Confidence<int32_t>>& regStackAdjust = std::map<uint32_t, Confidence<int32_t>>(),
-		    const Confidence<std::vector<uint32_t>>& returnRegs = Confidence<std::vector<uint32_t>>(std::vector<uint32_t>(), 0),
-		    BNNameType ft = NoNameType,
-		    const Confidence<bool>& pure = Confidence<bool>(false, 0));
+			const Confidence<Ref<CallingConvention>>& callingConvention, const std::vector<FunctionParameter>& params,
+			const Confidence<bool>& hasVariableArguments, const Confidence<bool>& canReturn,
+			const Confidence<int64_t>& stackAdjust,
+			const std::map<uint32_t, Confidence<int32_t>>& regStackAdjust = std::map<uint32_t, Confidence<int32_t>>(),
+			const Confidence<std::vector<uint32_t>>& returnRegs = Confidence<std::vector<uint32_t>>(
+				std::vector<uint32_t>(), 0),
+			BNNameType ft = NoNameType, const Confidence<bool>& pure = Confidence<bool>(false, 0));
 		static Ref<Type> VarArgsType();
 		static Ref<Type> ValueType(const std::string& value);
 
@@ -9099,52 +9222,52 @@ namespace BinaryNinja {
 
 		/*! Get this type wrapped in a Confidence template
 
-			\param conf Confidence value between 0 and 255
-			\return Confidence-wrapped Type
+		    \param conf Confidence value between 0 and 255
+		    \return Confidence-wrapped Type
 		*/
 		Confidence<Ref<Type>> WithConfidence(uint8_t conf);
 
 		/*! If this Type is a NamedTypeReference, check whether it is reference to a specific Type
 
-			\param refType BNNamedTypeReference to check it against
-			\return Whether it is a reference of this type
+		    \param refType BNNamedTypeReference to check it against
+		    \return Whether it is a reference of this type
 		*/
 		bool IsReferenceOfType(BNNamedTypeReferenceClass refType);
 
 		/*! If this Type is a NamedTypeReference, check whether it refers to a Struct Type
 
-			\return Whether it refers to a struct type.
+		    \return Whether it refers to a struct type.
 		*/
 		bool IsStructReference() { return IsReferenceOfType(StructNamedTypeClass); }
 
 		/*! If this Type is a NamedTypeReference, check whether it refers to an Enum Type
 
-			\return Whether it refers to an Enum type.
+		    \return Whether it refers to an Enum type.
 		*/
 		bool IsEnumReference() { return IsReferenceOfType(EnumNamedTypeClass); }
 
 		/*! If this Type is a NamedTypeReference, check whether it refers to a Union Type
 
-			\return Whether it refers to a union type.
+		    \return Whether it refers to a union type.
 		*/
 		bool IsUnionReference() { return IsReferenceOfType(UnionNamedTypeClass); }
 
 		/*! If this Type is a NamedTypeReference, check whether it refers to a Class Type
 
-			\return Whether it refers to a class type.
+		    \return Whether it refers to a class type.
 		*/
 		bool IsClassReference() { return IsReferenceOfType(ClassNamedTypeClass); }
 
 		/*! If this Type is a NamedTypeReference, check whether it refers to a Typedef type
 
-			\return Whether it refers to a typedef type.
+		    \return Whether it refers to a typedef type.
 		*/
 
 		bool IsTypedefReference() { return IsReferenceOfType(TypedefNamedTypeClass); }
 
 		/*! If this Type is a NamedTypeReference, check whether it refers to a Struct or Class Type
 
-			\return Whether it refers to a struct or class type.
+		    \return Whether it refers to a struct or class type.
 		*/
 		bool IsStructOrClassReference()
 		{
@@ -9153,79 +9276,79 @@ namespace BinaryNinja {
 
 		/*! Check whether this type is a Void type.
 
-			\return Whether this->GetClass() == VoidTypeClass
+		    \return Whether this->GetClass() == VoidTypeClass
 		*/
 		bool IsVoid() const { return GetClass() == VoidTypeClass; }
 
 		/*! Check whether this type is a Boolean type.
 
-			\return Whether this->GetClass() == BoolTypeClass
+		    \return Whether this->GetClass() == BoolTypeClass
 		*/
 		bool IsBool() const { return GetClass() == BoolTypeClass; }
 
 		/*! Check whether this type is an Integer type.
 
-			\return Whether this->GetClass() == IntegerTypeClass
+		    \return Whether this->GetClass() == IntegerTypeClass
 		*/
 		bool IsInteger() const { return GetClass() == IntegerTypeClass; }
 
 		/*! Check whether this type is a Float type.
 
-			\return Whether this->GetClass() == FloatTypeClass
+		    \return Whether this->GetClass() == FloatTypeClass
 		*/
 		bool IsFloat() const { return GetClass() == FloatTypeClass; }
 
 		/*! Check whether this type is a Structure type.
 
-			\return Whether this->GetClass() == StructureTypeClass
+		    \return Whether this->GetClass() == StructureTypeClass
 		*/
 		bool IsStructure() const { return GetClass() == StructureTypeClass; }
 
 		/*! Check whether this type is an Enumeration type.
 
-			\return Whether this->GetClass() == EnumerationTypeClass
+		    \return Whether this->GetClass() == EnumerationTypeClass
 		*/
 		bool IsEnumeration() const { return GetClass() == EnumerationTypeClass; }
 
 		/*! Check whether this type is a Pointer type.
 
-			\return Whether this->GetClass() == PointerTypeClass
+		    \return Whether this->GetClass() == PointerTypeClass
 		*/
 		bool IsPointer() const { return GetClass() == PointerTypeClass; }
 
 		/*! Check whether this type is an Array type.
 
-			\return Whether this->GetClass() == ArrayTypeClass
+		    \return Whether this->GetClass() == ArrayTypeClass
 		*/
 		bool IsArray() const { return GetClass() == ArrayTypeClass; }
 
 		/*! Check whether this type is a Function type.
 
-			\return Whether this->GetClass() == FunctionTypeClass
+		    \return Whether this->GetClass() == FunctionTypeClass
 		*/
 		bool IsFunction() const { return GetClass() == FunctionTypeClass; }
 
 		/*! Check whether this type is a Variadic Arguments type.
 
-			\return Whether this->GetClass() == VarArgsTypeClass
+		    \return Whether this->GetClass() == VarArgsTypeClass
 		*/
 		bool IsVarArgs() const { return GetClass() == VarArgsTypeClass; }
 
 		/*! Check whether this type is a Value type.
 
-			\return Whether this->GetClass() == ValueTypeClass
+		    \return Whether this->GetClass() == ValueTypeClass
 		*/
 		bool IsValue() const { return GetClass() == ValueTypeClass; }
 
 		/*! Check whether this type is a Named Type Reference type.
 
-			\return Whether this->GetClass() == NamedTypeReferenceClass
+		    \return Whether this->GetClass() == NamedTypeReferenceClass
 		*/
 		bool IsNamedTypeRefer() const { return GetClass() == NamedTypeReferenceClass; }
 
 		/*! Check whether this type is a Wide Char type.
 
-			\return Whether this->GetClass() == WideCharTypeClass
+		    \return Whether this->GetClass() == WideCharTypeClass
 		*/
 		bool IsWideChar() const { return GetClass() == WideCharTypeClass; }
 
@@ -9234,7 +9357,7 @@ namespace BinaryNinja {
 		Ref<Type> WithReplacedNamedTypeReference(NamedTypeReference* from, NamedTypeReference* to);
 
 		bool AddTypeMemberTokens(BinaryView* data, std::vector<InstructionTextToken>& tokens, int64_t offset,
-		    std::vector<std::string>& nameList, size_t size = 0, bool indirect = false);
+			std::vector<std::string>& nameList, size_t size = 0, bool indirect = false);
 		std::vector<TypeDefinitionLine> GetLines(const TypeContainer& types, const std::string& name,
 			int paddingCols = 64, bool collapsed = false, BNTokenEscapingType escaping = NoTokenEscapingType);
 
@@ -9245,13 +9368,13 @@ namespace BinaryNinja {
 	class StructureBuilder;
 	class NamedTypeReferenceBuilder;
 	/*!
-		\ingroup types
+	    \ingroup types
 	*/
 	class TypeBuilder
 	{
 		BNTypeBuilder* m_object;
 
-	  public:
+	public:
 		TypeBuilder();
 		~TypeBuilder();
 		TypeBuilder(BNTypeBuilder* type);
@@ -9330,11 +9453,11 @@ namespace BinaryNinja {
 		std::string GetStringAfterName(Platform* platform = nullptr) const;
 
 		std::vector<InstructionTextToken> GetTokens(
-		    Platform* platform = nullptr, uint8_t baseConfidence = BN_FULL_CONFIDENCE) const;
+			Platform* platform = nullptr, uint8_t baseConfidence = BN_FULL_CONFIDENCE) const;
 		std::vector<InstructionTextToken> GetTokensBeforeName(
-		    Platform* platform = nullptr, uint8_t baseConfidence = BN_FULL_CONFIDENCE) const;
+			Platform* platform = nullptr, uint8_t baseConfidence = BN_FULL_CONFIDENCE) const;
 		std::vector<InstructionTextToken> GetTokensAfterName(
-		    Platform* platform = nullptr, uint8_t baseConfidence = BN_FULL_CONFIDENCE) const;
+			Platform* platform = nullptr, uint8_t baseConfidence = BN_FULL_CONFIDENCE) const;
 
 		static TypeBuilder VoidType();
 		static TypeBuilder BoolType();
@@ -9344,39 +9467,37 @@ namespace BinaryNinja {
 		static TypeBuilder StructureType(Structure* strct);
 		static TypeBuilder StructureType(StructureBuilder* strct);
 		static TypeBuilder NamedType(NamedTypeReference* ref, size_t width = 0, size_t align = 1,
-		    const Confidence<bool>& cnst = Confidence<bool>(false, 0),
-		    const Confidence<bool>& vltl = Confidence<bool>(false, 0));
+			const Confidence<bool>& cnst = Confidence<bool>(false, 0),
+			const Confidence<bool>& vltl = Confidence<bool>(false, 0));
 		static TypeBuilder NamedType(NamedTypeReferenceBuilder* ref, size_t width = 0, size_t align = 1,
-		    const Confidence<bool>& cnst = Confidence<bool>(false, 0),
-		    const Confidence<bool>& vltl = Confidence<bool>(false, 0));
+			const Confidence<bool>& cnst = Confidence<bool>(false, 0),
+			const Confidence<bool>& vltl = Confidence<bool>(false, 0));
 		static TypeBuilder NamedType(const QualifiedName& name, Type* type);
 		static TypeBuilder NamedType(const std::string& id, const QualifiedName& name, Type* type);
 		static TypeBuilder NamedType(BinaryView* view, const QualifiedName& name);
 		static TypeBuilder EnumerationType(Architecture* arch, Enumeration* enm, size_t width = 0,
-		    const Confidence<bool>& issigned = Confidence<bool>(false, 0));
+			const Confidence<bool>& issigned = Confidence<bool>(false, 0));
 		static TypeBuilder EnumerationType(Architecture* arch, EnumerationBuilder* enm, size_t width = 0,
-		    const Confidence<bool>& issigned = Confidence<bool>(false, 0));
+			const Confidence<bool>& issigned = Confidence<bool>(false, 0));
 		static TypeBuilder PointerType(Architecture* arch, const Confidence<Ref<Type>>& type,
-		    const Confidence<bool>& cnst = Confidence<bool>(false, 0),
-		    const Confidence<bool>& vltl = Confidence<bool>(false, 0), BNReferenceType refType = PointerReferenceType);
+			const Confidence<bool>& cnst = Confidence<bool>(false, 0),
+			const Confidence<bool>& vltl = Confidence<bool>(false, 0), BNReferenceType refType = PointerReferenceType);
 		static TypeBuilder PointerType(size_t width, const Confidence<Ref<Type>>& type,
-		    const Confidence<bool>& cnst = Confidence<bool>(false, 0),
-		    const Confidence<bool>& vltl = Confidence<bool>(false, 0), BNReferenceType refType = PointerReferenceType);
+			const Confidence<bool>& cnst = Confidence<bool>(false, 0),
+			const Confidence<bool>& vltl = Confidence<bool>(false, 0), BNReferenceType refType = PointerReferenceType);
 		static TypeBuilder ArrayType(const Confidence<Ref<Type>>& type, uint64_t elem);
 		static TypeBuilder FunctionType(const Confidence<Ref<Type>>& returnValue,
-		    const Confidence<Ref<CallingConvention>>& callingConvention, const std::vector<FunctionParameter>& params,
-		    const Confidence<bool>& varArg = Confidence<bool>(false, 0),
-		    const Confidence<int64_t>& stackAdjust = Confidence<int64_t>(0, 0));
+			const Confidence<Ref<CallingConvention>>& callingConvention, const std::vector<FunctionParameter>& params,
+			const Confidence<bool>& varArg = Confidence<bool>(false, 0),
+			const Confidence<int64_t>& stackAdjust = Confidence<int64_t>(0, 0));
 		static TypeBuilder FunctionType(const Confidence<Ref<Type>>& returnValue,
-		    const Confidence<Ref<CallingConvention>>& callingConvention,
-		    const std::vector<FunctionParameter>& params,
-		    const Confidence<bool>& hasVariableArguments,
-		    const Confidence<bool>& canReturn,
-		    const Confidence<int64_t>& stackAdjust,
-		    const std::map<uint32_t, Confidence<int32_t>>& regStackAdjust = std::map<uint32_t, Confidence<int32_t>>(),
-		    const Confidence<std::vector<uint32_t>>& returnRegs = Confidence<std::vector<uint32_t>>(std::vector<uint32_t>(), 0),
-		    BNNameType ft = NoNameType,
-		    const Confidence<bool>& pure = Confidence<bool>(false, 0));
+			const Confidence<Ref<CallingConvention>>& callingConvention, const std::vector<FunctionParameter>& params,
+			const Confidence<bool>& hasVariableArguments, const Confidence<bool>& canReturn,
+			const Confidence<int64_t>& stackAdjust,
+			const std::map<uint32_t, Confidence<int32_t>>& regStackAdjust = std::map<uint32_t, Confidence<int32_t>>(),
+			const Confidence<std::vector<uint32_t>>& returnRegs = Confidence<std::vector<uint32_t>>(
+				std::vector<uint32_t>(), 0),
+			BNNameType ft = NoNameType, const Confidence<bool>& pure = Confidence<bool>(false, 0));
 		static TypeBuilder VarArgsType();
 		static TypeBuilder ValueType(const std::string& value);
 
@@ -9407,38 +9528,38 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup types
+	    \ingroup types
 	*/
 	class NamedTypeReference :
-	    public CoreRefCountObject<BNNamedTypeReference, BNNewNamedTypeReference, BNFreeNamedTypeReference>
+		public CoreRefCountObject<BNNamedTypeReference, BNNewNamedTypeReference, BNFreeNamedTypeReference>
 	{
-	  public:
+	public:
 		NamedTypeReference(BNNamedTypeReference* nt);
 		NamedTypeReference(BNNamedTypeReferenceClass cls = UnknownNamedTypeClass, const std::string& id = "",
-		    const QualifiedName& name = QualifiedName());
+			const QualifiedName& name = QualifiedName());
 		BNNamedTypeReferenceClass GetTypeReferenceClass() const;
 		std::string GetTypeId() const;
 		QualifiedName GetName() const;
 
 		static Ref<NamedTypeReference> GenerateAutoTypeReference(
-		    BNNamedTypeReferenceClass cls, const std::string& source, const QualifiedName& name);
+			BNNamedTypeReferenceClass cls, const std::string& source, const QualifiedName& name);
 		static Ref<NamedTypeReference> GenerateAutoDemangledTypeReference(
-		    BNNamedTypeReferenceClass cls, const QualifiedName& name);
+			BNNamedTypeReferenceClass cls, const QualifiedName& name);
 		static Ref<NamedTypeReference> GenerateAutoDebugTypeReference(
-		    BNNamedTypeReferenceClass cls, const QualifiedName& name);
+			BNNamedTypeReferenceClass cls, const QualifiedName& name);
 	};
 
 	/*!
-		\ingroup types
+	    \ingroup types
 	*/
 	class NamedTypeReferenceBuilder
 	{
 		BNNamedTypeReferenceBuilder* m_object;
 
-	  public:
+	public:
 		NamedTypeReferenceBuilder(BNNamedTypeReferenceBuilder* nt);
 		NamedTypeReferenceBuilder(BNNamedTypeReferenceClass cls = UnknownNamedTypeClass, const std::string& id = "",
-		    const QualifiedName& name = QualifiedName());
+			const QualifiedName& name = QualifiedName());
 		~NamedTypeReferenceBuilder();
 		BNNamedTypeReferenceBuilder* GetObject() { return m_object; };
 		BNNamedTypeReferenceClass GetTypeReferenceClass() const;
@@ -9453,7 +9574,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup types
+	    \ingroup types
 	*/
 	struct StructureMember
 	{
@@ -9489,12 +9610,12 @@ namespace BinaryNinja {
 
 	/*! Structure is a class that wraps built structures and retrieves info about them.
 
-		\see StructureBuilder is used for building structures
-	 	\ingroup types
+	    \see StructureBuilder is used for building structures
+	    \ingroup types
 	*/
 	class Structure : public CoreRefCountObject<BNStructure, BNNewStructureReference, BNFreeStructure>
 	{
-	  public:
+	public:
 		Structure(BNStructure* s);
 
 		/*! Get a list of base structures. Offsets that are not defined by this structure will be filled
@@ -9506,7 +9627,7 @@ namespace BinaryNinja {
 
 		/*! Get a list of Structure members, excluding those inherited from base structures
 
-			\return The list of structure members
+		    \return The list of structure members
 		*/
 		std::vector<StructureMember> GetMembers() const;
 
@@ -9518,42 +9639,42 @@ namespace BinaryNinja {
 
 		/*! Get a structure member (including inherited members) at a certain offset
 
-		 	\param view The relevant binary view
-			\param offset Offset to check
-			\param result Reference to a InheritedStructureMember to copy the result to
-			\return Whether a member was found
+		    \param view The relevant binary view
+		    \param offset Offset to check
+		    \param result Reference to a InheritedStructureMember to copy the result to
+		    \return Whether a member was found
 		*/
-		bool GetMemberIncludingInheritedAtOffset(BinaryView* view, int64_t offset,
-			InheritedStructureMember& result) const;
+		bool GetMemberIncludingInheritedAtOffset(
+			BinaryView* view, int64_t offset, InheritedStructureMember& result) const;
 
 		/*! Get a structure member by name
 
-			\param name Name of the member to retrieve
-			\param result Reference to a StructureMember to copy the result to
-			\return Whether a member was found
+		    \param name Name of the member to retrieve
+		    \param result Reference to a StructureMember to copy the result to
+		    \return Whether a member was found
 		*/
 		bool GetMemberByName(const std::string& name, StructureMember& result) const;
 
 		/*! Get a structure member at a certain offset
 
-			\param offset Offset to check
-			\param result Reference to a StructureMember to copy the result to
-			\return Whether a member was found
+		    \param offset Offset to check
+		    \param result Reference to a StructureMember to copy the result to
+		    \return Whether a member was found
 		*/
 		bool GetMemberAtOffset(int64_t offset, StructureMember& result) const;
 
 		/*! Get a structure member and its index at a certain offset
 
-			\param offset Offset to check
-			\param result Reference to a StructureMember to copy the result to
-			\param idx Reference to a size_t to copy the index to
-			\return Whether a member was found
+		    \param offset Offset to check
+		    \param result Reference to a StructureMember to copy the result to
+		    \param idx Reference to a size_t to copy the index to
+		    \return Whether a member was found
 		*/
 		bool GetMemberAtOffset(int64_t offset, StructureMember& result, size_t& idx) const;
 
 		/*! Get the structure width in bytes
 
-			\return The structure width in bytes
+		    \return The structure width in bytes
 		*/
 		uint64_t GetWidth() const;
 
@@ -9568,19 +9689,19 @@ namespace BinaryNinja {
 
 		/*! Get the structure alignment
 
-			\return The structure alignment
+		    \return The structure alignment
 		*/
 		size_t GetAlignment() const;
 
 		/*! Whether the structure is packed
 
-			\return Whether the structure is packed
+		    \return Whether the structure is packed
 		*/
 		bool IsPacked() const;
 
 		/*! Whether the structure is a union
 
-			\return Whether the structure is a union
+		    \return Whether the structure is a union
 		*/
 		bool IsUnion() const;
 
@@ -9592,7 +9713,7 @@ namespace BinaryNinja {
 
 		/*! Get the structure type
 
-			\return The structure type
+		    \return The structure type
 		*/
 		BNStructureVariant GetStructureType() const;
 
@@ -9608,27 +9729,27 @@ namespace BinaryNinja {
 
 	/*! StructureBuilder is a convenience class used for building Structure Types.
 
-	 	\b Example:
-		\code{.cpp}
-		StructureBuilder versionMinBuilder;
-		versionMinBuilder.AddMember(Type::NamedType(bv, cmdTypeEnumQualName), "cmd");
-		versionMinBuilder.AddMember(Type::IntegerType(4, false), "cmdsize");
-		versionMinBuilder.AddMember(Type::IntegerType(4, false), "version");
-		versionMinBuilder.AddMember(Type::IntegerType(4, false), "sdk");
-		Ref<Structure> versionMinStruct = versionMinBuilder.Finalize();
-		QualifiedName versionMinName = string("version_min");
-		string versionMinTypeId = Type::GenerateAutoTypeId("macho", versionMinName);
-		Ref<Type> versionMinType = Type::StructureType(versionMinStruct);
-		QualifiedName versionMinQualName = bv->GetAnalysis()->DefineType(versionMinTypeId, versionMinName, versionMinType);
-	 	\endcode
+	    \b Example:
+	    \code{.cpp}
+	    StructureBuilder versionMinBuilder;
+	    versionMinBuilder.AddMember(Type::NamedType(bv, cmdTypeEnumQualName), "cmd");
+	    versionMinBuilder.AddMember(Type::IntegerType(4, false), "cmdsize");
+	    versionMinBuilder.AddMember(Type::IntegerType(4, false), "version");
+	    versionMinBuilder.AddMember(Type::IntegerType(4, false), "sdk");
+	    Ref<Structure> versionMinStruct = versionMinBuilder.Finalize();
+	    QualifiedName versionMinName = string("version_min");
+	    string versionMinTypeId = Type::GenerateAutoTypeId("macho", versionMinName);
+	    Ref<Type> versionMinType = Type::StructureType(versionMinStruct);
+	    QualifiedName versionMinQualName = bv->GetAnalysis()->DefineType(versionMinTypeId, versionMinName,
+	   versionMinType); \endcode
 
-	 	\ingroup types
+	    \ingroup types
 	*/
 	class StructureBuilder
 	{
 		BNStructureBuilder* m_object;
 
-	  public:
+	public:
 		StructureBuilder();
 		StructureBuilder(BNStructureBuilder* s);
 		StructureBuilder(BNStructureVariant type, bool packed = false);
@@ -9702,7 +9823,7 @@ namespace BinaryNinja {
 		    \return reference to the Structure Builder
 		*/
 		StructureBuilder& AddMember(const Confidence<Ref<Type>>& type, const std::string& name,
-		    BNMemberAccess access = NoAccess, BNMemberScope scope = NoScope);
+			BNMemberAccess access = NoAccess, BNMemberScope scope = NoScope);
 
 		/*! AddMemberAtOffset adds a member at a specific offset within the struct
 
@@ -9715,7 +9836,7 @@ namespace BinaryNinja {
 		    \return Reference to the StructureBuilder
 		*/
 		StructureBuilder& AddMemberAtOffset(const Confidence<Ref<Type>>& type, const std::string& name, uint64_t offset,
-		    bool overwriteExisting = true, BNMemberAccess access = NoAccess, BNMemberScope scope = NoScope);
+			bool overwriteExisting = true, BNMemberAccess access = NoAccess, BNMemberScope scope = NoScope);
 
 		/*! RemoveMember removes a member at a specified index
 
@@ -9733,11 +9854,11 @@ namespace BinaryNinja {
 		    \return Reference to the StructureBuilder
 		*/
 		StructureBuilder& ReplaceMember(
-		    size_t idx, const Confidence<Ref<Type>>& type, const std::string& name, bool overwriteExisting = true);
+			size_t idx, const Confidence<Ref<Type>>& type, const std::string& name, bool overwriteExisting = true);
 	};
 
 	/*!
-		\ingroup types
+	    \ingroup types
 	*/
 	struct EnumerationMember
 	{
@@ -9747,11 +9868,11 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup types
+	    \ingroup types
 	*/
 	class Enumeration : public CoreRefCountObject<BNEnumeration, BNNewEnumerationReference, BNFreeEnumeration>
 	{
-	  public:
+	public:
 		Enumeration(BNEnumeration* e);
 
 		std::vector<InstructionTextToken> GetTokensForValue(uint64_t value, size_t width, Ref<Type> type);
@@ -9760,23 +9881,23 @@ namespace BinaryNinja {
 
 	/*! EnumerationBuilder is a convenience class used for building Enumeration Types.
 
-	 	\b Example:
-	 	\code{.cpp}
-		EnumerationBuilder segFlagsTypeBuilder;
-		segFlagsTypeBuilder.AddMemberWithValue("SG_HIGHVM", 0x1);
-		segFlagsTypeBuilder.AddMemberWithValue("SG_FVMLIB", 0x2);
-		segFlagsTypeBuilder.AddMemberWithValue("SG_NORELOC", 0x4);
-		segFlagsTypeBuilder.AddMemberWithValue("SG_PROTECTED_VERSION_1", 0x8);
-		Ref<Enumeration> segFlagsTypeEnum = segFlagsTypeBuilder.Finalize();
-	 	\endcode
+	    \b Example:
+	    \code{.cpp}
+	    EnumerationBuilder segFlagsTypeBuilder;
+	    segFlagsTypeBuilder.AddMemberWithValue("SG_HIGHVM", 0x1);
+	    segFlagsTypeBuilder.AddMemberWithValue("SG_FVMLIB", 0x2);
+	    segFlagsTypeBuilder.AddMemberWithValue("SG_NORELOC", 0x4);
+	    segFlagsTypeBuilder.AddMemberWithValue("SG_PROTECTED_VERSION_1", 0x8);
+	    Ref<Enumeration> segFlagsTypeEnum = segFlagsTypeBuilder.Finalize();
+	    \endcode
 
-	 	\ingroup types
+	    \ingroup types
 	*/
 	class EnumerationBuilder
 	{
 		BNEnumerationBuilder* m_object;
 
-	  public:
+	public:
 		EnumerationBuilder();
 		EnumerationBuilder(BNEnumerationBuilder* e);
 		EnumerationBuilder(const EnumerationBuilder& e);
@@ -9790,46 +9911,47 @@ namespace BinaryNinja {
 
 		/*! Finalize the building process and return the built Enumeration
 
-			\return the Enumeration
+		    \return the Enumeration
 		*/
 		Ref<Enumeration> Finalize() const;
 
 		/*! Get a list of members in this enum
 
-			\return list of EnumerationMember
+		    \return list of EnumerationMember
 		*/
 		std::vector<EnumerationMember> GetMembers() const;
 
 		/*! Add a member to the enum.
 
-			\note If there is already a member in the Enum, the value of newly added ones will be the value of the previously added one + 1
+		    \note If there is already a member in the Enum, the value of newly added ones will be the value of the
+		   previously added one + 1
 
-			\param name Name of the enum member
-			\return A reference to this EnumerationBuilder
+		    \param name Name of the enum member
+		    \return A reference to this EnumerationBuilder
 		*/
 		EnumerationBuilder& AddMember(const std::string& name);
 
 		/*! Add a member to the enum with a set value
 
-			\param name Name of the enum member
-			\param value Value of th enum member
-			\return A reference to this EnumerationBuilder
+		    \param name Name of the enum member
+		    \param value Value of th enum member
+		    \return A reference to this EnumerationBuilder
 		*/
 		EnumerationBuilder& AddMemberWithValue(const std::string& name, uint64_t value);
 
 		/*! Remove a member from the enum
 
-			\param idx Index to remove
-			\return  A reference to this EnumerationBuilder
+		    \param idx Index to remove
+		    \return  A reference to this EnumerationBuilder
 		*/
 		EnumerationBuilder& RemoveMember(size_t idx);
 
 		/*! Replace a member at an index
 
-			\param idx Index to replace
-			\param name Name of the new member
-			\param value Value of the new member
-			\return  A reference to this EnumerationBuilder
+		    \param idx Index to replace
+		    \param name Name of the new member
+		    \param value Value of the new member
+		    \return  A reference to this EnumerationBuilder
 		*/
 		EnumerationBuilder& ReplaceMember(size_t idx, const std::string& name, uint64_t value);
 	};
@@ -9845,75 +9967,75 @@ namespace BinaryNinja {
 #endif
 
 	/*!
-		\ingroup workflow
+	    \ingroup workflow
 	*/
 	class AnalysisContext :
-	    public CoreRefCountObject<BNAnalysisContext, BNNewAnalysisContextReference, BNFreeAnalysisContext>
+		public CoreRefCountObject<BNAnalysisContext, BNNewAnalysisContextReference, BNFreeAnalysisContext>
 	{
 		std::unique_ptr<Json::CharReader> m_reader;
 		Json::StreamWriterBuilder m_builder;
 
-	  public:
+	public:
 		AnalysisContext(BNAnalysisContext* analysisContext);
 		virtual ~AnalysisContext();
 
 		/*! Get the BinaryView for the current AnalysisContext
 
-			\return The binary view for the current context
+		    \return The binary view for the current context
 		*/
 		Ref<BinaryView> GetBinaryView();
 
 		/*! Get the Function for the current AnalysisContext
 
-			\return The function for the current context
+		    \return The function for the current context
 		*/
 		Ref<Function> GetFunction();
 
 		/*! Get the low level IL function for the current AnalysisContext
 
-			\return The LowLevelILFunction for the current context
+		    \return The LowLevelILFunction for the current context
 		*/
 		Ref<LowLevelILFunction> GetLowLevelILFunction();
 
 		/*! Get the medium level IL function for the current AnalysisContext
 
-			\return The MediumLevelILFunction for the current context
+		    \return The MediumLevelILFunction for the current context
 		*/
 		Ref<MediumLevelILFunction> GetMediumLevelILFunction();
 
 		/*! Get the high level IL function for the current AnalysisContext
 
-			\return The HighLevelILFunction for the current context
+		    \return The HighLevelILFunction for the current context
 		*/
 		Ref<HighLevelILFunction> GetHighLevelILFunction();
 
 		/*! Set a new BasicBlock list for the current analysis context
 
-			\param basicBlocks The new list of BasicBlocks
+		    \param basicBlocks The new list of BasicBlocks
 		*/
 		void SetBasicBlockList(std::vector<Ref<BasicBlock>> basicBlocks);
 
 		/*! Set new lifted IL for the current analysis context
 
-			\param liftedIL The new lifted IL
+		    \param liftedIL The new lifted IL
 		*/
 		void SetLiftedILFunction(Ref<LowLevelILFunction> liftedIL);
 
 		/*! Set the new Low Level IL for the current analysis context
 
-			\param lowLevelIL the new Low Level IL
+		    \param lowLevelIL the new Low Level IL
 		*/
 		void SetLowLevelILFunction(Ref<LowLevelILFunction> lowLevelIL);
 
 		/*! Set the new Medium Level IL for the current analysis context
 
-			\param mediumLevelIL the new Medium Level IL
+		    \param mediumLevelIL the new Medium Level IL
 		*/
 		void SetMediumLevelILFunction(Ref<MediumLevelILFunction> mediumLevelIL);
 
 		/*! Set the new High Level IL for the current analysis context
 
-			\param highLevelIL the new High Level IL
+		    \param highLevelIL the new High Level IL
 		*/
 		void SetHighLevelILFunction(Ref<HighLevelILFunction> highLevelIL);
 
@@ -9928,12 +10050,13 @@ namespace BinaryNinja {
 			std::vector<T> unpackedArgs {args...};
 			Json::Value request(Json::arrayValue);
 			for (auto& arg : unpackedArgs)
-				std::visit(overload {[&](Ref<Architecture> arch) { request.append(Json::Value(arch->GetName())); },
-				               [&](uint64_t val) { request.append(Json::Value(val)); },
-				               [&](auto& val) {
-					               request.append(Json::Value(std::forward<decltype(val)>(val)));
-				               }},
-				    arg);
+				std::visit(
+					overload {[&](Ref<Architecture> arch) { request.append(Json::Value(arch->GetName())); },
+						[&](uint64_t val) { request.append(Json::Value(val)); },
+						[&](auto& val) {
+							request.append(Json::Value(std::forward<decltype(val)>(val)));
+						}},
+					arg);
 
 			return Inform(Json::writeString(m_builder, request));
 		}
@@ -9941,22 +10064,22 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup workflow
+	    \ingroup workflow
 	*/
 	class Activity : public CoreRefCountObject<BNActivity, BNNewActivityReference, BNFreeActivity>
 	{
-	  protected:
+	protected:
 		std::function<void(Ref<AnalysisContext> analysisContext)> m_action;
 		std::function<bool(Ref<Activity>, Ref<AnalysisContext>)> m_eligibility;
 
 		static void RunAction(void* ctxt, BNAnalysisContext* analysisContext);
 		static bool CheckEligibility(void* ctxt, BNActivity* activity, BNAnalysisContext* analysisContext);
 
-	  public:
+	public:
 		/*!
-			\param configuration a JSON representation of the activity configuration
-			\param action Workflow action, a function taking a Ref<AnalysisContext> as an argument.
-			\param eligibility A function that determines whether the activity is eligible to run
+		    \param configuration a JSON representation of the activity configuration
+		    \param action Workflow action, a function taking a Ref<AnalysisContext> as an argument.
+		    \param eligibility A function that determines whether the activity is eligible to run
 		*/
 		Activity(const std::string& configuration, const std::function<void(Ref<AnalysisContext>)>& action,
 			const std::function<bool(Ref<Activity>, Ref<AnalysisContext>)>& eligibility = nullptr);
@@ -9965,7 +10088,7 @@ namespace BinaryNinja {
 
 		/*! Get the Activity name
 
-			\return Activity name
+		    \return Activity name
 		*/
 		std::string GetName() const;
 	};
@@ -9984,20 +10107,20 @@ namespace BinaryNinja {
 		bool ClearOverride(const std::string& activity);
 	};
 
-	/*! Workflows are represented as Directed Acyclic Graphs (DAGs), where each node corresponds to an Activity (an individual analysis or action).
-		Workflows are used to tailor the analysis process for :class:`BinaryView` or :class:`Function` objects, providing granular control over
-		analysis tasks at module or function levels.
+	/*! Workflows are represented as Directed Acyclic Graphs (DAGs), where each node corresponds to an Activity (an
+	   individual analysis or action). Workflows are used to tailor the analysis process for :class:`BinaryView` or
+	   :class:`Function` objects, providing granular control over analysis tasks at module or function levels.
 
-		A Workflow starts in an unregistered state, either by creating a new empty Workflow or by cloning an existing one. While unregistered, it
-		is possible to add and remove Activity objects, as well as modify the execution strategy. To apply a Workflow to a binary, it must be
-		registered. Once registered, the Workflow becomes immutable and is available for use.
-	 	\ingroup workflow
+	    A Workflow starts in an unregistered state, either by creating a new empty Workflow or by cloning an existing
+	   one. While unregistered, it is possible to add and remove Activity objects, as well as modify the execution
+	   strategy. To apply a Workflow to a binary, it must be registered. Once registered, the Workflow becomes immutable
+	   and is available for use. \ingroup workflow
 	*/
 	class Workflow : public CoreRefCountObject<BNWorkflow, BNNewWorkflowReference, BNFreeWorkflow>
 	{
 		std::unique_ptr<WorkflowMachine> m_machine;
 
-	  public:
+	public:
 		Workflow(const std::string& name = "");
 		Workflow(BNWorkflow* workflow);
 		Workflow(BNWorkflow* workflow, Ref<BinaryView> view);
@@ -10006,162 +10129,164 @@ namespace BinaryNinja {
 
 		/*! Get a list of all workflows
 
-			\return A list of Workflows
+		    \return A list of Workflows
 		*/
 		static std::vector<Ref<Workflow>> GetList();
 
-		/*! Get an instance of a workflow by name. If it is already registered, this will return the registered Workflow.
-			If not, it will create and return a new Workflow.
+		/*! Get an instance of a workflow by name. If it is already registered, this will return the registered
+		   Workflow. If not, it will create and return a new Workflow.
 
-			\param name Workflow name
-			\return The registered workflow.
+		    \param name Workflow name
+		    \return The registered workflow.
 		*/
 		static Ref<Workflow> Instance(const std::string& name = "");
 		/*! Register a workflow, making it immutable and available for use
 
-			\param workflow The workflow to register
-			\param description A JSON description of the Workflow
-			\return true on success, false otherwise
+		    \param workflow The workflow to register
+		    \param description A JSON description of the Workflow
+		    \return true on success, false otherwise
 		*/
 		static bool RegisterWorkflow(Ref<Workflow> workflow, const std::string& description = "");
 
 		/*! Clone a workflow, copying all Activities and the execution strategy
 
-			\param name Name for the new Workflow
-			\param activity If specified, perform the clone with `activity` as the root
-			\return A new Workflow
+		    \param name Name for the new Workflow
+		    \param activity If specified, perform the clone with `activity` as the root
+		    \return A new Workflow
 		*/
 		Ref<Workflow> Clone(const std::string& name, const std::string& activity = "");
 
 		/*! Register an Activity with this Workflow
 
-			\param activity The Activity to register
-			\param description A JSON description of the Activity
-			\return
+		    \param activity The Activity to register
+		    \param description A JSON description of the Activity
+		    \return
 		*/
 
 		/*! Register an Activity with this Workflow
 
-			\param configuration a JSON representation of the activity configuration
-			\param action Workflow action, a function taking a Ref<AnalysisContext> as an argument.
-			\param subactivities The list of Activities to assign
-			\return
+		    \param configuration a JSON representation of the activity configuration
+		    \param action Workflow action, a function taking a Ref<AnalysisContext> as an argument.
+		    \param subactivities The list of Activities to assign
+		    \return
 		*/
-		Ref<Activity> RegisterActivity(const std::string& configuration, const std::function<void(Ref<AnalysisContext>)>& action, const std::vector<std::string>& subactivities = {});
+		Ref<Activity> RegisterActivity(const std::string& configuration,
+			const std::function<void(Ref<AnalysisContext>)>& action,
+			const std::vector<std::string>& subactivities = {});
 
 		/*! Register an Activity with this Workflow
 
-			\param activity The Activity to register
-			\param subactivities The list of Activities to assign
-			\return
+		    \param activity The Activity to register
+		    \param subactivities The list of Activities to assign
+		    \return
 		*/
 		Ref<Activity> RegisterActivity(Ref<Activity> activity, const std::vector<std::string>& subactivities = {});
 
 		/*! Determine if an Activity exists in this Workflow
 
-			\param activity The Activity name
-			\return Whether the Activity exists in this workflow
+		    \param activity The Activity name
+		    \return Whether the Activity exists in this workflow
 		*/
 		bool Contains(const std::string& activity);
 
 		/*! Retrieve the configuration as an adjacency list in JSON for the Workflow,
-			or if specified just for the given ``activity``.
+		    or if specified just for the given ``activity``.
 
-			\param activity If specified, return the configuration for the ``activity``
-			\return An adjacency list representation of the configuration in JSON
+		    \param activity If specified, return the configuration for the ``activity``
+		    \return An adjacency list representation of the configuration in JSON
 		*/
 		std::string GetConfiguration(const std::string& activity = "");
 
 		/*! Get the workflow name
 
-			\return The workflow name
+		    \return The workflow name
 		*/
 		std::string GetName() const;
 
 		/*! Check whether the workflow is registered
 
-			\return Whether the workflow is registered
+		    \return Whether the workflow is registered
 		*/
 		bool IsRegistered() const;
 
 		/*! Get the amount of registered activities for this Workflow
 
-			\return The amount of registered workflows
+		    \return The amount of registered workflows
 		*/
 		size_t Size() const;
 
 		/*! Retrieve an activity by name
 
-			\param activity The Activity name
-			\return The Activity object
+		    \param activity The Activity name
+		    \return The Activity object
 		*/
 		Ref<Activity> GetActivity(const std::string& activity);
 
 		/*! Retrieve the list of activity roots for the Workflow, or if specified just for the given `activity`.
 
-			\param activity If specified, return the roots for `activity`
-			\return A list of root activity names.
+		    \param activity If specified, return the roots for `activity`
+		    \return A list of root activity names.
 		*/
 		std::vector<std::string> GetActivityRoots(const std::string& activity = "");
 
 		/*! Retrieve the list of all activities, or optionally a filtered list.
 
-			\param activity If specified, return the direct children and optionally the descendants of the `activity` (includes `activity`)
-			\param immediate whether to include only direct children of `activity` or all descendants
-			\return A list of Activity names
+		    \param activity If specified, return the direct children and optionally the descendants of the `activity`
+		   (includes `activity`) \param immediate whether to include only direct children of `activity` or all
+		   descendants \return A list of Activity names
 		*/
 		std::vector<std::string> GetSubactivities(const std::string& activity = "", bool immediate = true);
 
 		/*! Assign the list of `activities` as the new set of children for the specified `activity`.
 
-			\param activity The activity node to assign children
-			\param subactivities the list of Activities to assign
-			\return true on success, false otherwise
+		    \param activity The activity node to assign children
+		    \param subactivities the list of Activities to assign
+		    \return true on success, false otherwise
 		*/
 		bool AssignSubactivities(const std::string& activity, const std::vector<std::string>& subactivities = {});
 
 		/*! Remove all activity nodes from this Workflow
 
-			\return true on success, false otherwise
+		    \return true on success, false otherwise
 		*/
 		bool Clear();
 
 		/*! Insert an activity before the specified activity and at the same level.
 
-			\param activity Name of the activity to insert the new one before
-			\param newActivity Name of the new activity to be inserted
-			\return true on success, false otherwise
+		    \param activity Name of the activity to insert the new one before
+		    \param newActivity Name of the new activity to be inserted
+		    \return true on success, false otherwise
 		*/
 		bool Insert(const std::string& activity, const std::string& newActivity);
 
 		/*! Insert a list of activities before the specified activity and at the same level.
 
-			\param activity Name of the activity to insert the new one before
-			\param newActivity Name of the new activities to be inserted
-			\return true on success, false otherwise
+		    \param activity Name of the activity to insert the new one before
+		    \param newActivity Name of the new activities to be inserted
+		    \return true on success, false otherwise
 		*/
 		bool Insert(const std::string& activity, const std::vector<std::string>& activities);
 
 		/*! Remove an activity by name
 
-			\param activity Name of the activity to remove
-			\return true on success, false otherwise
+		    \param activity Name of the activity to remove
+		    \return true on success, false otherwise
 		*/
 		bool Remove(const std::string& activity);
 
 		/*! Replace the activity name
 
-			\param activity Name of the activity to replace
-			\param newActivity Name of the new activity
-			\return true on success, false otherwise
+		    \param activity Name of the activity to replace
+		    \param newActivity Name of the new activity
+		    \return true on success, false otherwise
 		*/
 		bool Replace(const std::string& activity, const std::string& newActivity);
 
 		/*! Generate a FlowGraph object for the current Workflow
 
-			\param activity if specified, generate the Flowgraph using ``activity`` as the root
-			\param sequential whether to generate a **Composite** or **Sequential** style graph
-			\return FlowGraph on success
+		    \param activity if specified, generate the Flowgraph using ``activity`` as the root
+		    \param sequential whether to generate a **Composite** or **Sequential** style graph
+		    \return FlowGraph on success
 		*/
 		Ref<FlowGraph> GetGraph(const std::string& activity = "", bool sequential = false);
 		void ShowReport(const std::string& name);
@@ -10172,9 +10297,9 @@ namespace BinaryNinja {
 	};
 
 	class DisassemblySettings :
-	    public CoreRefCountObject<BNDisassemblySettings, BNNewDisassemblySettingsReference, BNFreeDisassemblySettings>
+		public CoreRefCountObject<BNDisassemblySettings, BNNewDisassemblySettingsReference, BNFreeDisassemblySettings>
 	{
-	  public:
+	public:
 		DisassemblySettings();
 		DisassemblySettings(BNDisassemblySettings* settings);
 		DisassemblySettings* Duplicate();
@@ -10201,122 +10326,122 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup basicblocks
+	    \ingroup basicblocks
 	*/
 	struct BasicBlockEdge
 	{
 		BNBranchType type;
-		Ref<BasicBlock> target; //! The source or destination of the edge, depending on context
+		Ref<BasicBlock> target;  //! The source or destination of the edge, depending on context
 		bool backEdge;
 		bool fallThrough;
 	};
 
 	/*!
-		\ingroup basicblocks
+	    \ingroup basicblocks
 	*/
 	class BasicBlock : public CoreRefCountObject<BNBasicBlock, BNNewBasicBlockReference, BNFreeBasicBlock>
 	{
-	  public:
+	public:
 		BasicBlock(BNBasicBlock* block);
 
 		/*! Basic block function
 
-			\return The Function for this basic block
+		    \return The Function for this basic block
 		*/
 		Ref<Function> GetFunction() const;
 
 		/*! Basic block architecture
 
-			\return The Architecture for this Basic Block
+		    \return The Architecture for this Basic Block
 		*/
 		Ref<Architecture> GetArchitecture() const;
 
 		/*! Starting address of the basic block
 
-			\return Start address of the basic block
+		    \return Start address of the basic block
 		*/
 		uint64_t GetStart() const;
 
 		/*! Ending address of the basic block
 
-			\return Ending address of the basic block
+		    \return Ending address of the basic block
 		*/
 		uint64_t GetEnd() const;
 
 		/*! Length of the basic block
 
-			\return Length of the basic block
+		    \return Length of the basic block
 		*/
 		uint64_t GetLength() const;
 
 		/*! Basic block index in list of blocks for the function
 
-			\return Basic block index in list of blocks for the function
+		    \return Basic block index in list of blocks for the function
 		*/
 		size_t GetIndex() const;
 
 		/*! List of basic block outgoing edges
 
-			\return List of basic block outgoing edges
+		    \return List of basic block outgoing edges
 		*/
 		std::vector<BasicBlockEdge> GetOutgoingEdges() const;
 
 		/*! List of basic block incoming edges
 
-			\return List of basic block incoming edges
+		    \return List of basic block incoming edges
 		*/
 		std::vector<BasicBlockEdge> GetIncomingEdges() const;
 
 		/*! Whether basic block has undetermined outgoing edges
 
-			\return Whether basic block has undetermined outgoing edges
+		    \return Whether basic block has undetermined outgoing edges
 		*/
 		bool HasUndeterminedOutgoingEdges() const;
 
 		/*! Whether basic block can return or is tagged as 'No Return'
 
-			\return Whether basic block can return or is tagged as 'No Return'
+		    \return Whether basic block can return or is tagged as 'No Return'
 		*/
 		bool CanExit() const;
 
 		/*! Sets whether basic block can return or is tagged as 'No Return'
 
-			\param value Sets whether basic block can return or is tagged as 'No Return'
+		    \param value Sets whether basic block can return or is tagged as 'No Return'
 		*/
 		void SetCanExit(bool value);
 
 		/*! List of dominators for this basic block
 
-			\param post Whether to get post dominators (default: false)
-			\return Set of BasicBlock dominators
+		    \param post Whether to get post dominators (default: false)
+		    \return Set of BasicBlock dominators
 		*/
 		std::set<Ref<BasicBlock>> GetDominators(bool post = false) const;
 
 		/*! List of dominators for this basic block
 
-			\param post Whether to get post dominators (default: false)
-			\return Set of BasicBlock dominators
+		    \param post Whether to get post dominators (default: false)
+		    \return Set of BasicBlock dominators
 		*/
 		std::set<Ref<BasicBlock>> GetStrictDominators(bool post = false) const;
 
 		/*! Get the immediate dominator of this basic block
 
-			\param post Whether to get the immediate post dominator
-			\return Immediate dominator basic block
+		    \param post Whether to get the immediate post dominator
+		    \return Immediate dominator basic block
 		*/
 		Ref<BasicBlock> GetImmediateDominator(bool post = false) const;
 
 		/*! List of child blocks in the dominator tree for this basic block
 
-			\param post Whether to get the post dominator tree children
-			\return Set of Tree children
+		    \param post Whether to get the post dominator tree children
+		    \return Set of Tree children
 		*/
 		std::set<Ref<BasicBlock>> GetDominatorTreeChildren(bool post = false) const;
 
 		/*! Get the dominance frontier for this basic block
 
-			\param post Whether to get the post dominance frontier
-			\return Post dominance frontier for this basic block
+		    \param post Whether to get the post dominance frontier
+		    \return Post dominance frontier for this basic block
 		*/
 		std::set<Ref<BasicBlock>> GetDominanceFrontier(bool post = false) const;
 		static std::set<Ref<BasicBlock>> GetIteratedDominanceFrontier(const std::set<Ref<BasicBlock>>& blocks);
@@ -10325,84 +10450,84 @@ namespace BinaryNinja {
 
 		/*! List of automatic annotations for the start of this block
 
-			\return List of automatic annotations for the start of this block
+		    \return List of automatic annotations for the start of this block
 		*/
 		std::vector<std::vector<InstructionTextToken>> GetAnnotations();
 
 		/*! property which returns a list of DisassemblyTextLine objects for the current basic block.
 
-			\param settings Disassembly settings to use when fetching the text
-			\return Disassembly text
+		    \param settings Disassembly settings to use when fetching the text
+		    \return Disassembly text
 		*/
 		std::vector<DisassemblyTextLine> GetDisassemblyText(DisassemblySettings* settings);
 
 		/*! Get the current highlight color for the Basic Block
 
-			\return The current highlight color for the Basic Block
+		    \return The current highlight color for the Basic Block
 		*/
 		BNHighlightColor GetBasicBlockHighlight();
 
 		/*! Set the analysis basic block highlight color
 
-			\param color Highlight Color
+		    \param color Highlight Color
 		*/
 		void SetAutoBasicBlockHighlight(BNHighlightColor color);
 
 		/*! Set the analysis basic block highlight color
 
-			\param color Highlight Color
-			\param alpha Transparency for the color
+		    \param color Highlight Color
+		    \param alpha Transparency for the color
 		*/
 		void SetAutoBasicBlockHighlight(BNHighlightStandardColor color, uint8_t alpha = 255);
 
 		/*! Set the analysis basic block highlight color
 
-			\param color Highlight Color
-			\param mixColor Highlight Color to mix with `color`
-			\param mix Mix point
-			\param alpha Transparency of the colors
+		    \param color Highlight Color
+		    \param mixColor Highlight Color to mix with `color`
+		    \param mix Mix point
+		    \param alpha Transparency of the colors
 		*/
 		void SetAutoBasicBlockHighlight(
-		    BNHighlightStandardColor color, BNHighlightStandardColor mixColor, uint8_t mix, uint8_t alpha = 255);
+			BNHighlightStandardColor color, BNHighlightStandardColor mixColor, uint8_t mix, uint8_t alpha = 255);
 
 		/*! Set the analysis basic block highlight color
 
-			\param r Red value, 0-255
-			\param g Green value, 0-255
-			\param b Blue value, 0-255
-			\param alpha Transparency of the color
+		    \param r Red value, 0-255
+		    \param g Green value, 0-255
+		    \param b Blue value, 0-255
+		    \param alpha Transparency of the color
 		*/
 		void SetAutoBasicBlockHighlight(uint8_t r, uint8_t g, uint8_t b, uint8_t alpha = 255);
 
 		/*! Set the basic block highlight color
 
-			\param color Highlight color
+		    \param color Highlight color
 		*/
 		void SetUserBasicBlockHighlight(BNHighlightColor color);
 
 		/*! Set the basic block highlight color
 
-			\param color Highlight color
-			\param alpha Transparency of the color
+		    \param color Highlight color
+		    \param alpha Transparency of the color
 		*/
 		void SetUserBasicBlockHighlight(BNHighlightStandardColor color, uint8_t alpha = 255);
 
 		/*! Set the basic block highlight color
 
-			\param color Highlight Color
-			\param mixColor Highlight Color to mix with `color`
-			\param mix Mix point
-			\param alpha Transparency of the colors
+		    \param color Highlight Color
+		    \param mixColor Highlight Color to mix with `color`
+		    \param mix Mix point
+		    \param alpha Transparency of the colors
 		*/
 		void SetUserBasicBlockHighlight(
-		    BNHighlightStandardColor color, BNHighlightStandardColor mixColor, uint8_t mix, uint8_t alpha = 255);
+			BNHighlightStandardColor color, BNHighlightStandardColor mixColor, uint8_t mix, uint8_t alpha = 255);
 
 		/*! Set the basic block highlight color
 
-			\param r Red value, 0-255
-			\param g Green value, 0-255
-			\param b Blue value, 0-255
-			\param alpha Transparency of the color
+		    \param r Red value, 0-255
+		    \param g Green value, 0-255
+		    \param b Blue value, 0-255
+		    \param alpha Transparency of the color
 		*/
 		void SetUserBasicBlockHighlight(uint8_t r, uint8_t g, uint8_t b, uint8_t alpha = 255);
 
@@ -10410,52 +10535,58 @@ namespace BinaryNinja {
 
 		/*! Whether the basic block contains IL
 
-			\return Whether the basic block contains IL
+		    \return Whether the basic block contains IL
 		*/
 		bool IsILBlock() const;
 
-		/*! Whether the basic block contains Medium Level IL
+		/*! Whether the basic block contains Low Level IL
 
-			\return Whether the basic block contains Medium Level IL
+		    \return Whether the basic block contains Low Level IL
 		*/
 		bool IsLowLevelILBlock() const;
 
-		/*! Whether the basic block contains High Level IL
+		/*! Whether the basic block contains Medium Level IL
 
-			\return Whether the basic block contains High Level IL
+		    \return Whether the basic block contains Medium Level IL
 		*/
 		bool IsMediumLevelILBlock() const;
 
+		/*! Whether the basic block contains High Level IL
+
+		    \return Whether the basic block contains High Level IL
+		*/
+		bool IsHighLevelILBlock() const;
+
 		/*! Get the Low Level IL Function for this basic block
 
-			\return Get the Low Level IL Function for this basic block
+		    \return Get the Low Level IL Function for this basic block
 		*/
 		Ref<LowLevelILFunction> GetLowLevelILFunction() const;
 
 		/*! Get the Medium Level IL Function for this basic block
 
-			\return Get the Medium Level IL Function for this basic block
+		    \return Get the Medium Level IL Function for this basic block
 		*/
 		Ref<MediumLevelILFunction> GetMediumLevelILFunction() const;
 
 		/*! Get the High Level IL Function for this basic block
 
-			\return Get the High Level IL Function for this basic block
+		    \return Get the High Level IL Function for this basic block
 		*/
 		Ref<HighLevelILFunction> GetHighLevelILFunction() const;
 
 		bool GetInstructionContainingAddress(uint64_t addr, uint64_t* start);
 
 		/*! Gets the corresponding assembly-level basic block for this basic block
-			(which is itself, if called on an assembly-level basic block).
+		    (which is itself, if called on an assembly-level basic block).
 
-			\return Basic Block
+		    \return Basic Block
 		*/
 		Ref<BasicBlock> GetSourceBlock() const;
 	};
 
 	/*!
-		\ingroup function
+	    \ingroup function
 	*/
 	struct VariableNameAndType
 	{
@@ -10468,14 +10599,11 @@ namespace BinaryNinja {
 		{
 			return (var == a.var) && (type == a.type) && (name == a.name) && (autoDefined == a.autoDefined);
 		}
-		bool operator!=(const VariableNameAndType& a)
-		{
-			return !(*this == a);
-		}
+		bool operator!=(const VariableNameAndType& a) { return !(*this == a); }
 	};
 
 	/*!
-		\ingroup function
+	    \ingroup function
 	*/
 	struct StackVariableReference
 	{
@@ -10488,7 +10616,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup function
+	    \ingroup function
 	*/
 	struct IndirectBranchInfo
 	{
@@ -10500,7 +10628,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup function
+	    \ingroup function
 	*/
 	struct ArchAndAddr
 	{
@@ -10527,7 +10655,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup function
+	    \ingroup function
 	*/
 	struct LookupTableEntry
 	{
@@ -10536,7 +10664,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup function
+	    \ingroup function
 	*/
 	struct ConstantData : public BNRegisterValue
 	{
@@ -10551,7 +10679,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup function
+	    \ingroup function
 	*/
 	struct PossibleValueSet
 	{
@@ -10574,7 +10702,7 @@ namespace BinaryNinja {
 	struct SSAVariable;
 
 	/*!
-		\ingroup function
+	    \ingroup function
 	*/
 	class Function : public CoreRefCountObject<BNFunction, BNNewFunctionReference, BNFreeFunction>
 	{
@@ -10582,140 +10710,140 @@ namespace BinaryNinja {
 
 		bool IsRegionCollapsed(uint64_t hash) const;
 
-	  public:
+	public:
 		Function(BNFunction* func);
 		virtual ~Function();
 
 		/*! Get the BinaryView this Function is defined in
 
-			\return a BinaryView reference
+		    \return a BinaryView reference
 		*/
 		Ref<BinaryView> GetView() const;
 
 		/*! Get the architecture this function was defined with
 
-			\return an Architecture reference
+		    \return an Architecture reference
 		*/
 		Ref<Architecture> GetArchitecture() const;
 
 		/*! Get the platform this function was defined with
 
-			\return a Platform reference
+		    \return a Platform reference
 		*/
 		Ref<Platform> GetPlatform() const;
 
 		/*! Get the starting virtual address of this function
 
-			\return the start address
+		    \return the start address
 		*/
 		uint64_t GetStart() const;
 
 		/*! Get the Symbol for this function
 
-			\return a Symbol reference
+		    \return a Symbol reference
 		*/
 		Ref<Symbol> GetSymbol() const;
 
 		/*! Whether this function was automatically discovered by analysis
 
-			\return Whether the function was automatically discovered
+		    \return Whether the function was automatically discovered
 		*/
 		bool WasAutomaticallyDiscovered() const;
 
 		/*! Whether this function has user annotations
 
-			\return Whether this function has user annotations
+		    \return Whether this function has user annotations
 		*/
 		bool HasUserAnnotations() const;
 
 		/*! Whether this function can return
 
-			\return Whether this function can return
+		    \return Whether this function can return
 		*/
 		Confidence<bool> CanReturn() const;
 
 		/*! Whether this function is pure
 
-			\return Whether this function is pure
+		    \return Whether this function is pure
 		*/
 		Confidence<bool> IsPure() const;
 
 		/*! Whether this function has an explicitly defined type
 
-			\return Whether this function has an explicitly defined type
+		    \return Whether this function has an explicitly defined type
 		*/
 		bool HasExplicitlyDefinedType() const;
 
 		/*! Whether this function needs update
 
-			\return Whether this function needs update
+		    \return Whether this function needs update
 		*/
 		bool NeedsUpdate() const;
 
 		/*! Get a list of Basic Blocks for this function
 
-			\return a list of BasicBlock references for this function
+		    \return a list of BasicBlock references for this function
 		*/
 		std::vector<Ref<BasicBlock>> GetBasicBlocks() const;
 
 		/*! Get the basic block an address is located in
 
-			\param arch Architecture for the basic block
-			\param addr Address to check
-			\return
+		    \param arch Architecture for the basic block
+		    \param addr Address to check
+		    \return
 		*/
 		Ref<BasicBlock> GetBasicBlockAtAddress(Architecture* arch, uint64_t addr) const;
 
 		/*! Mark this function as recently used
-		*/
+		 */
 		void MarkRecentUse();
 
 		/*! Get the function comment
 
-			\return The function comment
+		    \return The function comment
 		*/
 		std::string GetComment() const;
 
 		/*! Get a comment located at an address
 
-		 	\return The comment at an address
+		    \return The comment at an address
 		*/
 		std::string GetCommentForAddress(uint64_t addr) const;
 
 		/*! Get a list of addresses with comments
 
-			\return A list of virtual addresses with comments
+		    \return A list of virtual addresses with comments
 		*/
 		std::vector<uint64_t> GetCommentedAddresses() const;
 
 		/*! Set the comment for the function
 
-			\param comment The new function comment
+		    \param comment The new function comment
 		*/
 		void SetComment(const std::string& comment);
 
 		/*! Set the comment at an address
 
-			\param addr Address for the comment
-			\param comment Text of the comment
+		    \param addr Address for the comment
+		    \param comment Text of the comment
 		*/
 		void SetCommentForAddress(uint64_t addr, const std::string& comment);
 
 		/*! Get a list of callsites for this function
 
-			\return a list of ReferenceSource
+		    \return a list of ReferenceSource
 		*/
 		std::vector<ReferenceSource> GetCallSites() const;
 
 		/*! Places a user-defined cross-reference from the instruction at
-			the given address and architecture to the specified target address.
+		    the given address and architecture to the specified target address.
 
-		 	If the specified source instruction is not contained within this function, no action is performed.
-			To remove the reference, use `RemoveUserCodeReference`.
+		    If the specified source instruction is not contained within this function, no action is performed.
+		    To remove the reference, use `RemoveUserCodeReference`.
 
-			\param fromArch Architecture of the source instruction
-			\param fromAddr Virtual address of the source instruction
-			\param toAddr Virtual address of the xref's destination.
+		    \param fromArch Architecture of the source instruction
+		    \param fromAddr Virtual address of the source instruction
+		    \param toAddr Virtual address of the xref's destination.
 		*/
 		void AddUserCodeReference(Architecture* fromArch, uint64_t fromAddr, uint64_t toAddr);
 
@@ -10724,81 +10852,81 @@ namespace BinaryNinja {
 		    If the given address is not contained within this function, or if there is no such user-defined
 		    cross-reference, no action is performed.
 
-			\param fromArch Architecture of the source instruction
-			\param fromAddr Virtual address of the source instruction
-			\param toAddr Virtual address of the xref's destination.
+		    \param fromArch Architecture of the source instruction
+		    \param fromAddr Virtual address of the source instruction
+		    \param toAddr Virtual address of the xref's destination.
 		*/
 		void RemoveUserCodeReference(Architecture* fromArch, uint64_t fromAddr, uint64_t toAddr);
 
 		/*! Places a user-defined type cross-reference from the instruction at
-				the given address and architecture to the specified type.
+		        the given address and architecture to the specified type.
 
-		 	If the specified source instruction is not contained within this function, no action is performed.
-			To remove the reference, use `RemoveUserTypeReference`.
+		    If the specified source instruction is not contained within this function, no action is performed.
+		    To remove the reference, use `RemoveUserTypeReference`.
 
 		    \param fromArch Architecture of the source instruction
 		    \param fromAddr Virtual address of the source instruction
-			\param name Name of the referenced type
+		    \param name Name of the referenced type
 		*/
 		void AddUserTypeReference(Architecture* fromArch, uint64_t fromAddr, const QualifiedName& name);
 
 		/*! Removes a user-defined type cross-reference.
 
-			If the given address is not contained within this function, or if there is no
-			such user-defined cross-reference, no action is performed.
+		    If the given address is not contained within this function, or if there is no
+		    such user-defined cross-reference, no action is performed.
 
-			\param fromArch Architecture of the source instruction
-			\param fromAddr Virtual address of the source instruction
-			\param name Name of the referenced type
+		    \param fromArch Architecture of the source instruction
+		    \param fromAddr Virtual address of the source instruction
+		    \param name Name of the referenced type
 		*/
 		void RemoveUserTypeReference(Architecture* fromArch, uint64_t fromAddr, const QualifiedName& name);
 
 		/*! Places a user-defined type field cross-reference from the
-			instruction at the given address and architecture to the specified type.
+		    instruction at the given address and architecture to the specified type.
 
-			If the specified source instruction is not contained within this function, no action is performed.
-			To remove the reference, use :func:`remove_user_type_field_ref`.
+		    If the specified source instruction is not contained within this function, no action is performed.
+		    To remove the reference, use :func:`remove_user_type_field_ref`.
 
-			\param fromArch Architecture of the source instruction
-			\param fromAddr Virtual address of the source instruction
-			\param name Name of the referenced type
-			\param offset Offset of the field, relative to the type
-			\param size (Optional) size of the access
+		    \param fromArch Architecture of the source instruction
+		    \param fromAddr Virtual address of the source instruction
+		    \param name Name of the referenced type
+		    \param offset Offset of the field, relative to the type
+		    \param size (Optional) size of the access
 		*/
 		void AddUserTypeFieldReference(
-		    Architecture* fromArch, uint64_t fromAddr, const QualifiedName& name, uint64_t offset, size_t size = 0);
+			Architecture* fromArch, uint64_t fromAddr, const QualifiedName& name, uint64_t offset, size_t size = 0);
 
 		/*! Removes a user-defined type field cross-reference.
 
-		 	If the given address is not contained within this function, or if there is no
-			such user-defined cross-reference, no action is performed.
+		    If the given address is not contained within this function, or if there is no
+		    such user-defined cross-reference, no action is performed.
 
-			\param fromArch Architecture of the source instruction
-			\param fromAddr Virtual address of the source instruction
-			\param name Name of the referenced type
-			\param offset Offset of the field, relative to the type
-			\param size (Optional) size of the access
+		    \param fromArch Architecture of the source instruction
+		    \param fromAddr Virtual address of the source instruction
+		    \param name Name of the referenced type
+		    \param offset Offset of the field, relative to the type
+		    \param size (Optional) size of the access
 		*/
 		void RemoveUserTypeFieldReference(
-		    Architecture* fromArch, uint64_t fromAddr, const QualifiedName& name, uint64_t offset, size_t size = 0);
+			Architecture* fromArch, uint64_t fromAddr, const QualifiedName& name, uint64_t offset, size_t size = 0);
 
 		/*! Get the LLIL for this function
 
-			\return a LowLevelILFunction reference
+		    \return a LowLevelILFunction reference
 		*/
 		Ref<LowLevelILFunction> GetLowLevelIL() const;
 
 		/*! Get the LLIL for this function if it is available
 
-			\return a LowLevelILFunction reference
+		    \return a LowLevelILFunction reference
 		*/
 		Ref<LowLevelILFunction> GetLowLevelILIfAvailable() const;
 
 		/*! Get the Low Level IL Instruction start for an instruction at an address
 
-			\param arch Architecture for the instruction
-			\param addr Address of the instruction
-			\return Start address of the instruction
+		    \param arch Architecture for the instruction
+		    \param addr Address of the instruction
+		    \return Start address of the instruction
 		*/
 		size_t GetLowLevelILForInstruction(Architecture* arch, uint64_t addr);
 		std::set<size_t> GetLowLevelILInstructionsForAddress(Architecture* arch, uint64_t addr);
@@ -10825,32 +10953,32 @@ namespace BinaryNinja {
 		std::vector<ILReferenceSource> GetMediumLevelILVariableReferences(const Variable& var);
 		std::vector<VariableReferenceSource> GetMediumLevelILVariableReferencesFrom(Architecture* arch, uint64_t addr);
 		std::vector<VariableReferenceSource> GetMediumLevelILVariableReferencesInRange(
-		    Architecture* arch, uint64_t addr, uint64_t len);
+			Architecture* arch, uint64_t addr, uint64_t len);
 		std::vector<ILReferenceSource> GetMediumLevelILVariableReferencesIfAvailable(const Variable& var);
 		std::vector<VariableReferenceSource> GetMediumLevelILVariableReferencesFromIfAvailable(
-		    Architecture* arch, uint64_t addr);
+			Architecture* arch, uint64_t addr);
 		std::vector<VariableReferenceSource> GetMediumLevelILVariableReferencesInRangeIfAvailable(
-		    Architecture* arch, uint64_t addr, uint64_t len);
+			Architecture* arch, uint64_t addr, uint64_t len);
 
 		std::vector<ILReferenceSource> GetHighLevelILVariableReferences(const Variable& var);
 		std::vector<VariableReferenceSource> GetHighLevelILVariableReferencesFrom(Architecture* arch, uint64_t addr);
 		std::vector<VariableReferenceSource> GetHighLevelILVariableReferencesInRange(
-		    Architecture* arch, uint64_t addr, uint64_t len);
+			Architecture* arch, uint64_t addr, uint64_t len);
 		std::vector<ILReferenceSource> GetHighLevelILVariableReferencesIfAvailable(const Variable& var);
 		std::vector<VariableReferenceSource> GetHighLevelILVariableReferencesFromIfAvailable(
-		    Architecture* arch, uint64_t addr);
+			Architecture* arch, uint64_t addr);
 		std::vector<VariableReferenceSource> GetHighLevelILVariableReferencesInRangeIfAvailable(
-		    Architecture* arch, uint64_t addr, uint64_t len);
+			Architecture* arch, uint64_t addr, uint64_t len);
 
 		/*! Retrieves a LowLevelILFunction used to represent lifted IL.
 
-			\return LowLevelILFunction used to represent lifted IL.
+		    \return LowLevelILFunction used to represent lifted IL.
 		*/
 		Ref<LowLevelILFunction> GetLiftedIL() const;
 
 		/*! Retrieves a LowLevelILFunction used to represent lifted IL, or None if not loaded.
 
-			\return LowLevelILFunction used to represent lifted IL, or None if not loaded.
+		    \return LowLevelILFunction used to represent lifted IL, or None if not loaded.
 		*/
 		Ref<LowLevelILFunction> GetLiftedILIfAvailable() const;
 		size_t GetLiftedILForInstruction(Architecture* arch, uint64_t addr);
@@ -10862,37 +10990,37 @@ namespace BinaryNinja {
 
 		/*! Get the MLIL for this Function.
 
-			\return The MLIL for this Function.
+		    \return The MLIL for this Function.
 		*/
 		Ref<MediumLevelILFunction> GetMediumLevelIL() const;
 
 		/*! Get the MLIL for this Function if it's available.
 
-			\return The MLIL for this Function if it's available.
+		    \return The MLIL for this Function if it's available.
 		*/
 		Ref<MediumLevelILFunction> GetMediumLevelILIfAvailable() const;
 
 		/*! Get the Mapped MLIL for this Function.
 
-			\return The Mapped MLIL for this Function.
+		    \return The Mapped MLIL for this Function.
 		*/
 		Ref<MediumLevelILFunction> GetMappedMediumLevelIL() const;
 
 		/*! Get the Mapped MLIL for this Function if it's available.
 
-			\return The Mapped MLIL for this Function if it's available.
+		    \return The Mapped MLIL for this Function if it's available.
 		*/
 		Ref<MediumLevelILFunction> GetMappedMediumLevelILIfAvailable() const;
 
 		/*! Get the HLIL for this Function.
 
-			\return The HLIL for this Function.
+		    \return The HLIL for this Function.
 		*/
 		Ref<HighLevelILFunction> GetHighLevelIL() const;
 
 		/*! Get the HLIL for this Function if it's available.
 
-			\return The HLIL for this Function if it's available.
+		    \return The HLIL for this Function if it's available.
 		*/
 		Ref<HighLevelILFunction> GetHighLevelILIfAvailable() const;
 		Ref<LanguageRepresentationFunction> GetLanguageRepresentation(const std::string& language = "Pseudo C") const;
@@ -10949,7 +11077,7 @@ namespace BinaryNinja {
 
 		/*! List of Function Variables
 
-			\return List of Function Variables
+		    \return List of Function Variables
 		*/
 		std::map<Variable, VariableNameAndType> GetVariables();
 		std::set<Variable> GetMediumLevelILVariables();
@@ -10967,9 +11095,9 @@ namespace BinaryNinja {
 		std::set<SSAVariable> GetHighLevelILSSAVariablesIfAvailable();
 
 		void CreateAutoVariable(const Variable& var, const Confidence<Ref<Type>>& type, const std::string& name,
-		    bool ignoreDisjointUses = false);
+			bool ignoreDisjointUses = false);
 		void CreateUserVariable(const Variable& var, const Confidence<Ref<Type>>& type, const std::string& name,
-		    bool ignoreDisjointUses = false);
+			bool ignoreDisjointUses = false);
 		void DeleteAutoVariable(const Variable& var);
 		void DeleteUserVariable(const Variable& var);
 		bool IsVariableUserDefinded(const Variable& var);
@@ -10979,9 +11107,9 @@ namespace BinaryNinja {
 		std::string GetLastSeenVariableNameOrDefault(const Variable& var);
 
 		void SetAutoIndirectBranches(
-		    Architecture* sourceArch, uint64_t source, const std::vector<ArchAndAddr>& branches);
+			Architecture* sourceArch, uint64_t source, const std::vector<ArchAndAddr>& branches);
 		void SetUserIndirectBranches(
-		    Architecture* sourceArch, uint64_t source, const std::vector<ArchAndAddr>& branches);
+			Architecture* sourceArch, uint64_t source, const std::vector<ArchAndAddr>& branches);
 
 		std::vector<IndirectBranchInfo> GetIndirectBranches();
 		std::vector<IndirectBranchInfo> GetIndirectBranchesAt(Architecture* arch, uint64_t addr);
@@ -10992,15 +11120,15 @@ namespace BinaryNinja {
 		void SetAutoCallTypeAdjustment(Architecture* arch, uint64_t addr, const Confidence<Ref<Type>>& adjust);
 		void SetAutoCallStackAdjustment(Architecture* arch, uint64_t addr, const Confidence<int64_t>& adjust);
 		void SetAutoCallRegisterStackAdjustment(
-		    Architecture* arch, uint64_t addr, const std::map<uint32_t, Confidence<int32_t>>& adjust);
+			Architecture* arch, uint64_t addr, const std::map<uint32_t, Confidence<int32_t>>& adjust);
 		void SetAutoCallRegisterStackAdjustment(
-		    Architecture* arch, uint64_t addr, uint32_t regStack, const Confidence<int32_t>& adjust);
+			Architecture* arch, uint64_t addr, uint32_t regStack, const Confidence<int32_t>& adjust);
 		void SetUserCallTypeAdjustment(Architecture* arch, uint64_t addr, const Confidence<Ref<Type>>& adjust);
 		void SetUserCallStackAdjustment(Architecture* arch, uint64_t addr, const Confidence<int64_t>& adjust);
 		void SetUserCallRegisterStackAdjustment(
-		    Architecture* arch, uint64_t addr, const std::map<uint32_t, Confidence<int32_t>>& adjust);
+			Architecture* arch, uint64_t addr, const std::map<uint32_t, Confidence<int32_t>>& adjust);
 		void SetUserCallRegisterStackAdjustment(
-		    Architecture* arch, uint64_t addr, uint32_t regStack, const Confidence<int32_t>& adjust);
+			Architecture* arch, uint64_t addr, uint32_t regStack, const Confidence<int32_t>& adjust);
 
 		Confidence<Ref<Type>> GetCallTypeAdjustment(Architecture* arch, uint64_t addr);
 		Confidence<int64_t> GetCallStackAdjustment(Architecture* arch, uint64_t addr);
@@ -11011,28 +11139,29 @@ namespace BinaryNinja {
 		std::vector<std::vector<InstructionTextToken>> GetBlockAnnotations(Architecture* arch, uint64_t addr);
 
 		BNIntegerDisplayType GetIntegerConstantDisplayType(
-		    Architecture* arch, uint64_t instrAddr, uint64_t value, size_t operand);
+			Architecture* arch, uint64_t instrAddr, uint64_t value, size_t operand);
 		Ref<Type> GetIntegerConstantDisplayTypeEnumType(
 			Architecture* arch, uint64_t instrAddr, uint64_t value, size_t operand);
-		void SetIntegerConstantDisplayType(
-		    Architecture* arch, uint64_t instrAddr, uint64_t value, size_t operand, BNIntegerDisplayType type, Ref<Type> enumType = nullptr);
-		std::pair<BNIntegerDisplayType, Ref<Type>> GetIntegerConstantDisplayTypeAndEnumType(Architecture* arch, uint64_t instrAddr, uint64_t value, size_t operand);
+		void SetIntegerConstantDisplayType(Architecture* arch, uint64_t instrAddr, uint64_t value, size_t operand,
+			BNIntegerDisplayType type, Ref<Type> enumType = nullptr);
+		std::pair<BNIntegerDisplayType, Ref<Type>> GetIntegerConstantDisplayTypeAndEnumType(
+			Architecture* arch, uint64_t instrAddr, uint64_t value, size_t operand);
 
 		BNHighlightColor GetInstructionHighlight(Architecture* arch, uint64_t addr);
 		void SetAutoInstructionHighlight(Architecture* arch, uint64_t addr, BNHighlightColor color);
 		void SetAutoInstructionHighlight(
-		    Architecture* arch, uint64_t addr, BNHighlightStandardColor color, uint8_t alpha = 255);
+			Architecture* arch, uint64_t addr, BNHighlightStandardColor color, uint8_t alpha = 255);
 		void SetAutoInstructionHighlight(Architecture* arch, uint64_t addr, BNHighlightStandardColor color,
-		    BNHighlightStandardColor mixColor, uint8_t mix, uint8_t alpha = 255);
+			BNHighlightStandardColor mixColor, uint8_t mix, uint8_t alpha = 255);
 		void SetAutoInstructionHighlight(
-		    Architecture* arch, uint64_t addr, uint8_t r, uint8_t g, uint8_t b, uint8_t alpha = 255);
+			Architecture* arch, uint64_t addr, uint8_t r, uint8_t g, uint8_t b, uint8_t alpha = 255);
 		void SetUserInstructionHighlight(Architecture* arch, uint64_t addr, BNHighlightColor color);
 		void SetUserInstructionHighlight(
-		    Architecture* arch, uint64_t addr, BNHighlightStandardColor color, uint8_t alpha = 255);
+			Architecture* arch, uint64_t addr, BNHighlightStandardColor color, uint8_t alpha = 255);
 		void SetUserInstructionHighlight(Architecture* arch, uint64_t addr, BNHighlightStandardColor color,
-		    BNHighlightStandardColor mixColor, uint8_t mix, uint8_t alpha = 255);
+			BNHighlightStandardColor mixColor, uint8_t mix, uint8_t alpha = 255);
 		void SetUserInstructionHighlight(
-		    Architecture* arch, uint64_t addr, uint8_t r, uint8_t g, uint8_t b, uint8_t alpha = 255);
+			Architecture* arch, uint64_t addr, uint8_t r, uint8_t g, uint8_t b, uint8_t alpha = 255);
 
 		std::vector<TagReference> GetAllTagReferences();
 		std::vector<TagReference> GetTagReferencesOfType(Ref<TagType> tagType);
@@ -11073,16 +11202,16 @@ namespace BinaryNinja {
 		void RemoveUserFunctionTagsOfType(Ref<TagType> tagType);
 
 		Ref<Tag> CreateAutoAddressTag(Architecture* arch, uint64_t addr, const std::string& tagTypeName,
-		    const std::string& data, bool unique = false);
+			const std::string& data, bool unique = false);
 		Ref<Tag> CreateUserAddressTag(Architecture* arch, uint64_t addr, const std::string& tagTypeName,
-		    const std::string& data, bool unique = false);
+			const std::string& data, bool unique = false);
 		Ref<Tag> CreateAutoFunctionTag(const std::string& tagTypeName, const std::string& data, bool unique = false);
 		Ref<Tag> CreateUserFunctionTag(const std::string& tagTypeName, const std::string& data, bool unique = false);
 
 		Ref<Tag> CreateAutoAddressTag(
-		    Architecture* arch, uint64_t addr, Ref<TagType> tagType, const std::string& data, bool unique = false);
+			Architecture* arch, uint64_t addr, Ref<TagType> tagType, const std::string& data, bool unique = false);
 		Ref<Tag> CreateUserAddressTag(
-		    Architecture* arch, uint64_t addr, Ref<TagType> tagType, const std::string& data, bool unique = false);
+			Architecture* arch, uint64_t addr, Ref<TagType> tagType, const std::string& data, bool unique = false);
 		Ref<Tag> CreateAutoFunctionTag(Ref<TagType> tagType, const std::string& data, bool unique = false);
 		Ref<Tag> CreateUserFunctionTag(Ref<TagType> tagType, const std::string& data, bool unique = false);
 
@@ -11106,13 +11235,13 @@ namespace BinaryNinja {
 
 		/*! Whether the function is too large to automatically perform analysis
 
-			\return Whether the function is too large to automatically perform analysis
+		    \return Whether the function is too large to automatically perform analysis
 		*/
 		bool IsFunctionTooLarge();
 
 		/*! Whether automatic analysis was skipped for this function.
 
-			\return Whether automatic analysis was skipped for this function.
+		    \return Whether automatic analysis was skipped for this function.
 		*/
 		bool IsAnalysisSkipped();
 		BNAnalysisSkipReason GetAnalysisSkipReason();
@@ -11130,15 +11259,15 @@ namespace BinaryNinja {
 
 		/*! Get the name for a given label ID
 
-			\param labelId ID For the label. Saved in the highlight token value.
-			\return Name for the label
+		    \param labelId ID For the label. Saved in the highlight token value.
+		    \return Name for the label
 		*/
 		std::string GetGotoLabelName(uint64_t labelId);
 
 		/*! Set the name for a given label ID
 
-			\param labelId ID For the label. Saved in the highlight token value.
-			\param name New name for the label
+		    \param labelId ID For the label. Saved in the highlight token value.
+		    \param name New name for the label
 		*/
 		void SetGotoLabelName(uint64_t labelId, const std::string& name);
 
@@ -11154,19 +11283,19 @@ namespace BinaryNinja {
 
 		/*! The highest (largest) virtual address contained in a function.
 
-			\return The highest (largest) virtual address contained in a function.
+		    \return The highest (largest) virtual address contained in a function.
 		*/
 		uint64_t GetHighestAddress();
 
 		/*! The lowest (smallest) virtual address contained in a function.
 
-			\return The lowest (smallest) virtual address contained in a function.
+		    \return The lowest (smallest) virtual address contained in a function.
 		*/
 		uint64_t GetLowestAddress();
 
 		/*! All of the address ranges covered by a function
 
-			\return All of the address ranges covered by a function
+		    \return All of the address ranges covered by a function
 		*/
 		std::vector<BNAddressRange> GetAddressRanges();
 
@@ -11186,13 +11315,13 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup function
+	    \ingroup function
 	*/
 	class AdvancedFunctionAnalysisDataRequestor
 	{
 		Ref<Function> m_func;
 
-	  public:
+	public:
 		AdvancedFunctionAnalysisDataRequestor(Function* func = nullptr);
 		AdvancedFunctionAnalysisDataRequestor(const AdvancedFunctionAnalysisDataRequestor& req);
 		~AdvancedFunctionAnalysisDataRequestor();
@@ -11205,7 +11334,7 @@ namespace BinaryNinja {
 	class FlowGraphNode;
 
 	/*!
-		\ingroup flowgraph
+	    \ingroup flowgraph
 	*/
 	struct FlowGraphEdge
 	{
@@ -11217,7 +11346,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup flowgraph
+	    \ingroup flowgraph
 	*/
 	class FlowGraphNode : public CoreRefCountObject<BNFlowGraphNode, BNNewFlowGraphNodeReference, BNFreeFlowGraphNode>
 	{
@@ -11225,110 +11354,110 @@ namespace BinaryNinja {
 		std::vector<FlowGraphEdge> m_cachedEdges, m_cachedIncomingEdges;
 		bool m_cachedLinesValid, m_cachedEdgesValid, m_cachedIncomingEdgesValid;
 
-	  public:
+	public:
 		FlowGraphNode(FlowGraph* graph);
 		FlowGraphNode(BNFlowGraphNode* node);
 
 		/*! Get the FlowGraph associated with this node
 
-			\return The FlowGraph associated with this node
+		    \return The FlowGraph associated with this node
 		*/
 		Ref<FlowGraph> GetGraph() const;
 
 		/*! Get the Basic Block associated with this node
 
-			\return The BasicBlock associated with this node
+		    \return The BasicBlock associated with this node
 		*/
 		Ref<BasicBlock> GetBasicBlock() const;
 
 		/*! Set the Basic Block associated with this node
 
-			\param block The BasicBlock associated with this node
+		    \param block The BasicBlock associated with this node
 		*/
 		void SetBasicBlock(BasicBlock* block);
 
 		/*! Set flow graph block X position
 
-			\param x Flow graph block X position
+		    \param x Flow graph block X position
 		*/
 		void SetX(int x);
 
 		/*! Set flow graph block Y position
 
-			\param y Flow graph block Y position
+		    \param y Flow graph block Y position
 		*/
 		void SetY(int y);
 
 		/*! Flow graph block X position
 
-			\return Flow graph block X position
+		    \return Flow graph block X position
 		*/
 		int GetX() const;
 
 		/*! Flow graph block Y position
 
-			\return Flow graph block Y position
+		    \return Flow graph block Y position
 		*/
 		int GetY() const;
 
 		/*! Flow graph block width
 
-			\return Flow graph block width
+		    \return Flow graph block width
 		*/
 		int GetWidth() const;
 
 		/*! Flow graph block height
 
-			\return Flow graph block height
+		    \return Flow graph block height
 		*/
 		int GetHeight() const;
 
 		/*! Get the list of DisassemblyTextLines for this graph node.
 
-			\return The list of DisassemblyTextLines for this graph node.
+		    \return The list of DisassemblyTextLines for this graph node.
 		*/
 		const std::vector<DisassemblyTextLine>& GetLines();
 
 		/*! Set the list of DisassemblyTextLines for this graph node.
 
-			\param lines The list of DisassemblyTextLines for this graph node.
+		    \param lines The list of DisassemblyTextLines for this graph node.
 		*/
 		void SetLines(const std::vector<DisassemblyTextLine>& lines);
 
 		/*! Get the list of outgoing edges for this flow graph node
 
-			\return The list of outgoing edges for this flow graph node
+		    \return The list of outgoing edges for this flow graph node
 		*/
 		const std::vector<FlowGraphEdge>& GetOutgoingEdges();
 
 		/*! Get the list of incoming edges for this flow graph node
 
-			\return The list of incoming edges for this flow graph node
+		    \return The list of incoming edges for this flow graph node
 		*/
 		const std::vector<FlowGraphEdge>& GetIncomingEdges();
 
 		/*! Connects two flow graph nodes with an edge
 
-			\param type Type of edge to add
-			\param target Target node object
-			\param edgeStyle
-		 	\parblock
-		 	Custom style for this edge.
+		    \param type Type of edge to add
+		    \param target Target node object
+		    \param edgeStyle
+		    \parblock
+		    Custom style for this edge.
 
-		 	Styling for graph edge Branch Type must be set to UserDefinedBranch
-		 	\endparblock
+		    Styling for graph edge Branch Type must be set to UserDefinedBranch
+		    \endparblock
 		*/
 		void AddOutgoingEdge(BNBranchType type, FlowGraphNode* target, BNEdgeStyle edgeStyle = BNEdgeStyle());
 
 		/*! Get the highlight color for the node
 
-			\return The highlight color for the node
+		    \return The highlight color for the node
 		*/
 		BNHighlightColor GetHighlight() const;
 
 		/*! Set the highlight color for the node
 
-			\param color The highlight color for the node
+		    \param color The highlight color for the node
 		*/
 		void SetHighlight(const BNHighlightColor& color);
 
@@ -11338,7 +11467,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup flowgraph
+	    \ingroup flowgraph
 	*/
 	class FlowGraphLayoutRequest : public RefCountObject
 	{
@@ -11347,7 +11476,7 @@ namespace BinaryNinja {
 
 		static void CompleteCallback(void* ctxt);
 
-	  public:
+	public:
 		FlowGraphLayoutRequest(FlowGraph* graph, const std::function<void()>& completeFunc);
 		virtual ~FlowGraphLayoutRequest();
 
@@ -11359,9 +11488,9 @@ namespace BinaryNinja {
 	};
 
 	/*! FlowGraph implements a directed flow graph to be shown in the UI. This class allows plugins to
-			create custom flow graphs and render them in the UI using the flow graph report API.
+	        create custom flow graphs and render them in the UI using the flow graph report API.
 
-	 	\ingroup flowgraph
+	    \ingroup flowgraph
 	*/
 	class FlowGraph : public CoreRefCountObject<BNFlowGraph, BNNewFlowGraphReference, BNFreeFlowGraph>
 	{
@@ -11373,7 +11502,7 @@ namespace BinaryNinja {
 		static BNFlowGraph* UpdateCallback(void* ctxt);
 		static void FreeObjectCallback(void* ctxt);
 
-	  protected:
+	protected:
 		bool m_queryMode = false;
 
 		FlowGraph(BNFlowGraph* graph);
@@ -11383,30 +11512,30 @@ namespace BinaryNinja {
 		virtual void PopulateNodes();
 		virtual void CompleteLayout();
 
-	  public:
+	public:
 		FlowGraph();
 
 		/*! Get the Function associated with this FlowGraph
 
-			\return The Function associated with this FlowGraph
+		    \return The Function associated with this FlowGraph
 		*/
 		Ref<Function> GetFunction() const;
 
 		/*! Get the BinaryView associated with this FlowGraph
 
-			\return The BinaryView associated with this FlowGraph
+		    \return The BinaryView associated with this FlowGraph
 		*/
 		Ref<BinaryView> GetView() const;
 
 		/*! Set the Function associated with this FlowGraph
 
-			\param func The Function associated with this FlowGraph
+		    \param func The Function associated with this FlowGraph
 		*/
 		void SetFunction(Function* func);
 
 		/*! Set the BinaryView associated with this FlowGraph
 
-			\param view The BinaryView associated with this FlowGraph
+		    \param view The BinaryView associated with this FlowGraph
 		*/
 		void SetView(BinaryView* view);
 
@@ -11415,59 +11544,82 @@ namespace BinaryNinja {
 		void SetNodeMargins(int horiz, int vert);
 
 		/*! Starts rendering a graph for display. Once a layout is complete, each node will contain
-			coordinates and extents that can be used to render a graph with minimum additional computation.
-			This function does not wait for the graph to be ready to display, but a callback can be provided
-			to signal when the graph is ready.
+		    coordinates and extents that can be used to render a graph with minimum additional computation.
+		    This function does not wait for the graph to be ready to display, but a callback can be provided
+		    to signal when the graph is ready.
 
-			\param func Callback to execute once layout is complete.
-			\return
+		    \param func Callback to execute once layout is complete.
+		    \return
 		*/
 		Ref<FlowGraphLayoutRequest> StartLayout(const std::function<void()>& func);
 
 		/*! Check whether layout is complete
 
-			\return Whether layout is complete
+		    \return Whether layout is complete
 		*/
 		bool IsLayoutComplete();
 
 		/*! Get the list of nodes in the graph
 
-			\return List of nodes in the graph
+		    \return List of nodes in the graph
 		*/
 		std::vector<Ref<FlowGraphNode>> GetNodes();
 
 		/*! Retrieve node by index
 
-			\param i Index of the node to retrieve
-			\return The flow graph node at that index
+		    \param i Index of the node to retrieve
+		    \return The flow graph node at that index
 		*/
 		Ref<FlowGraphNode> GetNode(size_t i);
 
+		/*! Get the total number of nodes in the graph
+
+		    \return Node count
+		 */
+		size_t GetNodeCount() const;
+
 		/*! Whether the FlowGraph has any nodes added
 
-			\return Whether the FlowGraph has any nodes added
+		    \return Whether the FlowGraph has any nodes added
 		*/
 		bool HasNodes() const;
 
 		/*! Add a node to this flowgraph
 
-			\param node Node to be added.
-			\return Index of the node
+		    \note After the graph has completed layout, this function has no effect.
+
+		    \param node Node to be added.
+		    \return Index of the node
 		*/
 		size_t AddNode(FlowGraphNode* node);
 
+		/*! Replace an existing node in the graph with a new node.
+		    Any existing edges referencing the old node will be updated to point to
+		    the new node.
 
+		    \note After the graph has completed layout, this function has no effect.
+
+		    \param i Index of the node to replace
+		    \param newNode New node with which to replace the old node
+		 */
+		void ReplaceNode(size_t i, FlowGraphNode* newNode);
+
+		/*! Clear all the nodes in the graph
+
+		    \note After the graph has completed layout, this function has no effect.
+		 */
+		void ClearNodes();
 
 		/*! Flow graph width
 
-			\return Flow graph width
+		    \return Flow graph width
 		*/
 		int GetWidth() const;
 		void SetWidth(int width);
 
 		/*! Flow graph height
 
-			\return Flow graph height
+		    \return Flow graph height
 		*/
 		int GetHeight() const;
 		void SetHeight(int height);
@@ -11476,67 +11628,67 @@ namespace BinaryNinja {
 
 		/*! Whether this graph is representing IL.
 
-			\return Whether this graph is representing IL.
+		    \return Whether this graph is representing IL.
 		*/
 		bool IsILGraph() const;
 
 		/*! Whether this graph is representing Low Level IL.
 
-			\return Whether this graph is representing Low Level IL.
+		    \return Whether this graph is representing Low Level IL.
 		*/
 		bool IsLowLevelILGraph() const;
 
 		/*! Whether this graph is representing Medium Level IL.
 
-			\return Whether this graph is representing Medium Level IL.
+		    \return Whether this graph is representing Medium Level IL.
 		*/
 		bool IsMediumLevelILGraph() const;
 
 		/*! Whether this graph is representing High Level IL.
 
-			\return Whether this graph is representing High Level IL.
+		    \return Whether this graph is representing High Level IL.
 		*/
 		bool IsHighLevelILGraph() const;
 
 		/*! Get the associated Low Level IL Function
 
-			\return The associated Low Level IL Function
+		    \return The associated Low Level IL Function
 		*/
 		Ref<LowLevelILFunction> GetLowLevelILFunction() const;
 
 		/*! Get the associated Medium Level IL Function
 
-			\return The associated Medium Level IL Function
+		    \return The associated Medium Level IL Function
 		*/
 		Ref<MediumLevelILFunction> GetMediumLevelILFunction() const;
 
 		/*! Get the associated High Level IL Function
 
-			\return The associated High Level IL Function
+		    \return The associated High Level IL Function
 		*/
 		Ref<HighLevelILFunction> GetHighLevelILFunction() const;
 
 		/*! Set the associated Low Level IL Function
 
-			\param func The associated function
+		    \param func The associated function
 		*/
 		void SetLowLevelILFunction(LowLevelILFunction* func);
 
 		/*! Set the associated Medium Level IL Function
 
-			\param func The associated function
+		    \param func The associated function
 		*/
 		void SetMediumLevelILFunction(MediumLevelILFunction* func);
 
 		/*! Set the associated High Level IL Function
 
-			\param func The associated function
+		    \param func The associated function
 		*/
 		void SetHighLevelILFunction(HighLevelILFunction* func);
 
 		/*! Display a flowgraph with a given title.
 
-			\param title Title for the flowgraph
+		    \param title Title for the flowgraph
 		*/
 		void Show(const std::string& title);
 
@@ -11548,14 +11700,34 @@ namespace BinaryNinja {
 
 		void SetOption(BNFlowGraphOption option, bool value = true);
 		bool IsOptionSet(BNFlowGraphOption option);
+
+		/*! Get the list of Render Layers which will be applied to this Flow Graph,
+		    after it calls PopulateNodes.
+
+		    \return List of Render Layers
+		 */
+		std::vector<class RenderLayer*> GetRenderLayers() const;
+
+		/*! Add a Render Layer to be applied to this Flow Graph. Note that layers will
+		    be applied in the order in which they are added.
+
+		    \param layer Render Layer to add
+		 */
+		void AddRenderLayer(class RenderLayer* layer);
+
+		/*! Remove a Render Layer from being applied to this Flow Graph
+
+		    \param layer Render Layer to remove
+		 */
+		void RemoveRenderLayer(class RenderLayer* layer);
 	};
 
 	/*!
-		\ingroup flowgraph
+	    \ingroup flowgraph
 	*/
 	class CoreFlowGraph : public FlowGraph
 	{
-	  public:
+	public:
 		CoreFlowGraph(BNFlowGraph* graph);
 		virtual bool HasUpdates() const override;
 		virtual Ref<FlowGraph> Update() override;
@@ -11563,14 +11735,14 @@ namespace BinaryNinja {
 
 	class FlowGraphLayout : public StaticCoreRefCountObject<BNFlowGraphLayout>
 	{
-	  protected:
+	protected:
 		FlowGraphLayout(BNFlowGraphLayout* layout);
 
 		static bool LayoutCallback(void* ctxt, BNFlowGraph* graph, BNFlowGraphNode** nodes, size_t nodeCount);
 
 		std::string m_nameForRegister;
 
-	  public:
+	public:
 		FlowGraphLayout(const std::string& name);
 
 		static void Register(FlowGraphLayout* layout);
@@ -11583,14 +11755,14 @@ namespace BinaryNinja {
 
 	class CoreFlowGraphLayout : public FlowGraphLayout
 	{
-	  public:
+	public:
 		CoreFlowGraphLayout(BNFlowGraphLayout* layout);
 
 		virtual bool Layout(Ref<FlowGraph> graph, std::vector<Ref<FlowGraphNode>>& nodes) override;
 	};
 
 	/*!
-		\ingroup lowlevelil
+	    \ingroup lowlevelil
 	*/
 	struct LowLevelILLabel : public BNLowLevelILLabel
 	{
@@ -11608,15 +11780,15 @@ namespace BinaryNinja {
 		ILSourceLocation(uint64_t addr, uint32_t operand) : address(addr), sourceOperand(operand), valid(true) {}
 
 		ILSourceLocation(const BNLowLevelILInstruction& instr) :
-		    address(instr.address), sourceOperand(instr.sourceOperand), valid(true)
+			address(instr.address), sourceOperand(instr.sourceOperand), valid(true)
 		{}
 
 		ILSourceLocation(const BNMediumLevelILInstruction& instr) :
-		    address(instr.address), sourceOperand(instr.sourceOperand), valid(true)
+			address(instr.address), sourceOperand(instr.sourceOperand), valid(true)
 		{}
 
 		ILSourceLocation(const BNHighLevelILInstruction& instr) :
-		    address(instr.address), sourceOperand(instr.sourceOperand), valid(true)
+			address(instr.address), sourceOperand(instr.sourceOperand), valid(true)
 		{}
 	};
 
@@ -11628,12 +11800,12 @@ namespace BinaryNinja {
 	struct SSARegisterOrFlag;
 
 	/*!
-		\ingroup lowlevelil
+	    \ingroup lowlevelil
 	*/
 	class LowLevelILFunction :
-	    public CoreRefCountObject<BNLowLevelILFunction, BNNewLowLevelILFunctionReference, BNFreeLowLevelILFunction>
+		public CoreRefCountObject<BNLowLevelILFunction, BNNewLowLevelILFunctionReference, BNFreeLowLevelILFunction>
 	{
-	  public:
+	public:
 		LowLevelILFunction(Architecture* arch, Function* func = nullptr);
 		LowLevelILFunction(BNLowLevelILFunction* func);
 
@@ -11644,15 +11816,15 @@ namespace BinaryNinja {
 		void PrepareToCopyBlock(BasicBlock* block);
 
 		/*! Get the LowLevelILLabel for a given source instruction. The returned pointer is to an internal object with
-			the same lifetime as the containing LowLevelILFunction.
+		    the same lifetime as the containing LowLevelILFunction.
 
-			\param i The source instruction index
-			\return The LowLevelILLabel for the source instruction
+		    \param i The source instruction index
+		    \return The LowLevelILLabel for the source instruction
 		*/
 		BNLowLevelILLabel* GetLabelForSourceInstruction(size_t i);
 
 		/*! Get the current IL address.
-		*/
+		 */
 		uint64_t GetCurrentAddress() const;
 		void SetCurrentAddress(Architecture* arch, uint64_t addr);
 		size_t GetInstructionStart(Architecture* arch, uint64_t addr);
@@ -11662,23 +11834,23 @@ namespace BinaryNinja {
 
 		/*! Get a list of registers used in the LLIL function
 
-			\see Architecture::GetAllRegisters, Architecture::GetRegisterName, Architecture::GetRegisterInfo
+		    \see Architecture::GetAllRegisters, Architecture::GetRegisterName, Architecture::GetRegisterInfo
 
-			\return The list of used registers
+		    \return The list of used registers
 		*/
 		std::vector<uint32_t> GetRegisters();
 
 		/*! Get a list of used register stacks used in the LLIL function
 
-			\return List of used register stacks
+		    \return List of used register stacks
 		*/
 		std::vector<uint32_t> GetRegisterStacks();
 
 		/*! Get the list of flags used in this LLIL function
 
-			\see Architecture::GetAllFlags, Architecture::GetFlagName, Architecture::GetFlagRole
+		    \see Architecture::GetAllFlags, Architecture::GetFlagName, Architecture::GetFlagRole
 
-			\return The list of used flags.
+		    \return The list of used flags.
 		*/
 		std::vector<uint32_t> GetFlags();
 
@@ -11693,1209 +11865,1210 @@ namespace BinaryNinja {
 		std::vector<SSAFlag> GetSSAFlags();
 
 		ExprId AddExpr(BNLowLevelILOperation operation, size_t size, uint32_t flags, ExprId a = 0, ExprId b = 0,
-		    ExprId c = 0, ExprId d = 0);
+			ExprId c = 0, ExprId d = 0);
 		ExprId AddExprWithLocation(BNLowLevelILOperation operation, uint64_t addr, uint32_t sourceOperand, size_t size,
-		    uint32_t flags, ExprId a = 0, ExprId b = 0, ExprId c = 0, ExprId d = 0);
+			uint32_t flags, ExprId a = 0, ExprId b = 0, ExprId c = 0, ExprId d = 0);
 		ExprId AddExprWithLocation(BNLowLevelILOperation operation, const ILSourceLocation& loc, size_t size,
-		    uint32_t flags, ExprId a = 0, ExprId b = 0, ExprId c = 0, ExprId d = 0);
+			uint32_t flags, ExprId a = 0, ExprId b = 0, ExprId c = 0, ExprId d = 0);
 		ExprId AddInstruction(ExprId expr);
 
 		/*! No operation, this instruction does nothing.
 
-			\param loc Optional IL Location this instruction was added from.
-			\return
+		    \param loc Optional IL Location this instruction was added from.
+		    \return
 		*/
 		ExprId Nop(const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Sets the register \c reg of size \c size to the expression \c value
 
-			\param size Size of the register parameter in bytes
-			\param reg The register name
-			\param val An expression to set the register to
-			\param flags Which flags are set by this operation
-			\param loc Optional IL Location this instruction was added from.
-			\return The expression <tt>reg = value</tt>
+		    \param size Size of the register parameter in bytes
+		    \param reg The register name
+		    \param val An expression to set the register to
+		    \param flags Which flags are set by this operation
+		    \param loc Optional IL Location this instruction was added from.
+		    \return The expression <tt>reg = value</tt>
 		*/
 		ExprId SetRegister(size_t size, uint32_t reg, ExprId val, uint32_t flags = 0,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Uses \c hi and \c lo as a single extended register setting \c hi:lo to the expression \c value .
 
-			\param size Size of the register parameter in bytes
-			\param high The high register name
-			\param low The low register name
-			\param val An expression to set the split registers to
-			\param flags Which flags are set by this operation
-			\param loc Optional IL Location this instruction was added from.
-			\return The expression <tt>hi:lo = value</tt>
+		    \param size Size of the register parameter in bytes
+		    \param high The high register name
+		    \param low The low register name
+		    \param val An expression to set the split registers to
+		    \param flags Which flags are set by this operation
+		    \param loc Optional IL Location this instruction was added from.
+		    \return The expression <tt>hi:lo = value</tt>
 		*/
 		ExprId SetRegisterSplit(size_t size, uint32_t high, uint32_t low, ExprId val, uint32_t flags = 0,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetRegisterSSA(
-		    size_t size, const SSARegister& reg, ExprId val, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, const SSARegister& reg, ExprId val, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetRegisterSSAPartial(size_t size, const SSARegister& fullReg, uint32_t partialReg, ExprId val,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetRegisterSplitSSA(size_t size, const SSARegister& high, const SSARegister& low, ExprId val,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Sets the top-relative entry \c entry of size \c size in register stack \c reg_stack to the expression
-		 	\c value
+		    \c value
 
-			\param size Size of the register parameter in bytes
-			\param regStack The register stack name
-			\param entry An expression for which stack entry to set
-			\param val An expression to set the entry to
-			\param flags Which flags are set by this operation
-			\param loc Optional IL Location this instruction was added from.
-			\return The expression <tt>reg_stack[entry] = value</tt>
+		    \param size Size of the register parameter in bytes
+		    \param regStack The register stack name
+		    \param entry An expression for which stack entry to set
+		    \param val An expression to set the entry to
+		    \param flags Which flags are set by this operation
+		    \param loc Optional IL Location this instruction was added from.
+		    \return The expression <tt>reg_stack[entry] = value</tt>
 		*/
 		ExprId SetRegisterStackTopRelative(size_t size, uint32_t regStack, ExprId entry, ExprId val, uint32_t flags = 0,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Pushes the expression \c value of size \c size onto the top of the register
-			stack \c reg_stack
+		    stack \c reg_stack
 
-			\param size Size of the register parameter in bytes
-			\param regStack The register stack name
-			\param val An expression to push
-			\param flags Which flags are set by this operation
-			\param loc Optional IL Location this instruction was added from.
-			\return The expression <tt>reg_stack.push(value)</tt>
+		    \param size Size of the register parameter in bytes
+		    \param regStack The register stack name
+		    \param val An expression to push
+		    \param flags Which flags are set by this operation
+		    \param loc Optional IL Location this instruction was added from.
+		    \return The expression <tt>reg_stack.push(value)</tt>
 		*/
 		ExprId RegisterStackPush(size_t size, uint32_t regStack, ExprId val, uint32_t flags = 0,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		ExprId SetRegisterStackTopRelativeSSA(size_t size, uint32_t regStack, size_t destVersion, size_t srcVersion,
-		    ExprId entry, const SSARegister& top, ExprId val, const ILSourceLocation& loc = ILSourceLocation());
+			ExprId entry, const SSARegister& top, ExprId val, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetRegisterStackAbsoluteSSA(size_t size, uint32_t regStack, size_t destVersion, size_t srcVersion,
-		    uint32_t reg, ExprId val, const ILSourceLocation& loc = ILSourceLocation());
+			uint32_t reg, ExprId val, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Sets the flag \c flag to the ExpressionIndex \c value
 
-			\param flag Flag index
-			\param val An expression to set the flag to
-			\param loc Optional IL Location this instruction was added from.
-			\return The expression <tt>FLAG.flag = value</tt>
+		    \param flag Flag index
+		    \param val An expression to set the flag to
+		    \param loc Optional IL Location this instruction was added from.
+		    \return The expression <tt>FLAG.flag = value</tt>
 		*/
 		ExprId SetFlag(uint32_t flag, ExprId val, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetFlagSSA(const SSAFlag& flag, ExprId val, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Reads \c size bytes from the expression \c addr
 
-			\param size Number of bytes to read
-			\param addr The expression to read memory from
-			\param flags Flags set by this expression
-			\param loc Optional IL Location this instruction was added from.
-			\return The expression \c [addr].size
+		    \param size Number of bytes to read
+		    \param addr The expression to read memory from
+		    \param flags Flags set by this expression
+		    \param loc Optional IL Location this instruction was added from.
+		    \return The expression \c [addr].size
 		*/
 		ExprId Load(size_t size, ExprId addr, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId LoadSSA(
-		    size_t size, ExprId addr, size_t sourceMemoryVer, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId addr, size_t sourceMemoryVer, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Writes \c size bytes to expression \c addr read from expression \c val
 
-			\param size Number of bytes to write
-			\param addr The expression to write to
-			\param val The expression to be written
-			\param flags Which flags are set by this operation
-			\param loc Optional IL Location this instruction was added from.
-			\return The expression <tt>[addr].size = value</tt>
+		    \param size Number of bytes to write
+		    \param addr The expression to write to
+		    \param val The expression to be written
+		    \param flags Which flags are set by this operation
+		    \param loc Optional IL Location this instruction was added from.
+		    \return The expression <tt>[addr].size = value</tt>
 		*/
 		ExprId Store(
-		    size_t size, ExprId addr, ExprId val, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId addr, ExprId val, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId StoreSSA(size_t size, ExprId addr, ExprId val, size_t newMemoryVer, size_t prevMemoryVer,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Writes \c size bytes from expression \c value to the stack, adjusting the stack by \c size .
 
-			\param size Number of bytes to write and adjust the stack by
-			\param val The expression to write
-			\param flags Flags set by this expression
-			\param loc Optional IL Location this instruction was added from.
-			\return The expression \c push(value)
+		    \param size Number of bytes to write and adjust the stack by
+		    \param val The expression to write
+		    \param flags Flags set by this expression
+		    \param loc Optional IL Location this instruction was added from.
+		    \return The expression \c push(value)
 		*/
 		ExprId Push(size_t size, ExprId val, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Reads ``size`` bytes from the stack, adjusting the stack by ``size``.
 
-			\param size Number of bytes to read from the stack
-			\param flags Flags set by this expression
-			\param loc Optional IL Location this instruction was added from.
-			\return The expression \c pop
+		    \param size Number of bytes to read from the stack
+		    \param flags Flags set by this expression
+		    \param loc Optional IL Location this instruction was added from.
+		    \return The expression \c pop
 		*/
 		ExprId Pop(size_t size, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns a register of size \c size with name \c reg
 
-			\param size The size of the register in bytes
-			\param reg The name of the register
-			\param loc Optional IL Location this instruction was added from.
-			\return A register expression for the given register
+		    \param size The size of the register in bytes
+		    \param reg The name of the register
+		    \param loc Optional IL Location this instruction was added from.
+		    \return A register expression for the given register
 		*/
 		ExprId Register(size_t size, uint32_t reg, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RegisterSSA(size_t size, const SSARegister& reg, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RegisterSSAPartial(size_t size, const SSARegister& fullReg, uint32_t partialReg,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Combines registers of size ``size`` with names ``hi`` and ``lo``
 
-			\param size The size of the register in bytes
-			\param high Register holding high part of value
-			\param low Register holding low part of value
-			\param loc Optional IL Location this instruction was added from.
-			\return The expression \c hi:lo
+		    \param size The size of the register in bytes
+		    \param high Register holding high part of value
+		    \param low Register holding low part of value
+		    \param loc Optional IL Location this instruction was added from.
+		    \return The expression \c hi:lo
 		*/
 		ExprId RegisterSplit(
-		    size_t size, uint32_t high, uint32_t low, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, uint32_t high, uint32_t low, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RegisterSplitSSA(size_t size, const SSARegister& high, const SSARegister& low,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns a register stack entry of size \c size at top-relative
-			location \c entry in register stack with name \c regStack
+		    location \c entry in register stack with name \c regStack
 
-			\param size The size of the register in bytes
-			\param regStack The index of the register stack
-			\param entry An expression for which stack entry to fetch
-			\param loc Optional IL Location this instruction was added from.
-			\return The expression \c reg_stack[entry]
+		    \param size The size of the register in bytes
+		    \param regStack The index of the register stack
+		    \param entry An expression for which stack entry to fetch
+		    \param loc Optional IL Location this instruction was added from.
+		    \return The expression \c reg_stack[entry]
 		*/
 		ExprId RegisterStackTopRelative(
-		    size_t size, uint32_t regStack, ExprId entry, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, uint32_t regStack, ExprId entry, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns the top entry of size \c size in register stack with name \c reg_stack , and
-			removes the entry from the stack
+		    removes the entry from the stack
 
-			\param size The size of the register in bytes
-			\param regStack The index of the register stack
-			\param flags Any flags set by this expression
-			\param loc Optional IL Location this instruction was added from.
-			\return The expression \c reg_stack.pop
+		    \param size The size of the register in bytes
+		    \param regStack The index of the register stack
+		    \param flags Any flags set by this expression
+		    \param loc Optional IL Location this instruction was added from.
+		    \return The expression \c reg_stack.pop
 		*/
 		ExprId RegisterStackPop(
-		    size_t size, uint32_t regStack, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, uint32_t regStack, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 
 		ExprId RegisterStackFreeReg(uint32_t reg, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RegisterStackFreeTopRelative(
-		    uint32_t regStack, ExprId entry, const ILSourceLocation& loc = ILSourceLocation());
+			uint32_t regStack, ExprId entry, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RegisterStackTopRelativeSSA(size_t size, const SSARegisterStack& regStack, ExprId entry,
-		    const SSARegister& top, const ILSourceLocation& loc = ILSourceLocation());
+			const SSARegister& top, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RegisterStackAbsoluteSSA(size_t size, const SSARegisterStack& regStack, uint32_t reg,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RegisterStackFreeTopRelativeSSA(uint32_t regStack, size_t destVersion, size_t srcVersion, ExprId entry,
-		    const SSARegister& top, const ILSourceLocation& loc = ILSourceLocation());
+			const SSARegister& top, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RegisterStackFreeAbsoluteSSA(uint32_t regStack, size_t destVersion, size_t srcVersion, uint32_t reg,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an expression for the constant integer \c value with size \c size
 
-			\param size The size of the constant in bytes
-			\param val Integer value of the constant
-			\param loc Optional IL Location this instruction was added from.
-			\return A constant expression of given value and size
+		    \param size The size of the constant in bytes
+		    \param val Integer value of the constant
+		    \param loc Optional IL Location this instruction was added from.
+		    \return A constant expression of given value and size
 		*/
 		ExprId Const(size_t size, uint64_t val, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an expression for the constant pointer \c value with size \c size
 
-			\param size The size of the pointer in bytes
-			\param val Address referenced by pointer
-			\param loc Optional IL Location this instruction was added from.
-			\return A constant pointer expression of given value and size
+		    \param size The size of the pointer in bytes
+		    \param val Address referenced by pointer
+		    \param loc Optional IL Location this instruction was added from.
+		    \return A constant pointer expression of given value and size
 		*/
 		ExprId ConstPointer(size_t size, uint64_t val, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an expression for the constant relocated pointer ``value`` with size ``size``
 
-			\param size The size of the pointer in bytes
-			\param val Address referenced by pointer
-			\param offset
-			\param loc Optional IL Location this instruction was added from.
-			\return A constant expression of given value and size
+		    \param size The size of the pointer in bytes
+		    \param val Address referenced by pointer
+		    \param offset
+		    \param loc Optional IL Location this instruction was added from.
+		    \return A constant expression of given value and size
 		*/
 		ExprId ExternPointer(
-		    size_t size, uint64_t val, uint64_t offset, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, uint64_t val, uint64_t offset, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an expression for the constant raw binary floating point
-			value \c value with size \c size
+		    value \c value with size \c size
 
-		 	To clarify, \c value here is the representation of the float if its bits were instead interpreted as an integer.
+		    To clarify, \c value here is the representation of the float if its bits were instead interpreted as an
+		   integer.
 
-			A given float \e could be converted to an integer value like so:
+		    A given float \e could be converted to an integer value like so:
 
-		 	\code{.cpp}
+		    \code{.cpp}
 		    union {
-				float floatValue;
-				uint32_t integerValue;
-				} bits;
-			bits.floatValue = val;
-		 	uint32_t myIntValueToPassToThisFunction = bits.integerValue;
-		 	\endcode
+		        float floatValue;
+		        uint32_t integerValue;
+		        } bits;
+		    bits.floatValue = val;
+		    uint32_t myIntValueToPassToThisFunction = bits.integerValue;
+		    \endcode
 
-		 	Do note this is exactly how FloatConstSingle and FloatConstDouble perform this conversion
-		 		(and thus, converting it yourself is \e typically redundant.)
+		    Do note this is exactly how FloatConstSingle and FloatConstDouble perform this conversion
+		        (and thus, converting it yourself is \e typically redundant.)
 
-			\param size The size of the constant in bytes
-			\param val Integer value for the raw binary representation of the constant
-			\param loc Optional IL Location this instruction was added from.
-			\return A constant expression of given value and size
+		    \param size The size of the constant in bytes
+		    \param val Integer value for the raw binary representation of the constant
+		    \param loc Optional IL Location this instruction was added from.
+		    \return A constant expression of given value and size
 		*/
 		ExprId FloatConstRaw(size_t size, uint64_t val, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an expression for the single precision floating point value \c value
 
-		 	\param val Float value for the constant
-			\param loc Optional IL Location this instruction was added from.
-			\return A constant expression of given value and size
+		    \param val Float value for the constant
+		    \param loc Optional IL Location this instruction was added from.
+		    \return A constant expression of given value and size
 		*/
 		ExprId FloatConstSingle(float val, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an expression for the double precision floating point value \c value
 
-			\param val Float value for the constant
-			\param loc Optional IL Location this instruction was added from.
-			\return A constant expression of given value and size
+		    \param val Float value for the constant
+		    \param loc Optional IL Location this instruction was added from.
+		    \return A constant expression of given value and size
 		*/
 		ExprId FloatConstDouble(double val, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns a flag expression for the given flag index.
 
-			\param flag Flag index
-			\param loc Optional IL Location this expression was added from.
-			\return A flag expression for the given flag
+		    \param flag Flag index
+		    \param loc Optional IL Location this expression was added from.
+		    \return A flag expression for the given flag
 		*/
 		ExprId Flag(uint32_t flag, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FlagSSA(const SSAFlag& flag, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Sets the flag with index \c flag and size \c size to the constant integer value \c bit
 
-			\param size The size of the flag
-			\param flag Flag index
-			\param bitIndex Bit of the flag to set
-			\param loc Optional IL Location this expression was added from.
-			\return A constant expression of given value and size <tt>FLAG.reg = bit</tt>
+		    \param size The size of the flag
+		    \param flag Flag index
+		    \param bitIndex Bit of the flag to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return A constant expression of given value and size <tt>FLAG.reg = bit</tt>
 		*/
 		ExprId FlagBit(size_t size, uint32_t flag, size_t bitIndex, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FlagBitSSA(
-		    size_t size, const SSAFlag& flag, size_t bitIndex, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, const SSAFlag& flag, size_t bitIndex, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Adds expression \c a to expression \c b potentially setting flags \c flags and returning
-			an expression of \c size bytes.
+		    an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return A constant expression of given value and size <tt>FLAG.reg = bit</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return A constant expression of given value and size <tt>FLAG.reg = bit</tt>
 		*/
 		ExprId Add(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Adds with carry expression \c a to expression \c b potentially setting flags \c flags and
-			returning an expression of \c size bytes.
+		    returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param carry Carry flag expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>adc.<size>{<flags>}(a, b, carry)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param carry Carry flag expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>adc.<size>{<flags>}(a, b, carry)</tt>
 		*/
 		ExprId AddCarry(size_t size, ExprId a, ExprId b, ExprId carry, uint32_t flags = 0,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Subtracts expression \c b from expression \c a potentially setting flags \c flags and returning
-			an expression of \c size bytes.
+		    an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>sub.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>sub.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId Sub(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Subtracts with borrow expression \c b from expression \c a potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param carry Carry flag expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>sbb.<size>{<flags>}(a, b, carry)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param carry Carry flag expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>sbb.<size>{<flags>}(a, b, carry)</tt>
 		*/
 		ExprId SubBorrow(size_t size, ExprId a, ExprId b, ExprId carry, uint32_t flags = 0,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Bitwise and's expression \c a and expression \c b potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>and.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>and.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId And(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Bitwise or's expression \c a and expression \c b potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>or.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>or.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId Or(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Xor's expression \c a with expression \c b potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>xor.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>xor.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId Xor(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Shifts left expression \c a by expression \c b from expression \c a potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>lsl.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>lsl.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId ShiftLeft(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Shifts logically right expression \c a by expression \c b potentially setting flags
-			\c flags and returning an expression of \c size bytes.
+		    \c flags and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>lsr.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>lsr.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId LogicalShiftRight(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Shifts arithmetic right expression \c a by expression \c b potentially setting flags
-			\c flags and returning an expression of \c size bytes.
+		    \c flags and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>asr.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>asr.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId ArithShiftRight(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Bitwise rotates left expression \c a by expression \c b potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>rol.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>rol.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId RotateLeft(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Bitwise rotates left with carry expression \c a by expression \c b potentially setting
-			flags \c flags and returning an expression of \c size bytes.
+		    flags \c flags and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param carry Carry flag expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>rlc.<size>{<flags>}(a, b, carry)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param carry Carry flag expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>rlc.<size>{<flags>}(a, b, carry)</tt>
 		*/
 		ExprId RotateLeftCarry(size_t size, ExprId a, ExprId b, ExprId carry, uint32_t flags = 0,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Bitwise rotates right expression \c a by expression \c b potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>ror.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>ror.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId RotateRight(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Bitwise rotates right with carry expression \c a by expression \c b potentially setting
-			flags \c flags and returning an expression of \c size bytes.
+		    flags \c flags and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param carry Carry flag expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>rrc.<size>{<flags>}(a, b, carry)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param carry Carry flag expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>rrc.<size>{<flags>}(a, b, carry)</tt>
 		*/
 		ExprId RotateRightCarry(size_t size, ExprId a, ExprId b, ExprId carry, uint32_t flags = 0,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Multiplies expression \c a by expression \c b potentially setting flags \c flags and returning an
-			expression of \c size bytes.
+		    expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>sbc.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>mul.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId Mult(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Multiplies unsigned with double precision expression \c a by expression \c b
-			potentially setting flags \c flags and returning an expression of \c size bytes.
+		    potentially setting flags \c flags and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>mulu.dp.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>mulu.dp.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId MultDoublePrecUnsigned(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Multiplies signed with double precision expression \c a by expression \c b
-			potentially setting flags \c flags and returning an expression of \c size bytes.
+		    potentially setting flags \c flags and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>muls.dp.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>muls.dp.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId MultDoublePrecSigned(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Unsigned divide expression \c a by expression \c b potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>divu.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>divu.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId DivUnsigned(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Unsigned double precision divide using expression \c a as
-			a single double precision register by expression \c b potentially  setting flags \c flags and returning an
-			expression of \c size bytes.
+		    a single double precision register by expression \c b potentially  setting flags \c flags and returning an
+		    expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>mods.dp.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>mods.dp.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId DivDoublePrecUnsigned(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Signed divide expression \c a by expression \c b potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>divs.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>divs.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId DivSigned(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Signed double precision divide using expression \c a as a
-			single double precision register by expression \c b potentially setting flags \c flags and returning an
-			expression of \c size bytes.
+		    single double precision register by expression \c b potentially setting flags \c flags and returning an
+		    expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>divs.dp.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>divs.dp.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId DivDoublePrecSigned(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Unsigned modulus expression \c a by expression \c b potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>modu.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>modu.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId ModUnsigned(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Unsigned double precision modulus using expression \c a as
-			a single double precision register by expression \c b potentially  setting flags \c flags and returning an
-			expression of \c size bytes.
+		    a single double precision register by expression \c b potentially  setting flags \c flags and returning an
+		    expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>modu.dp.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>modu.dp.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId ModDoublePrecUnsigned(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Signed modulus expression \c a by expression \c b potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>mods.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>mods.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId ModSigned(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Signed double precision modulus using expression \c a as a single
-			double precision register by expression \c b potentially  setting flags \c flags and returning an expression
-			of \c size bytes.
+		    double precision register by expression \c b potentially  setting flags \c flags and returning an expression
+		    of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>mods.dp.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>mods.dp.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId ModDoublePrecSigned(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Two's complement sign negation of expression \c value of size \c size potentially setting flags
 
-			\param size The size of the result in bytes
-			\param a The expression to negate
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>neg.<size>{<flags>}(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The expression to negate
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>neg.<size>{<flags>}(value)</tt>
 		*/
 		ExprId Neg(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Bitwise inverse of expression \c value of size \c size potentially setting flags
 
-			\param size The size of the result in bytes
-			\param a The expression to bitwise invert
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>not.<size>{<flags>}(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The expression to bitwise invert
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>not.<size>{<flags>}(value)</tt>
 		*/
 		ExprId Not(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Two's complement sign-extends the expression in \c value to \c size bytes
 
-			\param size The size of the result in bytes
-			\param a The expression to sign extend
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>sx.<size>(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The expression to sign extend
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>sx.<size>(value)</tt>
 		*/
 		ExprId SignExtend(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Zero-extends the expression in \c value to \c size bytes
 
-			\param size The size of the result in bytes
-			\param a The expression to zero extend
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>sx.<size>(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The expression to zero extend
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>sx.<size>(value)</tt>
 		*/
 		ExprId ZeroExtend(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Truncates \c value to \c size bytes
 
-			\param size The size of the result in bytes
-			\param a The expression to truncate
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>zx.<size>(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The expression to truncate
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>zx.<size>(value)</tt>
 		*/
 		ExprId LowPart(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an expression which jumps (branches) to the expression \c dest
 
-			\param dest The expression to jump to
-			\param loc Optional IL Location this expression was added from.
-			\return The expression \c jump(dest)
+		    \param dest The expression to jump to
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression \c jump(dest)
 		*/
 		ExprId Jump(ExprId dest, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId JumpTo(ExprId dest, const std::map<uint64_t, BNLowLevelILLabel*>& targets,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an expression which first pushes the address of the next instruction onto the stack then jumps
-			(branches) to the expression \c dest
+		    (branches) to the expression \c dest
 
-			\param dest The expression to call
-			\param loc Optional IL Location this expression was added from.
-			\return The expression \c call(dest)
+		    \param dest The expression to call
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression \c call(dest)
 		*/
 		ExprId Call(ExprId dest, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an expression which first pushes the address of the next instruction onto the stack
-			then jumps (branches) to the expression \c dest . After the function exits, \c stack_adjust is added to the
-			stack pointer register.
+		    then jumps (branches) to the expression \c dest . After the function exits, \c stack_adjust is added to the
+		    stack pointer register.
 
-			\param dest The expression to call
-			\param adjust Stack adjustment
-			\param regStackAdjust Register stack adjustment
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>call(dest), stack += stack_adjust</tt>
+		    \param dest The expression to call
+		    \param adjust Stack adjustment
+		    \param regStackAdjust Register stack adjustment
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>call(dest), stack += stack_adjust</tt>
 		*/
 		ExprId CallStackAdjust(ExprId dest, int64_t adjust, const std::map<uint32_t, int32_t>& regStackAdjust,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an expression which jumps (branches) to the expression \c dest
 
-			\param dest The expression to jump to
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>tailcall(dest)</tt>
+		    \param dest The expression to jump to
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>tailcall(dest)</tt>
 		*/
 		ExprId TailCall(ExprId dest, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CallSSA(const std::vector<SSARegister>& output, ExprId dest, const std::vector<ExprId>& params,
-		    const SSARegister& stack, size_t newMemoryVer, size_t prevMemoryVer,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const SSARegister& stack, size_t newMemoryVer, size_t prevMemoryVer,
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SystemCallSSA(const std::vector<SSARegister>& output, const std::vector<ExprId>& params,
-		    const SSARegister& stack, size_t newMemoryVer, size_t prevMemoryVer,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const SSARegister& stack, size_t newMemoryVer, size_t prevMemoryVer,
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId TailCallSSA(const std::vector<SSARegister>& output, ExprId dest, const std::vector<ExprId>& params,
-		    const SSARegister& stack, size_t newMemoryVer, size_t prevMemoryVer,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const SSARegister& stack, size_t newMemoryVer, size_t prevMemoryVer,
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		ExprId SeparateParamListSSA(
 			const std::vector<ExprId>& params, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SharedParamSlotSSA(const std::vector<ExprId>& params, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an expression which jumps (branches) to the expression \c dest . \c ret is a special alias for
-			jump that makes the disassembler stop disassembling.
+		    jump that makes the disassembler stop disassembling.
 
-			\param dest The expression to jump to
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>jump(dest)</tt>
+		    \param dest The expression to jump to
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>jump(dest)</tt>
 		*/
 		ExprId Return(size_t dest, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an expression that halts disassembly
 
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>noreturn</tt>
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>noreturn</tt>
 		*/
 		ExprId NoReturn(const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns a flag_condition expression for the given LowLevelILFlagCondition
 
-			\param cond Flag condition expression to retrieve
-			\param semClass Optional semantic flag class
-			\param loc Optional IL Location this expression was added from.
-			\return A flag_condition expression
+		    \param cond Flag condition expression to retrieve
+		    \param semClass Optional semantic flag class
+		    \param loc Optional IL Location this expression was added from.
+		    \return A flag_condition expression
 		*/
 		ExprId FlagCondition(
-		    BNLowLevelILFlagCondition cond, uint32_t semClass = 0, const ILSourceLocation& loc = ILSourceLocation());
+			BNLowLevelILFlagCondition cond, uint32_t semClass = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns a flag_group expression for the given semantic flag group
 
-			\param semGroup Semantic flag group to access
-			\param loc Optional IL Location this expression was added from.
-			\return A flag_group expression
+		    \param semGroup Semantic flag group to access
+		    \param loc Optional IL Location this expression was added from.
+		    \return A flag_group expression
 		*/
 		ExprId FlagGroup(uint32_t semGroup, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns comparison expression of size \c size checking if expression \c a is equal to
-			expression \c b
+		    expression \c b
 
-			\param size Size in bytes
-			\param a LHS of comparison
-			\param b RHS of comparison
-			\param loc Optional IL Location this expression was added from.
-			\return a comparison expression.
+		    \param size Size in bytes
+		    \param a LHS of comparison
+		    \param b RHS of comparison
+		    \param loc Optional IL Location this expression was added from.
+		    \return a comparison expression.
 		*/
 		ExprId CompareEqual(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns comparison expression of size \c size checking if expression \c a is not equal to
-			expression \c b
+		    expression \c b
 
-			\param size Size in bytes
-			\param a LHS of comparison
-			\param b RHS of comparison
-			\param loc Optional IL Location this expression was added from.
-			\return a comparison expression.
+		    \param size Size in bytes
+		    \param a LHS of comparison
+		    \param b RHS of comparison
+		    \param loc Optional IL Location this expression was added from.
+		    \return a comparison expression.
 		*/
 		ExprId CompareNotEqual(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns comparison expression of size \c size checking if expression \c a is
-			signed less than expression \c b
+		    signed less than expression \c b
 
-			\param size Size in bytes
-			\param a LHS of comparison
-			\param b RHS of comparison
-			\param loc Optional IL Location this expression was added from.
-			\return a comparison expression.
+		    \param size Size in bytes
+		    \param a LHS of comparison
+		    \param b RHS of comparison
+		    \param loc Optional IL Location this expression was added from.
+		    \return a comparison expression.
 		*/
 		ExprId CompareSignedLessThan(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns comparison expression of size \c size checking if expression \c a is
-			unsigned less than expression \c b
+		    unsigned less than expression \c b
 
-			\param size Size in bytes
-			\param a LHS of comparison
-			\param b RHS of comparison
-			\param loc Optional IL Location this expression was added from.
-			\return a comparison expression.
+		    \param size Size in bytes
+		    \param a LHS of comparison
+		    \param b RHS of comparison
+		    \param loc Optional IL Location this expression was added from.
+		    \return a comparison expression.
 		*/
 		ExprId CompareUnsignedLessThan(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns comparison expression of size \c size checking if expression \c a is
-			signed less than or equal to expression \c b
+		    signed less than or equal to expression \c b
 
-			\param size Size in bytes
-			\param a LHS of comparison
-			\param b RHS of comparison
-			\param loc Optional IL Location this expression was added from.
-			\return a comparison expression.
+		    \param size Size in bytes
+		    \param a LHS of comparison
+		    \param b RHS of comparison
+		    \param loc Optional IL Location this expression was added from.
+		    \return a comparison expression.
 		*/
 		ExprId CompareSignedLessEqual(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns comparison expression of size \c size checking if expression \c a is
-			unsigned less than or equal to expression \c b
+		    unsigned less than or equal to expression \c b
 
-			\param size Size in bytes
-			\param a LHS of comparison
-			\param b RHS of comparison
-			\param loc Optional IL Location this expression was added from.
-			\return a comparison expression.
+		    \param size Size in bytes
+		    \param a LHS of comparison
+		    \param b RHS of comparison
+		    \param loc Optional IL Location this expression was added from.
+		    \return a comparison expression.
 		*/
 		ExprId CompareUnsignedLessEqual(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns comparison expression of size \c size checking if expression \c a is
-			signed greater than or equal to expression \c b
+		    signed greater than or equal to expression \c b
 
-			\param size Size in bytes
-			\param a LHS of comparison
-			\param b RHS of comparison
-			\param loc Optional IL Location this expression was added from.
-			\return a comparison expression.
+		    \param size Size in bytes
+		    \param a LHS of comparison
+		    \param b RHS of comparison
+		    \param loc Optional IL Location this expression was added from.
+		    \return a comparison expression.
 		*/
 		ExprId CompareSignedGreaterEqual(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns comparison expression of size \c size checking if expression \c a
-			is unsigned greater than or equal to expression \c b
+		    is unsigned greater than or equal to expression \c b
 
-			\param size Size in bytes
-			\param a LHS of comparison
-			\param b RHS of comparison
-			\param loc Optional IL Location this expression was added from.
-			\return a comparison expression.
+		    \param size Size in bytes
+		    \param a LHS of comparison
+		    \param b RHS of comparison
+		    \param loc Optional IL Location this expression was added from.
+		    \return a comparison expression.
 		*/
 		ExprId CompareUnsignedGreaterEqual(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns comparison expression of size \c size checking if expression \c a is
-			signed greater than or equal to expression \c b
+		    signed greater than or equal to expression \c b
 
-			\param size Size in bytes
-			\param a LHS of comparison
-			\param b RHS of comparison
-			\param loc Optional IL Location this expression was added from.
-			\return a comparison expression.
+		    \param size Size in bytes
+		    \param a LHS of comparison
+		    \param b RHS of comparison
+		    \param loc Optional IL Location this expression was added from.
+		    \return a comparison expression.
 		*/
 		ExprId CompareSignedGreaterThan(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns comparison expression of size \c size checking if expression \c a is
-			unsigned greater than or equal to expression \c b
+		    unsigned greater than or equal to expression \c b
 
-			\param size Size in bytes
-			\param a LHS of comparison
-			\param b RHS of comparison
-			\param loc Optional IL Location this expression was added from.
-			\return a comparison expression.
+		    \param size Size in bytes
+		    \param a LHS of comparison
+		    \param b RHS of comparison
+		    \param loc Optional IL Location this expression was added from.
+		    \return a comparison expression.
 		*/
 		ExprId CompareUnsignedGreaterThan(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId TestBit(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId BoolToInt(size_t size, ExprId a, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns a system call expression.
 
-			\param loc Optional IL Location this expression was added from.
-			\return System call expression.
+		    \param loc Optional IL Location this expression was added from.
+		    \return System call expression.
 		*/
 		ExprId SystemCall(const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns an intrinsic expression. 'Intrinsics' are emitted and lifted as if they were builtin functions that
-			do not exist in the binary.
+		    do not exist in the binary.
 
-			\param outputs Registers and/or flags set by this intrinsic call.
-			\param intrinsic Index of the intrinsic. <b>See also:</b> Architecture::GetIntrinsicName, Architecture::GetAllIntrinsics
-		    \param params Parameter items passed to this intrinsic
-			\param flags Flags
-			\param loc Optional IL Location this expression was added from.
-			\return An intrinsic expression.
+		    \param outputs Registers and/or flags set by this intrinsic call.
+		    \param intrinsic Index of the intrinsic. <b>See also:</b> Architecture::GetIntrinsicName,
+		   Architecture::GetAllIntrinsics \param params Parameter items passed to this intrinsic \param flags Flags
+		    \param loc Optional IL Location this expression was added from.
+		    \return An intrinsic expression.
 		*/
 		ExprId Intrinsic(const std::vector<RegisterOrFlag>& outputs, uint32_t intrinsic,
-		    const std::vector<ExprId>& params, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			const std::vector<ExprId>& params, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId IntrinsicSSA(const std::vector<SSARegisterOrFlag>& outputs, uint32_t intrinsic,
-		    const std::vector<ExprId>& params, const ILSourceLocation& loc = ILSourceLocation());
+			const std::vector<ExprId>& params, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId MemoryIntrinsicSSA(const std::vector<SSARegisterOrFlag>& outputs, uint32_t intrinsic,
-		    const std::vector<ExprId>& params, size_t newMemVersion, size_t prevMemVersion, const ILSourceLocation& loc = ILSourceLocation());
+			const std::vector<ExprId>& params, size_t newMemVersion, size_t prevMemVersion,
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns a processor breakpoint expression.
 
-			\param loc Optional IL Location this expression was added from.
-			\return A breakpoint expression.
+		    \param loc Optional IL Location this expression was added from.
+		    \return A breakpoint expression.
 		*/
 		ExprId Breakpoint(const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns a processor trap (interrupt) expression of the given integer \c value .
 
-			\param num trap (interrupt) number
-			\param loc Optional IL Location this expression was added from.
-			\return A trap expression.
+		    \param num trap (interrupt) number
+		    \param loc Optional IL Location this expression was added from.
+		    \return A trap expression.
 		*/
 		ExprId Trap(int64_t num, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns the undefined expression. This should be used for instructions which perform functions but
-			aren't important for dataflow or partial emulation purposes.
+		    aren't important for dataflow or partial emulation purposes.
 
-			\param loc Optional IL Location this expression was added from.
-			\return The Undefined expression
+		    \param loc Optional IL Location this expression was added from.
+		    \return The Undefined expression
 		*/
 		ExprId Undefined(const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns the unimplemented expression. This should be used for instructions which aren't implemented
 
-			\param loc Optional IL Location this expression was added from.
-			\return The unimplemented expression
+		    \param loc Optional IL Location this expression was added from.
+		    \return The unimplemented expression
 		*/
 		ExprId Unimplemented(const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! A memory reference to expression \c addr of size \c size with unimplemented operation.
 
-			\param size Size in bytes of the memory reference
-			\param addr Expression to reference memory
-			\param loc Optional IL Location this expression was added from.
-			\return The unimplemented memory reference expression.
+		    \param size Size in bytes of the memory reference
+		    \param addr Expression to reference memory
+		    \param loc Optional IL Location this expression was added from.
+		    \return The unimplemented memory reference expression.
 		*/
 		ExprId UnimplementedMemoryRef(size_t size, ExprId addr, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RegisterPhi(const SSARegister& dest, const std::vector<SSARegister>& sources,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RegisterStackPhi(const SSARegisterStack& dest, const std::vector<SSARegisterStack>& sources,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FlagPhi(
-		    const SSAFlag& dest, const std::vector<SSAFlag>& sources, const ILSourceLocation& loc = ILSourceLocation());
+			const SSAFlag& dest, const std::vector<SSAFlag>& sources, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId MemoryPhi(
-		    size_t dest, const std::vector<size_t>& sources, const ILSourceLocation& loc = ILSourceLocation());
+			size_t dest, const std::vector<size_t>& sources, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Adds floating point expression \c a to expression \c b potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>fadd.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>fadd.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId FloatAdd(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Subtracts floating point expression \c b from expression \c a potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>fsub.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>fsub.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId FloatSub(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Multiplies floating point expression \c a by expression \c b potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>fmul.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>fmul.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId FloatMult(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Divides floating point expression \c a by expression \c b potentially setting flags \c flags
-			and returning an expression of \c size bytes.
+		    and returning an expression of \c size bytes.
 
-			\param size The size of the result in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>fdiv.<size>{<flags>}(a, b)</tt>
+		    \param size The size of the result in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>fdiv.<size>{<flags>}(a, b)</tt>
 		*/
 		ExprId FloatDiv(
-		    size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns the square root of floating point expression \c value of size \c size potentially setting flags
 
-			\param size The size of the result in bytes
-			\param a The expression to calculate the square root of
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>sqrt.<size>{<flags>}(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The expression to calculate the square root of
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>sqrt.<size>{<flags>}(value)</tt>
 		*/
 		ExprId FloatSqrt(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns sign negation of floating point expression \c value of size \c size potentially setting flags
 
-			\param size The size of the result in bytes
-			\param a The expression to negate
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>fneg.<size>{<flags>}(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The expression to negate
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>fneg.<size>{<flags>}(value)</tt>
 		*/
 		ExprId FloatNeg(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns absolute value of floating point expression \c value of size \c size potentially setting flags.
 
-			\param size The size of the result in bytes
-			\param a The expression to get the absolute value of
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>fabs.<size>{<flags>}(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The expression to get the absolute value of
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>fabs.<size>{<flags>}(value)</tt>
 		*/
 		ExprId FloatAbs(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns integer value of floating point expression \c value of size \c size potentially setting flags
 
-			\param size The size of the result in bytes
-			\param a The float expression to convert to an int
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>int.<size>{<flags>}(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The float expression to convert to an int
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>int.<size>{<flags>}(value)</tt>
 		*/
 		ExprId FloatToInt(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns floating point value of integer expression \c value of size \c size potentially setting flags
 
-			\param size The size of the result in bytes
-			\param a The float expression to convert to a float
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>float.<size>{<flags>}(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The float expression to convert to a float
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>float.<size>{<flags>}(value)</tt>
 		*/
 		ExprId IntToFloat(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatConvert(
-		    size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Rounds a floating point value to the nearest integer
 
-			\param size The size of the result in bytes
-			\param a The expression to round to the nearest integer
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>roundint.<size>{<flags>}(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The expression to round to the nearest integer
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>roundint.<size>{<flags>}(value)</tt>
 		*/
 		ExprId RoundToInt(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Rounds a floating point value to an integer, towards negative infinity
 
-			\param size The size of the result in bytes
-			\param a The expression to round down
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>roundint.<size>{<flags>}(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The expression to round down
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>roundint.<size>{<flags>}(value)</tt>
 		*/
 		ExprId Floor(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Rounds a floating point value to an integer, towards positive infinity
 
-			\param size The size of the result in bytes
-			\param a The expression to round up
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>roundint.<size>{<flags>}(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The expression to round up
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>roundint.<size>{<flags>}(value)</tt>
 		*/
 		ExprId Ceil(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Rounds a floating point value to an integer towards zero
 
-			\param size The size of the result in bytes
-			\param a The expression to truncate
-			\param flags Flags to set
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>roundint.<size>{<flags>}(value)</tt>
+		    \param size The size of the result in bytes
+		    \param a The expression to truncate
+		    \param flags Flags to set
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>roundint.<size>{<flags>}(value)</tt>
 		*/
 		ExprId FloatTrunc(size_t size, ExprId a, uint32_t flags = 0, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns floating point comparison expression of size \c size checking if
-			expression \c a is equal to expression \c b
+		    expression \c a is equal to expression \c b
 
-			\param size The size of the operands in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>a f== b</tt>
+		    \param size The size of the operands in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>a f== b</tt>
 		*/
 		ExprId FloatCompareEqual(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns floating point comparison expression of size \c size checking if
-			expression \c a is not equal to expression \c b
+		    expression \c a is not equal to expression \c b
 
-			\param size The size of the operands in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>a f!= b</tt>
+		    \param size The size of the operands in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>a f!= b</tt>
 		*/
 		ExprId FloatCompareNotEqual(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns floating point comparison expression of size \c size checking if
-			expression \c a is less than expression \c b
+		    expression \c a is less than expression \c b
 
-			\param size The size of the operands in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>a f< b</tt>
+		    \param size The size of the operands in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>a f< b</tt>
 		*/
 		ExprId FloatCompareLessThan(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns floating point comparison expression of size \c size checking if
-			expression \c a is less than or equal to expression \c b
+		    expression \c a is less than or equal to expression \c b
 
-			\param size The size of the operands in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>a f<= b</tt>
+		    \param size The size of the operands in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>a f<= b</tt>
 		*/
 		ExprId FloatCompareLessEqual(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns floating point comparison expression of size \c size checking if
-			expression \c a is greater than or equal to expression \c b
+		    expression \c a is greater than or equal to expression \c b
 
-			\param size The size of the operands in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>a f>= b</tt>
+		    \param size The size of the operands in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>a f>= b</tt>
 		*/
 		ExprId FloatCompareGreaterEqual(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns floating point comparison expression of size \c size checking if
-			expression \c a is greater than expression \c b
+		    expression \c a is greater than expression \c b
 
-			\param size The size of the operands in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>a f> b</tt>
+		    \param size The size of the operands in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>a f> b</tt>
 		*/
 		ExprId FloatCompareGreaterThan(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns floating point comparison expression of size \c size checking if
-			expression \c a is ordered relative to expression \c b
+		    expression \c a is ordered relative to expression \c b
 
-			\param size The size of the operands in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>is_ordered(a, b)</tt>
+		    \param size The size of the operands in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>is_ordered(a, b)</tt>
 		*/
 		ExprId FloatCompareOrdered(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns floating point comparison expression of size \c size checking if
-			expression \c a is unordered relative to expression \c b
+		    expression \c a is unordered relative to expression \c b
 
-			\param size The size of the operands in bytes
-			\param a LHS expression
-			\param b RHS expression
-			\param loc Optional IL Location this expression was added from.
-			\return The expression <tt>is_unordered(a, b)</tt>
+		    \param size The size of the operands in bytes
+		    \param a LHS expression
+		    \param b RHS expression
+		    \param loc Optional IL Location this expression was added from.
+		    \return The expression <tt>is_unordered(a, b)</tt>
 		*/
 		ExprId FloatCompareUnordered(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns a goto expression which jumps to the provided LowLevelILLabel.
 
-			\param label Label to jump to
-			\param loc Optional IL Location this expression was added from.
-			\return a Goto expression
+		    \param label Label to jump to
+		    \param loc Optional IL Location this expression was added from.
+		    \return a Goto expression
 		*/
 		ExprId Goto(BNLowLevelILLabel& label, const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Returns the \c if expression which depending on condition \c operand jumps to the LowLevelILLabel
-			\c t when the condition expression \c operand is non-zero and \c f`` when it's zero.
+		    \c t when the condition expression \c operand is non-zero and \c f`` when it's zero.
 
-			\param operand Comparison expression to evaluate.
-			\param t Label for the true branch
-			\param f Label for the false branch
-			\param loc Optional IL Location this expression was added from.
-			\return the ExpressionIndex for the if expression
+		    \param operand Comparison expression to evaluate.
+		    \param t Label for the true branch
+		    \param f Label for the false branch
+		    \param loc Optional IL Location this expression was added from.
+		    \return the ExpressionIndex for the if expression
 		*/
 		ExprId If(ExprId operand, BNLowLevelILLabel& t, BNLowLevelILLabel& f,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 
 		/*! Assigns a LowLevelILLabel to the current IL address.
 
-			\param label label to mark.
+		    \param label label to mark.
 		*/
 		void MarkLabel(BNLowLevelILLabel& label);
 
@@ -12913,7 +13086,7 @@ namespace BinaryNinja {
 		ExprId GetNegExprForRegisterOrConstant(const BNRegisterOrConstant& operand, size_t size);
 		ExprId GetExprForFlagOrConstant(const BNRegisterOrConstant& operand);
 		ExprId GetExprForRegisterOrConstantOperation(
-		    BNLowLevelILOperation op, size_t size, BNRegisterOrConstant* operands, size_t operandCount);
+			BNLowLevelILOperation op, size_t size, BNRegisterOrConstant* operands, size_t operandCount);
 
 		ExprId Operand(size_t n, ExprId expr);
 
@@ -12935,42 +13108,41 @@ namespace BinaryNinja {
 		/*! Get the LowLevelILLabel for a given address. The returned pointer is to an internal object with
 		    the same lifetime as the containing LowLevelILFunction.
 
-			\param[in] arch Architecture for the address
-			\param[in] addr Address to get the label for
-			\return The LowLevelILLabel for the address
+		    \param[in] arch Architecture for the address
+		    \param[in] addr Address to get the label for
+		    \return The LowLevelILLabel for the address
 		*/
 		BNLowLevelILLabel* GetLabelForAddress(Architecture* arch, uint64_t addr);
 
 		/*! Ends the function and computes the list of basic blocks.
-		*/
+		 */
 		void Finalize();
 		/*! Generate SSA form given the current LLIL
-		*/
+		 */
 		void GenerateSSAForm();
 
 		/*! Get the list of InstructionTextTokens for a given expression
 
-			\param[in] arch Architecture for the expression
-			\param[in] expr Expression to get the text for
-			\param[out] tokens Output reference to write the instruction tokens to
-			\param[in] settings Optional structure with settings for rendering text
-			\return True/False on success or failure
+		    \param[in] arch Architecture for the expression
+		    \param[in] expr Expression to get the text for
+		    \param[out] tokens Output reference to write the instruction tokens to
+		    \param[in] settings Optional structure with settings for rendering text
+		    \return True/False on success or failure
 		*/
 		bool GetExprText(Architecture* arch, ExprId expr, std::vector<InstructionTextToken>& tokens,
-		    DisassemblySettings* settings = nullptr);
+			DisassemblySettings* settings = nullptr);
 
 		/*! Get the list of InstructionTextTokens for a given instruction
 
-			\param[in] func Function containing the instruction
-			\param[in] arch Architecture for the instruction
+		    \param[in] func Function containing the instruction
+		    \param[in] arch Architecture for the instruction
 		    \param[in] i Index of the instruction
-			\param[out] tokens Output reference to write the instruction tokens to
-			\param[in] settings Optional structure with settings for rendering text
-			\return True/False on success or failure
+		    \param[out] tokens Output reference to write the instruction tokens to
+		    \param[in] settings Optional structure with settings for rendering text
+		    \return True/False on success or failure
 		*/
-		bool GetInstructionText(
-		    Function* func, Architecture* arch, size_t i, std::vector<InstructionTextToken>& tokens,
-		    DisassemblySettings* settings = nullptr);
+		bool GetInstructionText(Function* func, Architecture* arch, size_t i, std::vector<InstructionTextToken>& tokens,
+			DisassemblySettings* settings = nullptr);
 
 		uint32_t GetTemporaryRegisterCount();
 		uint32_t GetTemporaryFlagCount();
@@ -12998,28 +13170,28 @@ namespace BinaryNinja {
 		RegisterValue GetExprValue(size_t expr);
 		RegisterValue GetExprValue(const LowLevelILInstruction& expr);
 		PossibleValueSet GetPossibleExprValues(
-		    size_t expr, const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			size_t expr, const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		PossibleValueSet GetPossibleExprValues(const LowLevelILInstruction& expr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 
 		RegisterValue GetRegisterValueAtInstruction(uint32_t reg, size_t instr);
 		RegisterValue GetRegisterValueAfterInstruction(uint32_t reg, size_t instr);
 		PossibleValueSet GetPossibleRegisterValuesAtInstruction(uint32_t reg, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		PossibleValueSet GetPossibleRegisterValuesAfterInstruction(uint32_t reg, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		RegisterValue GetFlagValueAtInstruction(uint32_t flag, size_t instr);
 		RegisterValue GetFlagValueAfterInstruction(uint32_t flag, size_t instr);
 		PossibleValueSet GetPossibleFlagValuesAtInstruction(uint32_t flag, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		PossibleValueSet GetPossibleFlagValuesAfterInstruction(uint32_t flag, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		RegisterValue GetStackContentsAtInstruction(int32_t offset, size_t len, size_t instr);
 		RegisterValue GetStackContentsAfterInstruction(int32_t offset, size_t len, size_t instr);
 		PossibleValueSet GetPossibleStackContentsAtInstruction(int32_t offset, size_t len, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		PossibleValueSet GetPossibleStackContentsAfterInstruction(int32_t offset, size_t len, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 
 		Ref<MediumLevelILFunction> GetMediumLevelIL() const;
 		Ref<MediumLevelILFunction> GetMappedMediumLevelIL() const;
@@ -13038,7 +13210,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup mediumlevelil
+	    \ingroup mediumlevelil
 	*/
 	struct MediumLevelILLabel : public BNMediumLevelILLabel
 	{
@@ -13048,13 +13220,13 @@ namespace BinaryNinja {
 	struct MediumLevelILInstruction;
 
 	/*!
-		\ingroup mediumlevelil
+	    \ingroup mediumlevelil
 	*/
 	class MediumLevelILFunction :
-	    public CoreRefCountObject<BNMediumLevelILFunction, BNNewMediumLevelILFunctionReference,
-	        BNFreeMediumLevelILFunction>
+		public CoreRefCountObject<BNMediumLevelILFunction, BNNewMediumLevelILFunctionReference,
+			BNFreeMediumLevelILFunction>
 	{
-	  public:
+	public:
 		MediumLevelILFunction(Architecture* arch, Function* func = nullptr);
 		MediumLevelILFunction(BNMediumLevelILFunction* func);
 
@@ -13068,69 +13240,69 @@ namespace BinaryNinja {
 		void PrepareToCopyFunction(MediumLevelILFunction* func);
 		void PrepareToCopyBlock(BasicBlock* block);
 
-		/*! Get the MediumLevelILLabel for a given source instruction. The returned pointer is to an internal object with
-			the same lifetime as the containing MediumLevelILFunction.
+		/*! Get the MediumLevelILLabel for a given source instruction. The returned pointer is to an internal object
+		   with the same lifetime as the containing MediumLevelILFunction.
 
-			\param i Index of the source instruction
-			\return The MediumLevelILLabel for the source instruction
+		    \param i Index of the source instruction
+		    \return The MediumLevelILLabel for the source instruction
 		*/
 		BNMediumLevelILLabel* GetLabelForSourceInstruction(size_t i);
 
 		ExprId AddExpr(BNMediumLevelILOperation operation, size_t size, ExprId a = 0, ExprId b = 0, ExprId c = 0,
-		    ExprId d = 0, ExprId e = 0);
+			ExprId d = 0, ExprId e = 0);
 		ExprId AddExprWithLocation(BNMediumLevelILOperation operation, uint64_t addr, uint32_t sourceOperand,
-		    size_t size, ExprId a = 0, ExprId b = 0, ExprId c = 0, ExprId d = 0, ExprId e = 0);
+			size_t size, ExprId a = 0, ExprId b = 0, ExprId c = 0, ExprId d = 0, ExprId e = 0);
 		ExprId AddExprWithLocation(BNMediumLevelILOperation operation, const ILSourceLocation& loc, size_t size,
-		    ExprId a = 0, ExprId b = 0, ExprId c = 0, ExprId d = 0, ExprId e = 0);
+			ExprId a = 0, ExprId b = 0, ExprId c = 0, ExprId d = 0, ExprId e = 0);
 
 		ExprId Nop(const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetVar(size_t size, const Variable& dest, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetVarField(size_t size, const Variable& dest, uint64_t offset, ExprId src,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetVarSplit(size_t size, const Variable& high, const Variable& low, ExprId src,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetVarSSA(
-		    size_t size, const SSAVariable& dest, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, const SSAVariable& dest, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetVarSSAField(size_t size, const Variable& dest, size_t newVersion, size_t prevVersion, uint64_t offset,
-		    ExprId src, const ILSourceLocation& loc = ILSourceLocation());
+			ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetVarSSASplit(size_t size, const SSAVariable& high, const SSAVariable& low, ExprId src,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetVarAliased(size_t size, const Variable& dest, size_t newMemVersion, size_t prevMemVersion, ExprId src,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SetVarAliasedField(size_t size, const Variable& dest, size_t newMemVersion, size_t prevMemVersion,
-		    uint64_t offset, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
+			uint64_t offset, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Load(size_t size, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId LoadStruct(size_t size, ExprId src, uint64_t offset, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId LoadSSA(size_t size, ExprId src, size_t memVersion, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId LoadStructSSA(size_t size, ExprId src, uint64_t offset, size_t memVersion,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Store(size_t size, ExprId dest, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId StoreStruct(
-		    size_t size, ExprId dest, uint64_t offset, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId dest, uint64_t offset, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId StoreSSA(size_t size, ExprId dest, size_t newMemVersion, size_t prevMemVersion, ExprId src,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId StoreStructSSA(size_t size, ExprId dest, uint64_t offset, size_t newMemVersion, size_t prevMemVersion,
-		    ExprId src, const ILSourceLocation& loc = ILSourceLocation());
+			ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Var(size_t size, const Variable& src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId VarField(
-		    size_t size, const Variable& src, uint64_t offset, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, const Variable& src, uint64_t offset, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId VarSplit(
-		    size_t size, const Variable& high, const Variable& low, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, const Variable& high, const Variable& low, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId VarSSA(size_t size, const SSAVariable& src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId VarSSAField(
-		    size_t size, const SSAVariable& src, uint64_t offset, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, const SSAVariable& src, uint64_t offset, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId VarAliased(
-		    size_t size, const Variable& src, size_t memVersion, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, const Variable& src, size_t memVersion, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId VarAliasedField(size_t size, const Variable& src, size_t memVersion, uint64_t offset,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId VarSplitSSA(size_t size, const SSAVariable& high, const SSAVariable& low,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId AddressOf(const Variable& var, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId AddressOfField(const Variable& var, uint64_t offset, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Const(size_t size, uint64_t val, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ConstPointer(size_t size, uint64_t val, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ExternPointer(
-		    size_t size, uint64_t val, uint64_t offset, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, uint64_t val, uint64_t offset, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatConstRaw(size_t size, uint64_t val, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatConstSingle(float val, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatConstDouble(double val, const ILSourceLocation& loc = ILSourceLocation());
@@ -13138,41 +13310,41 @@ namespace BinaryNinja {
 		ExprId ConstData(size_t size, const ConstantData& data, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Add(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId AddWithCarry(
-		    size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Sub(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SubWithBorrow(
-		    size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId And(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Or(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Xor(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ShiftLeft(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId LogicalShiftRight(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ArithShiftRight(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RotateLeft(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RotateLeftCarry(
-		    size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RotateRight(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RotateRightCarry(
-		    size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Mult(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId MultDoublePrecSigned(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId MultDoublePrecUnsigned(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DivSigned(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DivUnsigned(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DivDoublePrecSigned(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DivDoublePrecUnsigned(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ModSigned(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ModUnsigned(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ModDoublePrecSigned(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ModDoublePrecUnsigned(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Neg(size_t size, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Not(size_t size, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SignExtend(size_t size, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
@@ -13180,32 +13352,32 @@ namespace BinaryNinja {
 		ExprId LowPart(size_t size, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Jump(ExprId dest, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId JumpTo(ExprId dest, const std::map<uint64_t, BNMediumLevelILLabel*>& targets,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ReturnHint(ExprId dest, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Call(const std::vector<Variable>& output, ExprId dest, const std::vector<ExprId>& params,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CallUntyped(const std::vector<Variable>& output, ExprId dest, const std::vector<ExprId>& params,
 			ExprId stack, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Syscall(const std::vector<Variable>& output, const std::vector<ExprId>& params,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SyscallUntyped(const std::vector<Variable>& output, const std::vector<ExprId>& params, ExprId stack,
 			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId TailCall(const std::vector<Variable>& output, ExprId dest, const std::vector<ExprId>& params,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId TailCallUntyped(const std::vector<Variable>& output, ExprId dest, const std::vector<ExprId>& params,
 			ExprId stack, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CallSSA(const std::vector<SSAVariable>& output, ExprId dest, const std::vector<ExprId>& params,
-		    size_t newMemVersion, size_t prevMemVersion, const ILSourceLocation& loc = ILSourceLocation());
+			size_t newMemVersion, size_t prevMemVersion, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CallUntypedSSA(const std::vector<SSAVariable>& output, ExprId dest, const std::vector<ExprId>& params,
 			size_t newMemVersion, size_t prevMemVersion, ExprId stack,
 			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SyscallSSA(const std::vector<SSAVariable>& output, const std::vector<ExprId>& params,
-		    size_t newMemVersion, size_t prevMemVersion, const ILSourceLocation& loc = ILSourceLocation());
+			size_t newMemVersion, size_t prevMemVersion, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SyscallUntypedSSA(const std::vector<SSAVariable>& output, const std::vector<ExprId>& params,
 			size_t newMemVersion, size_t prevMemVersion, ExprId stack,
 			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId TailCallSSA(const std::vector<SSAVariable>& output, ExprId dest, const std::vector<ExprId>& params,
-		    size_t newMemVersion, size_t prevMemVersion, const ILSourceLocation& loc = ILSourceLocation());
+			size_t newMemVersion, size_t prevMemVersion, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId TailCallUntypedSSA(const std::vector<SSAVariable>& output, ExprId dest,
 			const std::vector<ExprId>& params, size_t newMemVersion, size_t prevMemVersion, ExprId stack,
 			const ILSourceLocation& loc = ILSourceLocation());
@@ -13215,44 +13387,45 @@ namespace BinaryNinja {
 		ExprId NoReturn(const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareEqual(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareNotEqual(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareSignedLessThan(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareUnsignedLessThan(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareSignedLessEqual(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareUnsignedLessEqual(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareSignedGreaterEqual(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareUnsignedGreaterEqual(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareSignedGreaterThan(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareUnsignedGreaterThan(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId TestBit(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId BoolToInt(size_t size, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId AddOverflow(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Breakpoint(const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Trap(int64_t vector, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Intrinsic(const std::vector<Variable>& outputs, uint32_t intrinsic, const std::vector<ExprId>& params,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId IntrinsicSSA(const std::vector<SSAVariable>& outputs, uint32_t intrinsic,
-		    const std::vector<ExprId>& params, const ILSourceLocation& loc = ILSourceLocation());
+			const std::vector<ExprId>& params, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId MemoryIntrinsicSSA(const std::vector<SSAVariable>& outputs, uint32_t intrinsic,
-		    const std::vector<ExprId>& params, size_t newMemVersion, size_t prevMemVersion, const ILSourceLocation& loc = ILSourceLocation());
+			const std::vector<ExprId>& params, size_t newMemVersion, size_t prevMemVersion,
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FreeVarSlot(const Variable& var, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FreeVarSlotSSA(const Variable& var, size_t newVersion, size_t prevVersion,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Undefined(const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Unimplemented(const ILSourceLocation& loc = ILSourceLocation());
 		ExprId UnimplementedMemoryRef(size_t size, ExprId target, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId VarPhi(const SSAVariable& dest, const std::vector<SSAVariable>& sources,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId MemoryPhi(size_t destMemVersion, const std::vector<size_t>& sourceMemVersions,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatAdd(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatSub(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatMult(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
@@ -13272,15 +13445,15 @@ namespace BinaryNinja {
 		ExprId FloatCompareLessThan(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatCompareLessEqual(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatCompareGreaterEqual(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatCompareGreaterThan(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatCompareOrdered(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatCompareUnordered(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
 		ExprId Goto(BNMediumLevelILLabel& label, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId If(ExprId operand, BNMediumLevelILLabel& t, BNMediumLevelILLabel& f,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		void MarkLabel(BNMediumLevelILLabel& label);
 
 		ExprId AddInstruction(ExprId expr);
@@ -13309,16 +13482,16 @@ namespace BinaryNinja {
 
 		void Finalize();
 		void GenerateSSAForm(bool analyzeConditionals = true, bool handleAliases = true,
-		    const std::set<Variable>& knownNotAliases = std::set<Variable>(),
-		    const std::set<Variable>& knownAliases = std::set<Variable>());
+			const std::set<Variable>& knownNotAliases = std::set<Variable>(),
+			const std::set<Variable>& knownAliases = std::set<Variable>());
 
 		bool GetExprText(Architecture* arch, ExprId expr, std::vector<InstructionTextToken>& tokens,
-		    DisassemblySettings* settings = nullptr);
+			DisassemblySettings* settings = nullptr);
 		bool GetInstructionText(Function* func, Architecture* arch, size_t i, std::vector<InstructionTextToken>& tokens,
-		    DisassemblySettings* settings = nullptr);
+			DisassemblySettings* settings = nullptr);
 
 		void VisitInstructions(
-		    const std::function<void(BasicBlock* block, const MediumLevelILInstruction& instr)>& func);
+			const std::function<void(BasicBlock* block, const MediumLevelILInstruction& instr)>& func);
 		void VisitAllExprs(const std::function<bool(BasicBlock* block, const MediumLevelILInstruction& expr)>& func);
 
 		std::vector<Ref<BasicBlock>> GetBasicBlocks() const;
@@ -13347,11 +13520,11 @@ namespace BinaryNinja {
 		RegisterValue GetExprValue(size_t expr);
 		RegisterValue GetExprValue(const MediumLevelILInstruction& expr);
 		PossibleValueSet GetPossibleSSAVarValues(const SSAVariable& var, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		PossibleValueSet GetPossibleExprValues(
-		    size_t expr, const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			size_t expr, const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		PossibleValueSet GetPossibleExprValues(const MediumLevelILInstruction& expr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 
 		size_t GetSSAVarVersionAtInstruction(const Variable& var, size_t instr) const;
 		size_t GetSSAMemoryVersionAtInstruction(size_t instr) const;
@@ -13362,21 +13535,21 @@ namespace BinaryNinja {
 		RegisterValue GetRegisterValueAtInstruction(uint32_t reg, size_t instr);
 		RegisterValue GetRegisterValueAfterInstruction(uint32_t reg, size_t instr);
 		PossibleValueSet GetPossibleRegisterValuesAtInstruction(uint32_t reg, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		PossibleValueSet GetPossibleRegisterValuesAfterInstruction(uint32_t reg, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		RegisterValue GetFlagValueAtInstruction(uint32_t flag, size_t instr);
 		RegisterValue GetFlagValueAfterInstruction(uint32_t flag, size_t instr);
 		PossibleValueSet GetPossibleFlagValuesAtInstruction(uint32_t flag, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		PossibleValueSet GetPossibleFlagValuesAfterInstruction(uint32_t flag, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		RegisterValue GetStackContentsAtInstruction(int32_t offset, size_t len, size_t instr);
 		RegisterValue GetStackContentsAfterInstruction(int32_t offset, size_t len, size_t instr);
 		PossibleValueSet GetPossibleStackContentsAtInstruction(int32_t offset, size_t len, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 		PossibleValueSet GetPossibleStackContentsAfterInstruction(int32_t offset, size_t len, size_t instr,
-		    const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
+			const std::set<BNDataFlowQueryOption>& options = std::set<BNDataFlowQueryOption>());
 
 		BNILBranchDependence GetBranchDependenceAtInstruction(size_t curInstr, size_t branchInstr) const;
 		std::unordered_map<size_t, BNILBranchDependence> GetAllBranchDependenceAtInstruction(size_t instr) const;
@@ -13395,10 +13568,10 @@ namespace BinaryNinja {
 
 		/*! SetExprType sets the type of a given expression.
 
-			\warning This method is only meant for workflows or for debugging purposes, since the changes they make
-			are not persistent and get lost after a database save and reload. To make persistent changes to the analysis,
-			one should use other APIs to, for example, change the type of variables. The analysis will then propagate the
-			type of the variable and update the type of related expressions.
+		    \warning This method is only meant for workflows or for debugging purposes, since the changes they make
+		    are not persistent and get lost after a database save and reload. To make persistent changes to the
+		   analysis, one should use other APIs to, for example, change the type of variables. The analysis will then
+		   propagate the type of the variable and update the type of related expressions.
 
 		    \param expr index of the expression to set
 		    \param type new type of the expression
@@ -13422,12 +13595,12 @@ namespace BinaryNinja {
 	class HighLevelILTokenEmitter;
 
 	/*!
-		\ingroup highlevelil
+	    \ingroup highlevelil
 	*/
 	class HighLevelILFunction :
-	    public CoreRefCountObject<BNHighLevelILFunction, BNNewHighLevelILFunctionReference, BNFreeHighLevelILFunction>
+		public CoreRefCountObject<BNHighLevelILFunction, BNNewHighLevelILFunctionReference, BNFreeHighLevelILFunction>
 	{
-	  public:
+	public:
 		HighLevelILFunction(Architecture* arch, Function* func = nullptr);
 		HighLevelILFunction(BNHighLevelILFunction* func);
 
@@ -13442,30 +13615,30 @@ namespace BinaryNinja {
 		void SetRootExpr(const HighLevelILInstruction& expr);
 
 		ExprId AddExpr(BNHighLevelILOperation operation, size_t size, ExprId a = 0, ExprId b = 0, ExprId c = 0,
-		    ExprId d = 0, ExprId e = 0);
+			ExprId d = 0, ExprId e = 0);
 		ExprId AddExprWithLocation(BNHighLevelILOperation operation, uint64_t addr, uint32_t sourceOperand, size_t size,
-		    ExprId a = 0, ExprId b = 0, ExprId c = 0, ExprId d = 0, ExprId e = 0);
+			ExprId a = 0, ExprId b = 0, ExprId c = 0, ExprId d = 0, ExprId e = 0);
 		ExprId AddExprWithLocation(BNHighLevelILOperation operation, const ILSourceLocation& loc, size_t size,
-		    ExprId a = 0, ExprId b = 0, ExprId c = 0, ExprId d = 0, ExprId e = 0);
+			ExprId a = 0, ExprId b = 0, ExprId c = 0, ExprId d = 0, ExprId e = 0);
 
 		ExprId Nop(const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Block(const std::vector<ExprId>& exprs, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId If(
-		    ExprId condition, ExprId trueExpr, ExprId falseExpr, const ILSourceLocation& loc = ILSourceLocation());
+			ExprId condition, ExprId trueExpr, ExprId falseExpr, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId While(ExprId condition, ExprId loopExpr, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId WhileSSA(
-		    ExprId conditionPhi, ExprId condition, ExprId loopExpr, const ILSourceLocation& loc = ILSourceLocation());
+			ExprId conditionPhi, ExprId condition, ExprId loopExpr, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DoWhile(ExprId loopExpr, ExprId condition, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DoWhileSSA(
-		    ExprId loopExpr, ExprId conditionPhi, ExprId condition, const ILSourceLocation& loc = ILSourceLocation());
+			ExprId loopExpr, ExprId conditionPhi, ExprId condition, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId For(ExprId initExpr, ExprId condition, ExprId updateExpr, ExprId loopExpr,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ForSSA(ExprId initExpr, ExprId conditionPhi, ExprId condition, ExprId updateExpr, ExprId loopExpr,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Switch(ExprId condition, ExprId defaultExpr, const std::vector<ExprId>& cases,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Case(
-		    const std::vector<ExprId>& condition, ExprId expr, const ILSourceLocation& loc = ILSourceLocation());
+			const std::vector<ExprId>& condition, ExprId expr, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Break(const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Continue(const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Jump(ExprId dest, const ILSourceLocation& loc = ILSourceLocation());
@@ -13477,38 +13650,38 @@ namespace BinaryNinja {
 		ExprId VarDeclare(const Variable& var, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId VarInit(size_t size, const Variable& dest, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId VarInitSSA(
-		    size_t size, const SSAVariable& dest, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, const SSAVariable& dest, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Assign(size_t size, ExprId dest, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId AssignUnpack(
-		    const std::vector<ExprId>& output, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
+			const std::vector<ExprId>& output, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId AssignMemSSA(size_t size, ExprId dest, size_t destMemVersion, ExprId src, size_t srcMemVersion,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId AssignUnpackMemSSA(const std::vector<ExprId>& output, size_t destMemVersion, ExprId src,
-		    size_t srcMemVersion, const ILSourceLocation& loc = ILSourceLocation());
+			size_t srcMemVersion, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Var(size_t size, const Variable& src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId VarSSA(size_t size, const SSAVariable& src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId VarPhi(const SSAVariable& dest, const std::vector<SSAVariable>& sources,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId MemPhi(
-		    size_t dest, const std::vector<size_t>& sources, const ILSourceLocation& loc = ILSourceLocation());
+			size_t dest, const std::vector<size_t>& sources, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId StructField(size_t size, ExprId src, uint64_t offset, size_t memberIndex,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ArrayIndex(size_t size, ExprId src, ExprId idx, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ArrayIndexSSA(size_t size, ExprId src, size_t srcMemVersion, ExprId idx,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Split(size_t size, ExprId high, ExprId low, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Deref(size_t size, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DerefField(size_t size, ExprId src, uint64_t offset, size_t memberIndex,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DerefSSA(
-		    size_t size, ExprId src, size_t srcMemVersion, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId src, size_t srcMemVersion, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DerefFieldSSA(size_t size, ExprId src, size_t srcMemVersion, uint64_t offset, size_t memberIndex,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId AddressOf(ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Const(size_t size, uint64_t val, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ConstPointer(size_t size, uint64_t val, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ExternPointer(
-		    size_t size, uint64_t val, uint64_t offset, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, uint64_t val, uint64_t offset, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatConstRaw(size_t size, uint64_t val, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatConstSingle(float val, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatConstDouble(double val, const ILSourceLocation& loc = ILSourceLocation());
@@ -13516,41 +13689,41 @@ namespace BinaryNinja {
 		ExprId ConstData(size_t size, const ConstantData& data, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Add(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId AddWithCarry(
-		    size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Sub(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SubWithBorrow(
-		    size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId And(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Or(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Xor(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ShiftLeft(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId LogicalShiftRight(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ArithShiftRight(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RotateLeft(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RotateLeftCarry(
-		    size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RotateRight(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId RotateRightCarry(
-		    size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, ExprId carry, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Mult(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId MultDoublePrecSigned(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId MultDoublePrecUnsigned(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DivSigned(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DivUnsigned(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DivDoublePrecSigned(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId DivDoublePrecUnsigned(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ModSigned(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ModUnsigned(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ModDoublePrecSigned(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId ModDoublePrecUnsigned(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Neg(size_t size, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Not(size_t size, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SignExtend(size_t size, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
@@ -13559,39 +13732,39 @@ namespace BinaryNinja {
 		ExprId Call(ExprId dest, const std::vector<ExprId>& params, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Syscall(const std::vector<ExprId>& params, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId TailCall(
-		    ExprId dest, const std::vector<ExprId>& params, const ILSourceLocation& loc = ILSourceLocation());
+			ExprId dest, const std::vector<ExprId>& params, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CallSSA(ExprId dest, const std::vector<ExprId>& params, size_t destMemVersion, size_t srcMemVersion,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId SyscallSSA(const std::vector<ExprId>& params, size_t destMemVersion, size_t srcMemVersion,
-		    const ILSourceLocation& loc = ILSourceLocation());
+			const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareEqual(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareNotEqual(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareSignedLessThan(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareUnsignedLessThan(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareSignedLessEqual(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareUnsignedLessEqual(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareSignedGreaterEqual(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareUnsignedGreaterEqual(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareSignedGreaterThan(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId CompareUnsignedGreaterThan(
-		    size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId TestBit(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId BoolToInt(size_t size, ExprId src, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId AddOverflow(size_t size, ExprId left, ExprId right, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Breakpoint(const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Trap(int64_t vector, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Intrinsic(
-		    uint32_t intrinsic, const std::vector<ExprId>& params, const ILSourceLocation& loc = ILSourceLocation());
+			uint32_t intrinsic, const std::vector<ExprId>& params, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId IntrinsicSSA(uint32_t intrinsic, const std::vector<ExprId>& params, size_t destMemVersion,
-		    size_t srcMemVersion, const ILSourceLocation& loc = ILSourceLocation());
+			size_t srcMemVersion, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Undefined(const ILSourceLocation& loc = ILSourceLocation());
 		ExprId Unimplemented(const ILSourceLocation& loc = ILSourceLocation());
 		ExprId UnimplementedMemoryRef(size_t size, ExprId target, const ILSourceLocation& loc = ILSourceLocation());
@@ -13614,9 +13787,9 @@ namespace BinaryNinja {
 		ExprId FloatCompareLessThan(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatCompareLessEqual(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatCompareGreaterEqual(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatCompareGreaterThan(
-		    size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
+			size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatCompareOrdered(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 		ExprId FloatCompareUnordered(size_t size, ExprId a, ExprId b, const ILSourceLocation& loc = ILSourceLocation());
 
@@ -13673,7 +13846,7 @@ namespace BinaryNinja {
 		void GenerateSSAForm(const std::set<Variable>& aliases = std::set<Variable>());
 
 		std::vector<DisassemblyTextLine> GetExprText(
-		    ExprId expr, bool asFullAst = true, DisassemblySettings* settings = nullptr);
+			ExprId expr, bool asFullAst = true, DisassemblySettings* settings = nullptr);
 		std::vector<DisassemblyTextLine> GetExprText(
 			const HighLevelILInstruction& instr, DisassemblySettings* settings = nullptr);
 		std::vector<DisassemblyTextLine> GetInstructionText(size_t i, DisassemblySettings* settings = nullptr);
@@ -13683,10 +13856,10 @@ namespace BinaryNinja {
 
 		/*! SetExprType sets the type of a given expression.
 
-			\warning This method is only meant for workflows or for debugging purposes, since the changes they make
-			are not persistent and get lost after a database save and reload. To make persistent changes to the analysis,
-			one should use other APIs to, for example, change the type of variables. The analysis will then propagate the
-			type of the variable and update the type of related expressions.
+		    \warning This method is only meant for workflows or for debugging purposes, since the changes they make
+		    are not persistent and get lost after a database save and reload. To make persistent changes to the
+		   analysis, one should use other APIs to, for example, change the type of variables. The analysis will then
+		   propagate the type of the variable and update the type of related expressions.
 
 		    \param expr index of the expression to set
 		    \param type new type of the expression
@@ -13787,8 +13960,8 @@ namespace BinaryNinja {
 	    \ingroup highlevelil
 	*/
 	class LanguageRepresentationFunction :
-	    public CoreRefCountObject<BNLanguageRepresentationFunction, BNNewLanguageRepresentationFunctionReference,
-	        BNFreeLanguageRepresentationFunction>
+		public CoreRefCountObject<BNLanguageRepresentationFunction, BNNewLanguageRepresentationFunctionReference,
+			BNFreeLanguageRepresentationFunction>
 	{
 	public:
 		LanguageRepresentationFunction(LanguageRepresentationFunctionType* type, Architecture* arch, Function* func,
@@ -14034,16 +14207,16 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup functionrecognizer
+	    \ingroup functionrecognizer
 	*/
 	class FunctionRecognizer
 	{
 		static bool RecognizeLowLevelILCallback(
-		    void* ctxt, BNBinaryView* data, BNFunction* func, BNLowLevelILFunction* il);
+			void* ctxt, BNBinaryView* data, BNFunction* func, BNLowLevelILFunction* il);
 		static bool RecognizeMediumLevelILCallback(
-		    void* ctxt, BNBinaryView* data, BNFunction* func, BNMediumLevelILFunction* il);
+			void* ctxt, BNBinaryView* data, BNFunction* func, BNMediumLevelILFunction* il);
 
-	  public:
+	public:
 		FunctionRecognizer();
 
 		static void RegisterGlobalRecognizer(FunctionRecognizer* recog);
@@ -14054,49 +14227,49 @@ namespace BinaryNinja {
 	};
 
 	class RelocationHandler :
-	    public CoreRefCountObject<BNRelocationHandler, BNNewRelocationHandlerReference, BNFreeRelocationHandler>
+		public CoreRefCountObject<BNRelocationHandler, BNNewRelocationHandlerReference, BNFreeRelocationHandler>
 	{
 		static bool GetRelocationInfoCallback(
-		    void* ctxt, BNBinaryView* view, BNArchitecture* arch, BNRelocationInfo* result, size_t resultCount);
+			void* ctxt, BNBinaryView* view, BNArchitecture* arch, BNRelocationInfo* result, size_t resultCount);
 		static bool ApplyRelocationCallback(
-		    void* ctxt, BNBinaryView* view, BNArchitecture* arch, BNRelocation* reloc, uint8_t* dest, size_t len);
+			void* ctxt, BNBinaryView* view, BNArchitecture* arch, BNRelocation* reloc, uint8_t* dest, size_t len);
 		static size_t GetOperandForExternalRelocationCallback(void* ctxt, const uint8_t* data, uint64_t addr,
-		    size_t length, BNLowLevelILFunction* il, BNRelocation* relocation);
+			size_t length, BNLowLevelILFunction* il, BNRelocation* relocation);
 
-	  protected:
+	protected:
 		RelocationHandler();
 		RelocationHandler(BNRelocationHandler* handler);
 		static void FreeCallback(void* ctxt);
 
-	  public:
+	public:
 		virtual bool GetRelocationInfo(
-		    Ref<BinaryView> view, Ref<Architecture> arch, std::vector<BNRelocationInfo>& result);
+			Ref<BinaryView> view, Ref<Architecture> arch, std::vector<BNRelocationInfo>& result);
 		virtual bool ApplyRelocation(
-		    Ref<BinaryView> view, Ref<Architecture> arch, Ref<Relocation> reloc, uint8_t* dest, size_t len);
+			Ref<BinaryView> view, Ref<Architecture> arch, Ref<Relocation> reloc, uint8_t* dest, size_t len);
 		virtual size_t GetOperandForExternalRelocation(
-		    const uint8_t* data, uint64_t addr, size_t length, Ref<LowLevelILFunction> il, Ref<Relocation> relocation);
+			const uint8_t* data, uint64_t addr, size_t length, Ref<LowLevelILFunction> il, Ref<Relocation> relocation);
 	};
 
 	class CoreRelocationHandler : public RelocationHandler
 	{
-	  public:
+	public:
 		CoreRelocationHandler(BNRelocationHandler* handler);
 		virtual bool GetRelocationInfo(
-		    Ref<BinaryView> view, Ref<Architecture> arch, std::vector<BNRelocationInfo>& result) override;
+			Ref<BinaryView> view, Ref<Architecture> arch, std::vector<BNRelocationInfo>& result) override;
 		virtual bool ApplyRelocation(
-		    Ref<BinaryView> view, Ref<Architecture> arch, Ref<Relocation> reloc, uint8_t* dest, size_t len) override;
+			Ref<BinaryView> view, Ref<Architecture> arch, Ref<Relocation> reloc, uint8_t* dest, size_t len) override;
 		virtual size_t GetOperandForExternalRelocation(const uint8_t* data, uint64_t addr, size_t length,
-		    Ref<LowLevelILFunction> il, Ref<Relocation> relocation) override;
+			Ref<LowLevelILFunction> il, Ref<Relocation> relocation) override;
 	};
 
 	class UpdateException : public ExceptionWithStackTrace
 	{
-	  public:
+	public:
 		UpdateException(const std::string& desc) : ExceptionWithStackTrace(desc) {}
 	};
 
 	/*!
-		\ingroup update
+	    \ingroup update
 	*/
 	struct UpdateChannel
 	{
@@ -14110,13 +14283,13 @@ namespace BinaryNinja {
 
 		BNUpdateResult UpdateToVersion(const std::string& version);
 		BNUpdateResult UpdateToVersion(
-		    const std::string& version, const std::function<bool(size_t progress, size_t total)>& progress);
+			const std::string& version, const std::function<bool(size_t progress, size_t total)>& progress);
 		BNUpdateResult UpdateToLatestVersion();
 		BNUpdateResult UpdateToLatestVersion(const std::function<bool(size_t progress, size_t total)>& progress);
 	};
 
 	/*! UpdateVersion documentation
-		\ingroup update
+	    \ingroup update
 	*/
 	struct UpdateVersion
 	{
@@ -14128,7 +14301,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup plugin
+	    \ingroup plugin
 	*/
 	struct PluginCommandContext
 	{
@@ -14144,12 +14317,12 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		The PluginCommand class is used for registering "commands" for Plugins, corresponding to code in those plugins
-	 	to be executed.
+	    The PluginCommand class is used for registering "commands" for Plugins, corresponding to code in those plugins
+	    to be executed.
 
-	 	\ingroup plugin
+	    \ingroup plugin
 
-	 	The proper way to use this class is via one of the \c "Register*" static methods.
+	    The proper way to use this class is via one of the \c "Register*" static methods.
 	*/
 	class PluginCommand
 	{
@@ -14220,36 +14393,36 @@ namespace BinaryNinja {
 		static void RangePluginCommandActionCallback(void* ctxt, BNBinaryView* view, uint64_t addr, uint64_t len);
 		static void FunctionPluginCommandActionCallback(void* ctxt, BNBinaryView* view, BNFunction* func);
 		static void LowLevelILFunctionPluginCommandActionCallback(
-		    void* ctxt, BNBinaryView* view, BNLowLevelILFunction* func);
+			void* ctxt, BNBinaryView* view, BNLowLevelILFunction* func);
 		static void LowLevelILInstructionPluginCommandActionCallback(
-		    void* ctxt, BNBinaryView* view, BNLowLevelILFunction* func, size_t instr);
+			void* ctxt, BNBinaryView* view, BNLowLevelILFunction* func, size_t instr);
 		static void MediumLevelILFunctionPluginCommandActionCallback(
-		    void* ctxt, BNBinaryView* view, BNMediumLevelILFunction* func);
+			void* ctxt, BNBinaryView* view, BNMediumLevelILFunction* func);
 		static void MediumLevelILInstructionPluginCommandActionCallback(
-		    void* ctxt, BNBinaryView* view, BNMediumLevelILFunction* func, size_t instr);
+			void* ctxt, BNBinaryView* view, BNMediumLevelILFunction* func, size_t instr);
 		static void HighLevelILFunctionPluginCommandActionCallback(
-		    void* ctxt, BNBinaryView* view, BNHighLevelILFunction* func);
+			void* ctxt, BNBinaryView* view, BNHighLevelILFunction* func);
 		static void HighLevelILInstructionPluginCommandActionCallback(
-		    void* ctxt, BNBinaryView* view, BNHighLevelILFunction* func, size_t instr);
+			void* ctxt, BNBinaryView* view, BNHighLevelILFunction* func, size_t instr);
 
 		static bool DefaultPluginCommandIsValidCallback(void* ctxt, BNBinaryView* view);
 		static bool AddressPluginCommandIsValidCallback(void* ctxt, BNBinaryView* view, uint64_t addr);
 		static bool RangePluginCommandIsValidCallback(void* ctxt, BNBinaryView* view, uint64_t addr, uint64_t len);
 		static bool FunctionPluginCommandIsValidCallback(void* ctxt, BNBinaryView* view, BNFunction* func);
 		static bool LowLevelILFunctionPluginCommandIsValidCallback(
-		    void* ctxt, BNBinaryView* view, BNLowLevelILFunction* func);
+			void* ctxt, BNBinaryView* view, BNLowLevelILFunction* func);
 		static bool LowLevelILInstructionPluginCommandIsValidCallback(
-		    void* ctxt, BNBinaryView* view, BNLowLevelILFunction* func, size_t instr);
+			void* ctxt, BNBinaryView* view, BNLowLevelILFunction* func, size_t instr);
 		static bool MediumLevelILFunctionPluginCommandIsValidCallback(
-		    void* ctxt, BNBinaryView* view, BNMediumLevelILFunction* func);
+			void* ctxt, BNBinaryView* view, BNMediumLevelILFunction* func);
 		static bool MediumLevelILInstructionPluginCommandIsValidCallback(
-		    void* ctxt, BNBinaryView* view, BNMediumLevelILFunction* func, size_t instr);
+			void* ctxt, BNBinaryView* view, BNMediumLevelILFunction* func, size_t instr);
 		static bool HighLevelILFunctionPluginCommandIsValidCallback(
-		    void* ctxt, BNBinaryView* view, BNHighLevelILFunction* func);
+			void* ctxt, BNBinaryView* view, BNHighLevelILFunction* func);
 		static bool HighLevelILInstructionPluginCommandIsValidCallback(
-		    void* ctxt, BNBinaryView* view, BNHighLevelILFunction* func, size_t instr);
+			void* ctxt, BNBinaryView* view, BNHighLevelILFunction* func, size_t instr);
 
-	  public:
+	public:
 		PluginCommand(const BNPluginCommand& cmd);
 		PluginCommand(const PluginCommand& cmd);
 		~PluginCommand();
@@ -14258,850 +14431,866 @@ namespace BinaryNinja {
 
 		/*! Register a command for a given BinaryView.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using a lambda expression
+		    // Registering a command using a lambda expression
 		    PluginCommand::Register("MyPlugin\\MyAction", "Perform an action",
-				   [](BinaryView* view)
-				   {
-					   // Perform an action on a view
-				   });
+		           [](BinaryView* view)
+		           {
+		               // Perform an action on a view
+		           });
 
-			// Registering a command using a standard static function
-		 	// This also works with functions in the global namespace, e.g. "void myCommand(BinaryView* view)"
-			void MyPlugin::MyCommand(BinaryView* view)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function
+		    // This also works with functions in the global namespace, e.g. "void myCommand(BinaryView* view)"
+		    void MyPlugin::MyCommand(BinaryView* view)
+		    {
+		        // Perform an action on a view
+		    }
 
 		    PluginCommand::Register("MyPlugin\\MySecondAction", "Perform an action", MyPlugin::MyCommand);
-			\endcode
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
 		*/
 		static void Register(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view)>& action);
+			const std::function<void(BinaryView* view)>& action);
 
 		/*! Register a command for a given BinaryView, with a validity check.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using lambda expressions
+		    // Registering a command using lambda expressions
 		    PluginCommand::Register("MyPlugin\\MyAction", "Perform an action",
-					[](BinaryView* view)
-					{
-					   // Perform an action on a view that requires it having symbols
-					},
-		        	[](BinaryView* view)
-					{
-						return view->HasSymbols();
-					});
+		            [](BinaryView* view)
+		            {
+		               // Perform an action on a view that requires it having symbols
+		            },
+		            [](BinaryView* view)
+		            {
+		                return view->HasSymbols();
+		            });
 
-			// Registering a command using a standard static function, and a lambda for the isValid check
-		 	// This also works with functions in the global namespace, e.g. "void myCommand(BinaryView* view)"
-			void MyPlugin::MyCommand(BinaryView* view)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function, and a lambda for the isValid check
+		    // This also works with functions in the global namespace, e.g. "void myCommand(BinaryView* view)"
+		    void MyPlugin::MyCommand(BinaryView* view)
+		    {
+		        // Perform an action on a view
+		    }
 
 		    PluginCommand::Register("MyPlugin\\MySecondAction", "Perform an action", MyPlugin::MyCommand,
-				   [](BinaryView *view){ return view->HasSymbols(); });
-			\endcode
+		           [](BinaryView *view){ return view->HasSymbols(); });
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
-		 	\param isValid Function that returns whether the command is allowed to be performed.
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
+		    \param isValid Function that returns whether the command is allowed to be performed.
 		*/
 		static void Register(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view)>& action, const std::function<bool(BinaryView* view)>& isValid);
+			const std::function<void(BinaryView* view)>& action, const std::function<bool(BinaryView* view)>& isValid);
 
 		/*! Register a command for a given BinaryView, when an address is selected.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using a lambda expression
+		    // Registering a command using a lambda expression
 		    PluginCommand::RegisterForAddress("MyPlugin\\MyAddressAction", "Perform an action on an address",
-				   [](BinaryView* view, uint64_t addr)
-				   {
-					   // Perform an action on a view and address
-				   });
+		           [](BinaryView* view, uint64_t addr)
+		           {
+		               // Perform an action on a view and address
+		           });
 
-			// Registering a command using a standard static function
-		 	// This also works with functions in the global namespace, e.g. "void myCommand(BinaryView* view)"
-			void MyPlugin::MyCommand(BinaryView* view, uint64_t addr)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function
+		    // This also works with functions in the global namespace, e.g. "void myCommand(BinaryView* view)"
+		    void MyPlugin::MyCommand(BinaryView* view, uint64_t addr)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForAddress("MyPlugin\\MySecondAddressAction", "Perform an action", MyPlugin::MyCommand);
+		    PluginCommand::RegisterForAddress("MyPlugin\\MySecondAddressAction", "Perform an action",
+		   MyPlugin::MyCommand);
 
-			\endcode
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
 		*/
 		static void RegisterForAddress(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, uint64_t addr)>& action);
+			const std::function<void(BinaryView* view, uint64_t addr)>& action);
 
 		/*! Register a command for a given BinaryView and an address, with a validity check.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using lambda expressions
+		    // Registering a command using lambda expressions
 		    PluginCommand::RegisterForAddress("MyPlugin\\MyAddressAction", "Perform an action",
-					[](BinaryView* view, uint64_t addr)
-					{
-					   // Perform an action on a view that requires it having symbols
-					},
-		        	[](BinaryView* view, uint64_t addr)
-					{
-						return view->HasSymbols();
-					});
+		            [](BinaryView* view, uint64_t addr)
+		            {
+		               // Perform an action on a view that requires it having symbols
+		            },
+		            [](BinaryView* view, uint64_t addr)
+		            {
+		                return view->HasSymbols();
+		            });
 
-			// Registering a command using a standard static function, and a lambda for the isValid check
-		 	// This also works with functions in the global namespace, e.g. "void myCommand(BinaryView* view)"
-			void MyPlugin::MyCommand(BinaryView* view, uint64_t addr)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function, and a lambda for the isValid check
+		    // This also works with functions in the global namespace, e.g. "void myCommand(BinaryView* view)"
+		    void MyPlugin::MyCommand(BinaryView* view, uint64_t addr)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForAddress("MyPlugin\\MySecondAddressAction", "Perform an action", MyPlugin::MyCommand,
-				   [](BinaryView *view, uint64_t addr){ return view->HasSymbols(); });
-			\endcode
+		    PluginCommand::RegisterForAddress("MyPlugin\\MySecondAddressAction", "Perform an action",
+		   MyPlugin::MyCommand,
+		           [](BinaryView *view, uint64_t addr){ return view->HasSymbols(); });
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
-		 	\param isValid Expression that returns whether the command is allowed to be performed.
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
+		    \param isValid Expression that returns whether the command is allowed to be performed.
 		*/
 		static void RegisterForAddress(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, uint64_t addr)>& action,
-		    const std::function<bool(BinaryView* view, uint64_t addr)>& isValid);
+			const std::function<void(BinaryView* view, uint64_t addr)>& action,
+			const std::function<bool(BinaryView* view, uint64_t addr)>& isValid);
 
 		/*! Register a command for a given BinaryView, when a range of address is selected.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using a lambda expression
+		    // Registering a command using a lambda expression
 		    PluginCommand::RegisterForRange("MyPlugin\\MyRangeAction", "Perform an action on a range",
-				   [](BinaryView* view, uint64_t addr, uint64_t len)
-				   {
-					   // Perform an action on a view and address
-				   });
+		           [](BinaryView* view, uint64_t addr, uint64_t len)
+		           {
+		               // Perform an action on a view and address
+		           });
 
-			// Registering a command using a standard static function
-		 	// This also works with functions in the global namespace, e.g. "void myCommand(BinaryView* view)"
-			void MyPlugin::MyCommand(BinaryView* view, uint64_t addr, uint64_t len)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function
+		    // This also works with functions in the global namespace, e.g. "void myCommand(BinaryView* view)"
+		    void MyPlugin::MyCommand(BinaryView* view, uint64_t addr, uint64_t len)
+		    {
+		        // Perform an action on a view
+		    }
 
 		    PluginCommand::RegisterForRange("MyPlugin\\MySecondRangeAction", "Perform an action", MyPlugin::MyCommand);
 
-			\endcode
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
 		*/
 		static void RegisterForRange(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, uint64_t addr, uint64_t len)>& action);
+			const std::function<void(BinaryView* view, uint64_t addr, uint64_t len)>& action);
 
 		/*! Register a command for a given BinaryView and a range, with a validity check.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using lambda expressions
+		    // Registering a command using lambda expressions
 		    PluginCommand::RegisterForRange("MyPlugin\\MyRangeAction", "Perform an action",
-					[](BinaryView* view, uint64_t addr, uint64_t len)
-					{
-					   // Perform an action on a view that requires it having symbols
-					},
-		        	[](BinaryView* view, uint64_t addr, uint64_t len)
-					{
-						return view->HasSymbols();
-					});
+		            [](BinaryView* view, uint64_t addr, uint64_t len)
+		            {
+		               // Perform an action on a view that requires it having symbols
+		            },
+		            [](BinaryView* view, uint64_t addr, uint64_t len)
+		            {
+		                return view->HasSymbols();
+		            });
 
-			// Registering a command using a standard static function, and a lambda for the isValid check
-		 	// This also works with functions in the global namespace, e.g. "void myCommand(BinaryView* view)"
-			void MyPlugin::MyCommand(BinaryView* view, uint64_t addr, uint64_t len)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function, and a lambda for the isValid check
+		    // This also works with functions in the global namespace, e.g. "void myCommand(BinaryView* view)"
+		    void MyPlugin::MyCommand(BinaryView* view, uint64_t addr, uint64_t len)
+		    {
+		        // Perform an action on a view
+		    }
 
 		    PluginCommand::RegisterForRange("MyPlugin\\MySecondRangeAction", "Perform an action", MyPlugin::MyCommand,
-				   [](BinaryView *view, uint64_t addr, uint64_t len){ return view->HasSymbols(); });
-			\endcode
+		           [](BinaryView *view, uint64_t addr, uint64_t len){ return view->HasSymbols(); });
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
-		 	\param isValid Expression that returns whether the command is allowed to be performed.
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
+		    \param isValid Expression that returns whether the command is allowed to be performed.
 		*/
 		static void RegisterForRange(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, uint64_t addr, uint64_t len)>& action,
-		    const std::function<bool(BinaryView* view, uint64_t addr, uint64_t len)>& isValid);
+			const std::function<void(BinaryView* view, uint64_t addr, uint64_t len)>& action,
+			const std::function<bool(BinaryView* view, uint64_t addr, uint64_t len)>& isValid);
 
 		/*! Register a command for a given BinaryView within a function.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using a lambda expression
+		    // Registering a command using a lambda expression
 		    PluginCommand::RegisterForFunction("MyPlugin\\MyFunctionAction", "Perform an action on a function",
-				   [](BinaryView* view, Function* func)
-				   {
-					   // Perform an action on a view and function
-				   });
+		           [](BinaryView* view, Function* func)
+		           {
+		               // Perform an action on a view and function
+		           });
 
-			// Registering a command using a standard static function
-		 	// This also works with functions in the global namespace, e.g.
-		 	// "void myCommand(BinaryView* view, Function* func)"
-			void MyPlugin::MyCommand(BinaryView* view, Function* func)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function
+		    // This also works with functions in the global namespace, e.g.
+		    // "void myCommand(BinaryView* view, Function* func)"
+		    void MyPlugin::MyCommand(BinaryView* view, Function* func)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForFunction("MyPlugin\\MySecondFunctionAction", "Perform an action", MyPlugin::MyCommand);
+		    PluginCommand::RegisterForFunction("MyPlugin\\MySecondFunctionAction", "Perform an action",
+		   MyPlugin::MyCommand);
 
-			\endcode
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
 		*/
 		static void RegisterForFunction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, Function* func)>& action);
+			const std::function<void(BinaryView* view, Function* func)>& action);
 
 		/*! Register a command for a given BinaryView and a function, with a validity check.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using lambda expressions
+		    // Registering a command using lambda expressions
 		    PluginCommand::RegisterForFunction("MyPlugin\\MyFunctionAction", "Perform an action",
-					[](BinaryView* view, Function* func)
-					{
-					   // Perform an action on a view that requires it having symbols
-					},
-		        	[](BinaryView* view, Function* func)
-					{
-						return view->HasSymbols();
-					});
+		            [](BinaryView* view, Function* func)
+		            {
+		               // Perform an action on a view that requires it having symbols
+		            },
+		            [](BinaryView* view, Function* func)
+		            {
+		                return view->HasSymbols();
+		            });
 
-			// Registering a command using a standard static function, and a lambda for the isValid check
-		 	// This also works with functions in the global namespace,
-		 	// 	e.g. "void myCommand(BinaryView* view, Function* func)"
-			void MyPlugin::MyCommand(BinaryView* view, Function* func)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function, and a lambda for the isValid check
+		    // This also works with functions in the global namespace,
+		    // 	e.g. "void myCommand(BinaryView* view, Function* func)"
+		    void MyPlugin::MyCommand(BinaryView* view, Function* func)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForFunction("MyPlugin\\MySecondFunctionAction", "Perform an action", MyPlugin::MyCommand,
-				   [](BinaryView *view, Function* func){ return view->HasSymbols(); });
-			\endcode
+		    PluginCommand::RegisterForFunction("MyPlugin\\MySecondFunctionAction", "Perform an action",
+		   MyPlugin::MyCommand,
+		           [](BinaryView *view, Function* func){ return view->HasSymbols(); });
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
-		 	\param isValid Expression that returns whether the command is allowed to be performed.
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
+		    \param isValid Expression that returns whether the command is allowed to be performed.
 		*/
 		static void RegisterForFunction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, Function* func)>& action,
-		    const std::function<bool(BinaryView* view, Function* func)>& isValid);
+			const std::function<void(BinaryView* view, Function* func)>& action,
+			const std::function<bool(BinaryView* view, Function* func)>& isValid);
 
 		/*! Register a command for a given BinaryView within a LowLevelILFunction.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using a lambda expression
-		    PluginCommand::RegisterForLowLevelILFunction("MyPlugin\\MyLLILFunctionAction", "Perform an action on a llil function",
-				   [](BinaryView* view, LowLevelILFunction* func)
-				   {
-					   // Perform an action on a view and function
-				   });
+		    // Registering a command using a lambda expression
+		    PluginCommand::RegisterForLowLevelILFunction("MyPlugin\\MyLLILFunctionAction", "Perform an action on a llil
+		   function",
+		           [](BinaryView* view, LowLevelILFunction* func)
+		           {
+		               // Perform an action on a view and function
+		           });
 
-			// Registering a command using a standard static function
-		 	// This also works with functions in the global namespace, e.g.
-		 	// "void myCommand(BinaryView* view, LowLevelILFunction* func)"
-			void MyPlugin::MyCommand(BinaryView* view, LowLevelILFunction* func)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function
+		    // This also works with functions in the global namespace, e.g.
+		    // "void myCommand(BinaryView* view, LowLevelILFunction* func)"
+		    void MyPlugin::MyCommand(BinaryView* view, LowLevelILFunction* func)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForLowLevelILFunction("MyPlugin\\MySecondLLILAction", "Perform an action", MyPlugin::MyCommand);
+		    PluginCommand::RegisterForLowLevelILFunction("MyPlugin\\MySecondLLILAction", "Perform an action",
+		   MyPlugin::MyCommand);
 
-			\endcode
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
 		*/
 		static void RegisterForLowLevelILFunction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, LowLevelILFunction* func)>& action);
+			const std::function<void(BinaryView* view, LowLevelILFunction* func)>& action);
 
 		/*! Register a command for a given BinaryView and a Low Level IL function, with a validity check.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using lambda expressions
+		    // Registering a command using lambda expressions
 		    PluginCommand::RegisterForLowLevelILFunction("MyPlugin\\MyLLILFunctionAction", "Perform an action",
-					[](BinaryView* view, LowLevelILFunction* func)
-					{
-					   // Perform an action on a view that requires it having symbols
-					},
-		        	[](BinaryView* view, LowLevelILFunction* func)
-					{
-						return view->HasSymbols();
-					});
+		            [](BinaryView* view, LowLevelILFunction* func)
+		            {
+		               // Perform an action on a view that requires it having symbols
+		            },
+		            [](BinaryView* view, LowLevelILFunction* func)
+		            {
+		                return view->HasSymbols();
+		            });
 
-			// Registering a command using a standard static function, and a lambda for the isValid check
-		 	// This also works with functions in the global namespace,
-		 	// 	e.g. "void myCommand(BinaryView* view, LowLevelILFunction* func)"
-			void MyPlugin::MyCommand(BinaryView* view, LowLevelILFunction* func)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function, and a lambda for the isValid check
+		    // This also works with functions in the global namespace,
+		    // 	e.g. "void myCommand(BinaryView* view, LowLevelILFunction* func)"
+		    void MyPlugin::MyCommand(BinaryView* view, LowLevelILFunction* func)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForLowLevelILFunction("MyPlugin\\MySecondLLILAction", "Perform an action", MyPlugin::MyCommand,
-				   [](BinaryView *view, LowLevelILFunction* func){ return view->HasSymbols(); });
-			\endcode
+		    PluginCommand::RegisterForLowLevelILFunction("MyPlugin\\MySecondLLILAction", "Perform an action",
+		   MyPlugin::MyCommand,
+		           [](BinaryView *view, LowLevelILFunction* func){ return view->HasSymbols(); });
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
-		 	\param isValid Expression that returns whether the command is allowed to be performed.
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
+		    \param isValid Expression that returns whether the command is allowed to be performed.
 		*/
 		static void RegisterForLowLevelILFunction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, LowLevelILFunction* func)>& action,
-		    const std::function<bool(BinaryView* view, LowLevelILFunction* func)>& isValid);
+			const std::function<void(BinaryView* view, LowLevelILFunction* func)>& action,
+			const std::function<bool(BinaryView* view, LowLevelILFunction* func)>& isValid);
 
 		/*! Register a command for a given BinaryView with a given LowLevelILInstruction.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using a lambda expression
+		    // Registering a command using a lambda expression
 		    PluginCommand::RegisterForRegisterForLowLevelILInstruction("MyPlugin\\MyLLILInstructionAction",
-		    		"Perform an action on an instruction",
-				   [](BinaryView* view, LowLevelILInstruction* instr)
-				   {
-					   // Perform an action on a view and a LowLevelILInstruction
-				   });
+		            "Perform an action on an instruction",
+		           [](BinaryView* view, LowLevelILInstruction* instr)
+		           {
+		               // Perform an action on a view and a LowLevelILInstruction
+		           });
 
-			// Registering a command using a standard static function
-		 	// This also works with functions in the global namespace, e.g.
-		 	// "void myCommand(BinaryView* view, LowLevelILInstruction* instr)"
-			void MyPlugin::MyCommand(BinaryView* view, LowLevelILInstruction* instr)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function
+		    // This also works with functions in the global namespace, e.g.
+		    // "void myCommand(BinaryView* view, LowLevelILInstruction* instr)"
+		    void MyPlugin::MyCommand(BinaryView* view, LowLevelILInstruction* instr)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForLowLevelILInstruction("MyPlugin\\MySecondLLILAction", "Perform an action", MyPlugin::MyCommand);
+		    PluginCommand::RegisterForLowLevelILInstruction("MyPlugin\\MySecondLLILAction", "Perform an action",
+		   MyPlugin::MyCommand);
 
-			\endcode
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
 		*/
 		static void RegisterForLowLevelILInstruction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, const LowLevelILInstruction& instr)>& action);
+			const std::function<void(BinaryView* view, const LowLevelILInstruction& instr)>& action);
 
 		/*! Register a command for a given BinaryView and a LowLevelILInstruction, with a validity check.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using lambda expressions
+		    // Registering a command using lambda expressions
 		    PluginCommand::RegisterForLowLevelILInstruction("MyPlugin\\MyLLILInstructionAction", "Perform an action",
-					[](BinaryView* view, LowLevelILInstruction* instr)
-					{
-					   // Perform an action on a view that requires it having symbols
-					},
-		        	[](BinaryView* view, LowLevelILInstruction* instr)
-					{
-						return view->HasSymbols();
-					});
+		            [](BinaryView* view, LowLevelILInstruction* instr)
+		            {
+		               // Perform an action on a view that requires it having symbols
+		            },
+		            [](BinaryView* view, LowLevelILInstruction* instr)
+		            {
+		                return view->HasSymbols();
+		            });
 
-			// Registering a command using a standard static function, and a lambda for the isValid check
-		 	// This also works with functions in the global namespace,
-		 	// 	e.g. "void myCommand(BinaryView* view, LowLevelILInstruction* instr)"
-			void MyPlugin::MyCommand(BinaryView* view, LowLevelILInstruction* instr)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function, and a lambda for the isValid check
+		    // This also works with functions in the global namespace,
+		    // 	e.g. "void myCommand(BinaryView* view, LowLevelILInstruction* instr)"
+		    void MyPlugin::MyCommand(BinaryView* view, LowLevelILInstruction* instr)
+		    {
+		        // Perform an action on a view
+		    }
 
 		    PluginCommand::RegisterForLowLevelILInstruction("MyPlugin\\MySecondLLILAction",
-		    		"Perform an action", MyPlugin::MyCommand,
-				   [](BinaryView *view, LowLevelILInstruction* instr){ return view->HasSymbols(); });
-			\endcode
+		            "Perform an action", MyPlugin::MyCommand,
+		           [](BinaryView *view, LowLevelILInstruction* instr){ return view->HasSymbols(); });
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
-		 	\param isValid Expression that returns whether the command is allowed to be performed.
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
+		    \param isValid Expression that returns whether the command is allowed to be performed.
 		*/
 		static void RegisterForLowLevelILInstruction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, const LowLevelILInstruction& instr)>& action,
-		    const std::function<bool(BinaryView* view, const LowLevelILInstruction& instr)>& isValid);
+			const std::function<void(BinaryView* view, const LowLevelILInstruction& instr)>& action,
+			const std::function<bool(BinaryView* view, const LowLevelILInstruction& instr)>& isValid);
 
 		/*! Register a command for a given BinaryView within a MediumLevelILFunction.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using a lambda expression
-		    PluginCommand::RegisterForMediumLevelILFunction("MyPlugin\\MyMLILFunctionAction", "Perform an action on a mlil function",
-				   [](BinaryView* view, MediumLevelILFunction* func)
-				   {
-					   // Perform an action on a view and function
-				   });
+		    // Registering a command using a lambda expression
+		    PluginCommand::RegisterForMediumLevelILFunction("MyPlugin\\MyMLILFunctionAction", "Perform an action on a
+		   mlil function",
+		           [](BinaryView* view, MediumLevelILFunction* func)
+		           {
+		               // Perform an action on a view and function
+		           });
 
-			// Registering a command using a standard static function
-		 	// This also works with functions in the global namespace, e.g.
-		 	// "void myCommand(BinaryView* view, MediumLevelILFunction* func)"
-			void MyPlugin::MyCommand(BinaryView* view, MediumLevelILFunction* func)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function
+		    // This also works with functions in the global namespace, e.g.
+		    // "void myCommand(BinaryView* view, MediumLevelILFunction* func)"
+		    void MyPlugin::MyCommand(BinaryView* view, MediumLevelILFunction* func)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForMediumLevelILFunction("MyPlugin\\MySecondMLILAction", "Perform an action", MyPlugin::MyCommand);
+		    PluginCommand::RegisterForMediumLevelILFunction("MyPlugin\\MySecondMLILAction", "Perform an action",
+		   MyPlugin::MyCommand);
 
-			\endcode
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
 		*/
 		static void RegisterForMediumLevelILFunction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, MediumLevelILFunction* func)>& action);
+			const std::function<void(BinaryView* view, MediumLevelILFunction* func)>& action);
 
 		/*! Register a command for a given BinaryView and a Medium Level IL function, with a validity check.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using lambda expressions
+		    // Registering a command using lambda expressions
 		    PluginCommand::RegisterForMediumLevelILFunction("MyPlugin\\MyMLILFunctionAction", "Perform an action",
-					[](BinaryView* view, MediumLevelILFunction* func)
-					{
-					   // Perform an action on a view that requires it having symbols
-					},
-		        	[](BinaryView* view, MediumLevelILFunction* func)
-					{
-						return view->HasSymbols();
-					});
+		            [](BinaryView* view, MediumLevelILFunction* func)
+		            {
+		               // Perform an action on a view that requires it having symbols
+		            },
+		            [](BinaryView* view, MediumLevelILFunction* func)
+		            {
+		                return view->HasSymbols();
+		            });
 
-			// Registering a command using a standard static function, and a lambda for the isValid check
-		 	// This also works with functions in the global namespace,
-		 	// 	e.g. "void myCommand(BinaryView* view, MediumLevelILFunction* func)"
-			void MyPlugin::MyCommand(BinaryView* view, MediumLevelILFunction* func)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function, and a lambda for the isValid check
+		    // This also works with functions in the global namespace,
+		    // 	e.g. "void myCommand(BinaryView* view, MediumLevelILFunction* func)"
+		    void MyPlugin::MyCommand(BinaryView* view, MediumLevelILFunction* func)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForMediumLevelILFunction("MyPlugin\\MySecondMLILAction", "Perform an action", MyPlugin::MyCommand,
-				   [](BinaryView *view, MediumLevelILFunction* func){ return view->HasSymbols(); });
-			\endcode
+		    PluginCommand::RegisterForMediumLevelILFunction("MyPlugin\\MySecondMLILAction", "Perform an action",
+		   MyPlugin::MyCommand,
+		           [](BinaryView *view, MediumLevelILFunction* func){ return view->HasSymbols(); });
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
-		 	\param isValid Expression that returns whether the command is allowed to be performed.
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
+		    \param isValid Expression that returns whether the command is allowed to be performed.
 		*/
 		static void RegisterForMediumLevelILFunction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, MediumLevelILFunction* func)>& action,
-		    const std::function<bool(BinaryView* view, MediumLevelILFunction* func)>& isValid);
+			const std::function<void(BinaryView* view, MediumLevelILFunction* func)>& action,
+			const std::function<bool(BinaryView* view, MediumLevelILFunction* func)>& isValid);
 
 		/*! Register a command for a given BinaryView with a given MediumLevelILInstruction.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using a lambda expression
+		    // Registering a command using a lambda expression
 		    PluginCommand::RegisterForRegisterForMediumLevelILInstruction("MyPlugin\\MyMLILInstructionAction",
-		    		"Perform an action on an instruction",
-				   [](BinaryView* view, MediumLevelILInstruction* instr)
-				   {
-					   // Perform an action on a view and a MediumLevelILInstruction
-				   });
+		            "Perform an action on an instruction",
+		           [](BinaryView* view, MediumLevelILInstruction* instr)
+		           {
+		               // Perform an action on a view and a MediumLevelILInstruction
+		           });
 
-			// Registering a command using a standard static function
-		 	// This also works with functions in the global namespace, e.g.
-		 	// "void myCommand(BinaryView* view, MediumLevelILInstruction* instr)"
-			void MyPlugin::MyCommand(BinaryView* view, MediumLevelILInstruction* instr)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function
+		    // This also works with functions in the global namespace, e.g.
+		    // "void myCommand(BinaryView* view, MediumLevelILInstruction* instr)"
+		    void MyPlugin::MyCommand(BinaryView* view, MediumLevelILInstruction* instr)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForMediumLevelILInstruction("MyPlugin\\MySecondMLILAction", "Perform an action", MyPlugin::MyCommand);
+		    PluginCommand::RegisterForMediumLevelILInstruction("MyPlugin\\MySecondMLILAction", "Perform an action",
+		   MyPlugin::MyCommand);
 
-			\endcode
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
 		*/
 		static void RegisterForMediumLevelILInstruction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, const MediumLevelILInstruction& instr)>& action);
+			const std::function<void(BinaryView* view, const MediumLevelILInstruction& instr)>& action);
 
 		/*! Register a command for a given BinaryView and a MediumLevelILInstruction, with a validity check.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using lambda expressions
+		    // Registering a command using lambda expressions
 		    PluginCommand::RegisterForMediumLevelILInstruction("MyPlugin\\MyMLILInstructionAction", "Perform an action",
-					[](BinaryView* view, MediumLevelILInstruction* instr)
-					{
-					   // Perform an action on a view that requires it having symbols
-					},
-		        	[](BinaryView* view, MediumLevelILInstruction* instr)
-					{
-						return view->HasSymbols();
-					});
+		            [](BinaryView* view, MediumLevelILInstruction* instr)
+		            {
+		               // Perform an action on a view that requires it having symbols
+		            },
+		            [](BinaryView* view, MediumLevelILInstruction* instr)
+		            {
+		                return view->HasSymbols();
+		            });
 
-			// Registering a command using a standard static function, and a lambda for the isValid check
-		 	// This also works with functions in the global namespace,
-		 	// 	e.g. "void myCommand(BinaryView* view, MediumLevelILInstruction* instr)"
-			void MyPlugin::MyCommand(BinaryView* view, MediumLevelILInstruction* instr)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function, and a lambda for the isValid check
+		    // This also works with functions in the global namespace,
+		    // 	e.g. "void myCommand(BinaryView* view, MediumLevelILInstruction* instr)"
+		    void MyPlugin::MyCommand(BinaryView* view, MediumLevelILInstruction* instr)
+		    {
+		        // Perform an action on a view
+		    }
 
 		    PluginCommand::RegisterForMediumLevelILInstruction("MyPlugin\\MySecondMLILAction",
-		    		"Perform an action", MyPlugin::MyCommand,
-				   [](BinaryView *view, MediumLevelILInstruction* instr){ return view->HasSymbols(); });
-			\endcode
+		            "Perform an action", MyPlugin::MyCommand,
+		           [](BinaryView *view, MediumLevelILInstruction* instr){ return view->HasSymbols(); });
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
-		 	\param isValid Expression that returns whether the command is allowed to be performed.
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
+		    \param isValid Expression that returns whether the command is allowed to be performed.
 		*/
 		static void RegisterForMediumLevelILInstruction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, const MediumLevelILInstruction& instr)>& action,
-		    const std::function<bool(BinaryView* view, const MediumLevelILInstruction& instr)>& isValid);
+			const std::function<void(BinaryView* view, const MediumLevelILInstruction& instr)>& action,
+			const std::function<bool(BinaryView* view, const MediumLevelILInstruction& instr)>& isValid);
 
 		/*! Register a command for a given BinaryView within a HighLevelILFunction.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using a lambda expression
-		    PluginCommand::RegisterForHighLevelILFunction("MyPlugin\\MyHLILFunctionAction", "Perform an action on a hlil function",
-				   [](BinaryView* view, HighLevelILFunction* func)
-				   {
-					   // Perform an action on a view and function
-				   });
+		    // Registering a command using a lambda expression
+		    PluginCommand::RegisterForHighLevelILFunction("MyPlugin\\MyHLILFunctionAction", "Perform an action on a hlil
+		   function",
+		           [](BinaryView* view, HighLevelILFunction* func)
+		           {
+		               // Perform an action on a view and function
+		           });
 
-			// Registering a command using a standard static function
-		 	// This also works with functions in the global namespace, e.g.
-		 	// "void myCommand(BinaryView* view, HighLevelILFunction* func)"
-			void MyPlugin::MyCommand(BinaryView* view, HighLevelILFunction* func)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function
+		    // This also works with functions in the global namespace, e.g.
+		    // "void myCommand(BinaryView* view, HighLevelILFunction* func)"
+		    void MyPlugin::MyCommand(BinaryView* view, HighLevelILFunction* func)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForMediumLevelILFunction("MyPlugin\\MySecondHLILAction", "Perform an action", MyPlugin::MyCommand);
+		    PluginCommand::RegisterForMediumLevelILFunction("MyPlugin\\MySecondHLILAction", "Perform an action",
+		   MyPlugin::MyCommand);
 
-			\endcode
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
 		*/
 		static void RegisterForHighLevelILFunction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, HighLevelILFunction* func)>& action);
+			const std::function<void(BinaryView* view, HighLevelILFunction* func)>& action);
 
 		/*! Register a command for a given BinaryView and a High Level IL function, with a validity check.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using lambda expressions
+		    // Registering a command using lambda expressions
 		    PluginCommand::RegisterForHighLevelILFunction("MyPlugin\\MyHLILFunctionAction", "Perform an action",
-					[](BinaryView* view, HighLevelILFunction* func)
-					{
-					   // Perform an action on a view that requires it having symbols
-					},
-		        	[](BinaryView* view, HighLevelILFunction* func)
-					{
-						return view->HasSymbols();
-					});
+		            [](BinaryView* view, HighLevelILFunction* func)
+		            {
+		               // Perform an action on a view that requires it having symbols
+		            },
+		            [](BinaryView* view, HighLevelILFunction* func)
+		            {
+		                return view->HasSymbols();
+		            });
 
-			// Registering a command using a standard static function, and a lambda for the isValid check
-		 	// This also works with functions in the global namespace,
-		 	// 	e.g. "void myCommand(BinaryView* view, HighLevelILFunction* func)"
-			void MyPlugin::MyCommand(BinaryView* view, HighLevelILFunction* func)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function, and a lambda for the isValid check
+		    // This also works with functions in the global namespace,
+		    // 	e.g. "void myCommand(BinaryView* view, HighLevelILFunction* func)"
+		    void MyPlugin::MyCommand(BinaryView* view, HighLevelILFunction* func)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForHighLevelILFunction("MyPlugin\\MySecondHLILAction", "Perform an action", MyPlugin::MyCommand,
-				   [](BinaryView *view, HighLevelILFunction* func){ return view->HasSymbols(); });
-			\endcode
+		    PluginCommand::RegisterForHighLevelILFunction("MyPlugin\\MySecondHLILAction", "Perform an action",
+		   MyPlugin::MyCommand,
+		           [](BinaryView *view, HighLevelILFunction* func){ return view->HasSymbols(); });
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
-		 	\param isValid Expression that returns whether the command is allowed to be performed.
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
+		    \param isValid Expression that returns whether the command is allowed to be performed.
 		*/
 		static void RegisterForHighLevelILFunction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, HighLevelILFunction* func)>& action,
-		    const std::function<bool(BinaryView* view, HighLevelILFunction* func)>& isValid);
+			const std::function<void(BinaryView* view, HighLevelILFunction* func)>& action,
+			const std::function<bool(BinaryView* view, HighLevelILFunction* func)>& isValid);
 
 		/*! Register a command for a given BinaryView with a given HighLevelILInstruction.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using a lambda expression
+		    // Registering a command using a lambda expression
 		    PluginCommand::RegisterForRegisterForHighLevelILInstruction("MyPlugin\\MyHLILInstructionAction",
-		    		"Perform an action on an instruction",
-				   [](BinaryView* view, HighLevelILInstruction* instr)
-				   {
-					   // Perform an action on a view and a HighLevelILInstruction
-				   });
+		            "Perform an action on an instruction",
+		           [](BinaryView* view, HighLevelILInstruction* instr)
+		           {
+		               // Perform an action on a view and a HighLevelILInstruction
+		           });
 
-			// Registering a command using a standard static function
-		 	// This also works with functions in the global namespace, e.g.
-		 	// "void myCommand(BinaryView* view, HighLevelILInstruction* instr)"
-			void MyPlugin::MyCommand(BinaryView* view, HighLevelILInstruction* instr)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function
+		    // This also works with functions in the global namespace, e.g.
+		    // "void myCommand(BinaryView* view, HighLevelILInstruction* instr)"
+		    void MyPlugin::MyCommand(BinaryView* view, HighLevelILInstruction* instr)
+		    {
+		        // Perform an action on a view
+		    }
 
-		    PluginCommand::RegisterForHighLevelILInstruction("MyPlugin\\MySecondHLILAction", "Perform an action", MyPlugin::MyCommand);
+		    PluginCommand::RegisterForHighLevelILInstruction("MyPlugin\\MySecondHLILAction", "Perform an action",
+		   MyPlugin::MyCommand);
 
-			\endcode
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
 		*/
 		static void RegisterForHighLevelILInstruction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, const HighLevelILInstruction& instr)>& action);
+			const std::function<void(BinaryView* view, const HighLevelILInstruction& instr)>& action);
 
 		/*! Register a command for a given BinaryView and a HighLevelILInstruction, with a validity check.
 
-			This will appear in the top menu and the right-click context menu.
+		    This will appear in the top menu and the right-click context menu.
 
-			\code{.cpp}
+		    \code{.cpp}
 
-		 	// Registering a command using lambda expressions
+		    // Registering a command using lambda expressions
 		    PluginCommand::RegisterForHighLevelILInstruction("MyPlugin\\MyHLILInstructionAction", "Perform an action",
-					[](BinaryView* view, HighLevelILInstruction* instr)
-					{
-					   // Perform an action on a view that requires it having symbols
-					},
-		        	[](BinaryView* view, HighLevelILInstruction* instr)
-					{
-						return view->HasSymbols();
-					});
+		            [](BinaryView* view, HighLevelILInstruction* instr)
+		            {
+		               // Perform an action on a view that requires it having symbols
+		            },
+		            [](BinaryView* view, HighLevelILInstruction* instr)
+		            {
+		                return view->HasSymbols();
+		            });
 
-			// Registering a command using a standard static function, and a lambda for the isValid check
-		 	// This also works with functions in the global namespace,
-		 	// 	e.g. "void myCommand(BinaryView* view, HighLevelILInstruction* instr)"
-			void MyPlugin::MyCommand(BinaryView* view, HighLevelILInstruction* instr)
-		 	{
-		 		// Perform an action on a view
-		 	}
+		    // Registering a command using a standard static function, and a lambda for the isValid check
+		    // This also works with functions in the global namespace,
+		    // 	e.g. "void myCommand(BinaryView* view, HighLevelILInstruction* instr)"
+		    void MyPlugin::MyCommand(BinaryView* view, HighLevelILInstruction* instr)
+		    {
+		        // Perform an action on a view
+		    }
 
 		    PluginCommand::RegisterForHighLevelILInstruction("MyPlugin\\MySecondHLILAction",
-		    		"Perform an action", MyPlugin::MyCommand,
-				   [](BinaryView *view, HighLevelILInstruction* instr){ return view->HasSymbols(); });
-			\endcode
+		            "Perform an action", MyPlugin::MyCommand,
+		           [](BinaryView *view, HighLevelILInstruction* instr){ return view->HasSymbols(); });
+		    \endcode
 
-			\param name
-		 	\parblock
-		 	Name of the command to register. This will appear in the top menu and the context menu.
+		    \param name
+		    \parblock
+		    Name of the command to register. This will appear in the top menu and the context menu.
 
-		 	You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
-		 	be the item which upon being clicked will perform the action.
-		 	\endparblock
-			\param description Description of the command
-			\param action Action to perform
-		 	\param isValid Expression that returns whether the command is allowed to be performed.
+		    You can register submenus to an item by separating names with a \c "\\". The base (farthest right) name will
+		    be the item which upon being clicked will perform the action.
+		    \endparblock
+		    \param description Description of the command
+		    \param action Action to perform
+		    \param isValid Expression that returns whether the command is allowed to be performed.
 		*/
 		static void RegisterForHighLevelILInstruction(const std::string& name, const std::string& description,
-		    const std::function<void(BinaryView* view, const HighLevelILInstruction& instr)>& action,
-		    const std::function<bool(BinaryView* view, const HighLevelILInstruction& instr)>& isValid);
+			const std::function<void(BinaryView* view, const HighLevelILInstruction& instr)>& action,
+			const std::function<bool(BinaryView* view, const HighLevelILInstruction& instr)>& isValid);
 
 		/*! Get the list of registered PluginCommands
 
-			\return The list of registered PluginCommands
+		    \return The list of registered PluginCommands
 		*/
 		static std::vector<PluginCommand> GetList();
 
 		/*! Get the list of valid PluginCommands for a given context
 
-			\param ctxt The context to be used for the checks
-			\return The list of valid plugin commands.
+		    \param ctxt The context to be used for the checks
+		    \return The list of valid plugin commands.
 		*/
 		static std::vector<PluginCommand> GetValidList(const PluginCommandContext& ctxt);
 
 		/*! Get the name for the registered PluginCommand
 
-			\return The name for the registered PluginCommand
+		    \return The name for the registered PluginCommand
 		*/
 		std::string GetName() const { return m_command.name; }
 
 		/*! Get the description for the registered PluginCommand
 
-			\return The description for the registered PluginCommand
+		    \return The description for the registered PluginCommand
 		*/
 		std::string GetDescription() const { return m_command.description; }
 
 		/*! Get the type of the registered PluginCommand
 
-			\return The type of the registered PluginCommand
+		    \return The type of the registered PluginCommand
 		*/
 		BNPluginCommandType GetType() const { return m_command.type; }
 		const BNPluginCommand* GetObject() const { return &m_command; }
@@ -15111,12 +15300,12 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup callingconvention
+	    \ingroup callingconvention
 	*/
 	class CallingConvention :
-	    public CoreRefCountObject<BNCallingConvention, BNNewCallingConventionReference, BNFreeCallingConvention>
+		public CoreRefCountObject<BNCallingConvention, BNNewCallingConventionReference, BNFreeCallingConvention>
 	{
-	  protected:
+	protected:
 		CallingConvention(BNCallingConvention* cc);
 		CallingConvention(Architecture* arch, const std::string& name);
 
@@ -15141,15 +15330,15 @@ namespace BinaryNinja {
 
 		static uint32_t* GetImplicitlyDefinedRegistersCallback(void* ctxt, size_t* count);
 		static void GetIncomingRegisterValueCallback(
-		    void* ctxt, uint32_t reg, BNFunction* func, BNRegisterValue* result);
+			void* ctxt, uint32_t reg, BNFunction* func, BNRegisterValue* result);
 		static void GetIncomingFlagValueCallback(void* ctxt, uint32_t reg, BNFunction* func, BNRegisterValue* result);
 
 		static void GetIncomingVariableForParameterVariableCallback(
-		    void* ctxt, const BNVariable* var, BNFunction* func, BNVariable* result);
+			void* ctxt, const BNVariable* var, BNFunction* func, BNVariable* result);
 		static void GetParameterVariableForIncomingVariableCallback(
-		    void* ctxt, const BNVariable* var, BNFunction* func, BNVariable* result);
+			void* ctxt, const BNVariable* var, BNFunction* func, BNVariable* result);
 
-	  public:
+	public:
 		Ref<Architecture> GetArchitecture() const;
 		std::string GetName() const;
 
@@ -15178,11 +15367,11 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup callingconvention
+	    \ingroup callingconvention
 	*/
 	class CoreCallingConvention : public CallingConvention
 	{
-	  public:
+	public:
 		CoreCallingConvention(BNCallingConvention* cc);
 
 		virtual std::vector<uint32_t> GetCallerSavedRegisters() override;
@@ -15212,176 +15401,160 @@ namespace BinaryNinja {
 	/*!
 	    Platform base class. This should be subclassed when creating a new platform
 
-	 	\ingroup Platform
+	    \ingroup Platform
 	*/
 	class Platform : public CoreRefCountObject<BNPlatform, BNNewPlatformReference, BNFreePlatform>
 	{
-	  protected:
+	protected:
 		Platform(Architecture* arch, const std::string& name);
 		Platform(Architecture* arch, const std::string& name, const std::string& typeFile,
-		    const std::vector<std::string>& includeDirs = std::vector<std::string>());
+			const std::vector<std::string>& includeDirs = std::vector<std::string>());
 
-		static void InitCallback(void *ctxt, BNPlatform*);
+		static void InitCallback(void* ctxt, BNPlatform*);
 		static void InitViewCallback(void* ctxt, BNBinaryView* view);
 		static uint32_t* GetGlobalRegistersCallback(void* ctxt, size_t* count);
 		static void FreeRegisterListCallback(void* ctxt, uint32_t* regs, size_t count);
 		static BNType* GetGlobalRegisterTypeCallback(void* ctxt, uint32_t reg);
-		static void AdjustTypeParserInputCallback(
-			void* ctxt,
-			BNTypeParser* parser,
-			const char* const* argumentsIn,
-			size_t argumentsLenIn,
-			const char* const* sourceFileNamesIn,
-			const char* const* sourceFileValuesIn,
-			size_t sourceFilesLenIn,
-			char*** argumentsOut,
-			size_t* argumentsLenOut,
-			char*** sourceFileNamesOut,
-			char*** sourceFileValuesOut,
-			size_t* sourceFilesLenOut
-		);
-		static void FreeTypeParserInputCallback(
-			void* ctxt,
-			char** arguments,
-			size_t argumentsLen,
-			char** sourceFileNames,
-			char** sourceFileValues,
-			size_t sourceFilesLen
-		);
+		static void AdjustTypeParserInputCallback(void* ctxt, BNTypeParser* parser, const char* const* argumentsIn,
+			size_t argumentsLenIn, const char* const* sourceFileNamesIn, const char* const* sourceFileValuesIn,
+			size_t sourceFilesLenIn, char*** argumentsOut, size_t* argumentsLenOut, char*** sourceFileNamesOut,
+			char*** sourceFileValuesOut, size_t* sourceFilesLenOut);
+		static void FreeTypeParserInputCallback(void* ctxt, char** arguments, size_t argumentsLen,
+			char** sourceFileNames, char** sourceFileValues, size_t sourceFilesLen);
 		static bool GetFallbackEnabledCallback(void* ctxt);
 
-	  public:
+	public:
 		Platform(BNPlatform* platform);
 
 		/*! Get the Architecture for this platform
 
-			\return The platform architecture
+		    \return The platform architecture
 		*/
 		Ref<Architecture> GetArchitecture() const;
 
 		/*! Get the name of this platform
 
-			\return The platform namee
+		    \return The platform namee
 		*/
 		std::string GetName() const;
 
 		/*! Register a Platform
 
-			\param os OS for the platform to register
-			\param platform Platform to register
+		    \param os OS for the platform to register
+		    \param platform Platform to register
 		*/
 		static void Register(const std::string& os, Platform* platform);
 
 		/*! Get a platform by name
 
-			\param name Name of the platform to retrieve
-			\return The Platform, if it exists
+		    \param name Name of the platform to retrieve
+		    \return The Platform, if it exists
 		*/
 		static Ref<Platform> GetByName(const std::string& name);
 
 		/*! Get the list of registered platforms
 
-			\return The list of registered platforms
+		    \return The list of registered platforms
 		*/
 		static std::vector<Ref<Platform>> GetList();
 
 		/*! Get the list of registered platforms by Architecture
 
-			\param arch Architecture to get the registered platforms for
-			\return The list of registered platforms by Architecture
+		    \param arch Architecture to get the registered platforms for
+		    \return The list of registered platforms by Architecture
 		*/
 		static std::vector<Ref<Platform>> GetList(Architecture* arch);
 
 		/*! Get the list of registered platforms by os
 
-			\param os OS to get the registered platforms for
-			\return The list of registered platforms by Architecture
+		    \param os OS to get the registered platforms for
+		    \return The list of registered platforms by Architecture
 		*/
 		static std::vector<Ref<Platform>> GetList(const std::string& os);
 
 		/*! Get the list of registered platforms by OS and Architecture
 
-			\param os OS to get the registered platforms for
-			\param arch Architecture to get the registered platforms for
-			\return The list of registered platforms
+		    \param os OS to get the registered platforms for
+		    \param arch Architecture to get the registered platforms for
+		    \return The list of registered platforms
 		*/
 		static std::vector<Ref<Platform>> GetList(const std::string& os, Architecture* arch);
 
 		/*! Get the list of operating systems
 
-			\return The list of operating systems
+		    \return The list of operating systems
 		*/
 		static std::vector<std::string> GetOSList();
 
 		/*! Get the default calling convention for this platform
 
-			\return The default calling convention
+		    \return The default calling convention
 		*/
 		Ref<CallingConvention> GetDefaultCallingConvention() const;
 
 		/*! Get the cdecl CallingConvention
 
-			\return The cdecl CallingConvention
+		    \return The cdecl CallingConvention
 		*/
 		Ref<CallingConvention> GetCdeclCallingConvention() const;
 
 		/*! Get the stdcall CallingConvention
 
-			\return The stdcall CallingConvention
+		    \return The stdcall CallingConvention
 		*/
 		Ref<CallingConvention> GetStdcallCallingConvention() const;
 
 		/*! Get the fastcall CallingConvention
 
-			\return The fastcall Calling Convention
+		    \return The fastcall Calling Convention
 		*/
 		Ref<CallingConvention> GetFastcallCallingConvention() const;
 
 		/*! Get the list of registered calling conventions
 
-			\return The list of registered calling conventions
+		    \return The list of registered calling conventions
 		*/
 		std::vector<Ref<CallingConvention>> GetCallingConventions() const;
 
 		/*! Get the syscall calling convention
 
-			\return The syscall CallingConvention
+		    \return The syscall CallingConvention
 		*/
 		Ref<CallingConvention> GetSystemCallConvention() const;
 
 		/*! Register a Calling Convention
 
-			\param cc Calling Convention to register
+		    \param cc Calling Convention to register
 		*/
 		void RegisterCallingConvention(CallingConvention* cc);
 
 		/*! Set the default calling convention
 
-			\param cc The new default CallingConvention
+		    \param cc The new default CallingConvention
 		*/
 		void RegisterDefaultCallingConvention(CallingConvention* cc);
 
 		/*! Set the cdecl calling convention
 
-			\param cc The new cdecl CallingConvention
+		    \param cc The new cdecl CallingConvention
 		*/
 		void RegisterCdeclCallingConvention(CallingConvention* cc);
 
 		/*! Set the stdcall calling convention
 
-			\param cc The new stdcall CallingConvention
+		    \param cc The new stdcall CallingConvention
 		*/
 		void RegisterStdcallCallingConvention(CallingConvention* cc);
 
 		/*! Set the fastcall calling convention
 
-			\param cc The new fastcall calling convention
+		    \param cc The new fastcall calling convention
 		*/
 		void RegisterFastcallCallingConvention(CallingConvention* cc);
 
 		/*! Set the syscall calling convention
 
-			\param cc The new syscall calling convention
+		    \param cc The new syscall calling convention
 		*/
 		void SetSystemCallConvention(CallingConvention* cc);
 
@@ -15411,15 +15584,12 @@ namespace BinaryNinja {
 
 		/*! Modify the input passed to the Type Parser with Platform-specific features.
 
-			\param[in] parser Type Parser instance
-			\param[in,out] arguments Arguments to the type parser
-			\param[in,out] sourceFiles Source file names and contents
+		    \param[in] parser Type Parser instance
+		    \param[in,out] arguments Arguments to the type parser
+		    \param[in,out] sourceFiles Source file names and contents
 		 */
-		virtual void AdjustTypeParserInput(
-			Ref<class TypeParser> parser,
-			std::vector<std::string>& arguments,
-			std::vector<std::pair<std::string, std::string>>& sourceFiles
-		);
+		virtual void AdjustTypeParserInput(Ref<class TypeParser> parser, std::vector<std::string>& arguments,
+			std::vector<std::pair<std::string, std::string>>& sourceFiles);
 
 		/*! Provide an option for platforms to decide whether to use
 		 * the fallback type library.
@@ -15432,32 +15602,32 @@ namespace BinaryNinja {
 		void AddRelatedPlatform(Architecture* arch, Platform* platform);
 		/*! Get the list of related platforms for this platform
 
-		 	\return A vector of Ref<Platform>s
+		    \return A vector of Ref<Platform>s
 		 */
 		std::vector<Ref<Platform>> GetRelatedPlatforms();
 		Ref<Platform> GetAssociatedPlatformByAddress(uint64_t& addr);
 
 		/*! Get the list of platform-specific types
 
-			\return A map of Platform Type QualifiedNames and Ref<Type>s
+		    \return A map of Platform Type QualifiedNames and Ref<Type>s
 		*/
 		std::map<QualifiedName, Ref<Type>> GetTypes();
 
 		/*! Get the list of platform-specific variable definitions
 
-			\return A map of Platform Variable QualifiedNames and Ref<Type>s
+		    \return A map of Platform Variable QualifiedNames and Ref<Type>s
 		*/
 		std::map<QualifiedName, Ref<Type>> GetVariables();
 
 		/*! Get the list of platform-specific function definitions
 
-			\return A map of Platform Function QualifiedNames and Ref<Type>s
+		    \return A map of Platform Function QualifiedNames and Ref<Type>s
 		*/
 		std::map<QualifiedName, Ref<Type>> GetFunctions();
 
 		/*! System calls for this platform
 
-			\return A list of system calls for this platform
+		    \return A list of system calls for this platform
 		*/
 		std::map<uint32_t, QualifiedNameAndType> GetSystemCalls();
 
@@ -15466,7 +15636,7 @@ namespace BinaryNinja {
 		std::vector<Ref<TypeLibrary>> GetTypeLibrariesByName(const std::string& name);
 
 		/*! Type Container for all registered types in the Platform.
-			\return Platform types Type Container
+		    \return Platform types Type Container
 		 */
 		TypeContainer GetTypeContainer();
 
@@ -15478,49 +15648,51 @@ namespace BinaryNinja {
 
 		std::string GenerateAutoPlatformTypeId(const QualifiedName& name);
 		Ref<NamedTypeReference> GenerateAutoPlatformTypeReference(
-		    BNNamedTypeReferenceClass cls, const QualifiedName& name);
+			BNNamedTypeReferenceClass cls, const QualifiedName& name);
 		std::string GetAutoPlatformTypeIdSource();
 
 		/*! Parses the source string and any needed headers searching for them in
-			the optional list of directories provided in ``includeDirs``.
+		    the optional list of directories provided in ``includeDirs``.
 
-		 	\note This API does not allow the source to rely on existing types that only exist in a specific view. Use BinaryView->ParseTypeString instead.
+		    \note This API does not allow the source to rely on existing types that only exist in a specific view. Use
+		   BinaryView->ParseTypeString instead.
 
-			\param source Source string to be parsed
-			\param fileName Source Filename
-			\param types map reference that Types will be copied into
-			\param variables map reference that variables will be copied into
-			\param functions map reference that functions will be copied into
-			\param errors string reference that any errors will be copied into
-			\param includeDirs optional list of directories to include for header searches
-			\param autoTypeSource optional source of types if used for automatically generated types
-			\return true on success, false otherwise
+		    \param source Source string to be parsed
+		    \param fileName Source Filename
+		    \param types map reference that Types will be copied into
+		    \param variables map reference that variables will be copied into
+		    \param functions map reference that functions will be copied into
+		    \param errors string reference that any errors will be copied into
+		    \param includeDirs optional list of directories to include for header searches
+		    \param autoTypeSource optional source of types if used for automatically generated types
+		    \return true on success, false otherwise
 		*/
 		bool ParseTypesFromSource(const std::string& source, const std::string& fileName,
-		    std::map<QualifiedName, Ref<Type>>& types, std::map<QualifiedName, Ref<Type>>& variables,
-		    std::map<QualifiedName, Ref<Type>>& functions, std::string& errors,
-		    const std::vector<std::string>& includeDirs = std::vector<std::string>(),
-		    const std::string& autoTypeSource = "");
+			std::map<QualifiedName, Ref<Type>>& types, std::map<QualifiedName, Ref<Type>>& variables,
+			std::map<QualifiedName, Ref<Type>>& functions, std::string& errors,
+			const std::vector<std::string>& includeDirs = std::vector<std::string>(),
+			const std::string& autoTypeSource = "");
 
 		/*! Parses the source string and any needed headers searching for them in
-			the optional list of directories provided in ``includeDirs``.
+		    the optional list of directories provided in ``includeDirs``.
 
-			\note This API does not allow the source to rely on existing types that only exist in a specific view. Use BinaryView->ParseTypeString instead.
+		    \note This API does not allow the source to rely on existing types that only exist in a specific view. Use
+		   BinaryView->ParseTypeString instead.
 
-			\param fileName Source Filename
-			\param types map reference that Types will be copied into
-			\param variables map reference that variables will be copied into
-			\param functions map reference that functions will be copied into
-			\param errors string reference that any errors will be copied into
-			\param includeDirs optional list of directories to include for header searches
-			\param autoTypeSource optional source of types if used for automatically generated types
-			\return true on success, false otherwise
-			\return
+		    \param fileName Source Filename
+		    \param types map reference that Types will be copied into
+		    \param variables map reference that variables will be copied into
+		    \param functions map reference that functions will be copied into
+		    \param errors string reference that any errors will be copied into
+		    \param includeDirs optional list of directories to include for header searches
+		    \param autoTypeSource optional source of types if used for automatically generated types
+		    \return true on success, false otherwise
+		    \return
 		*/
 		bool ParseTypesFromSourceFile(const std::string& fileName, std::map<QualifiedName, Ref<Type>>& types,
-		    std::map<QualifiedName, Ref<Type>>& variables, std::map<QualifiedName, Ref<Type>>& functions,
-		    std::string& errors, const std::vector<std::string>& includeDirs = std::vector<std::string>(),
-		    const std::string& autoTypeSource = "");
+			std::map<QualifiedName, Ref<Type>>& variables, std::map<QualifiedName, Ref<Type>>& functions,
+			std::string& errors, const std::vector<std::string>& includeDirs = std::vector<std::string>(),
+			const std::string& autoTypeSource = "");
 	};
 
 
@@ -15531,50 +15703,38 @@ namespace BinaryNinja {
 
 		virtual std::vector<uint32_t> GetGlobalRegisters() override;
 		virtual Ref<Type> GetGlobalRegisterType(uint32_t reg) override;
-		virtual void AdjustTypeParserInput(
-			Ref<class TypeParser> parser,
-			std::vector<std::string>& arguments,
-			std::vector<std::pair<std::string, std::string>>& sourceFiles
-		) override;
+		virtual void AdjustTypeParserInput(Ref<class TypeParser> parser, std::vector<std::string>& arguments,
+			std::vector<std::pair<std::string, std::string>>& sourceFiles) override;
 	};
 
 	/*!
-		\ingroup typeparser
+	    \ingroup typeparser
 	*/
-	class TypeParser: public StaticCoreRefCountObject<BNTypeParser>
+	class TypeParser : public StaticCoreRefCountObject<BNTypeParser>
 	{
 		std::string m_nameForRegister;
-	  protected:
+
+	protected:
 		explicit TypeParser(const std::string& name);
 		TypeParser(BNTypeParser* parser);
 
 		static bool GetOptionTextCallback(void* ctxt, BNTypeParserOption option, const char* value, char** result);
-		static bool PreprocessSourceCallback(void* ctxt,
-			const char* source, const char* fileName, BNPlatform* platform,
-			BNTypeContainer* existingTypes,
-			const char* const* options, size_t optionCount,
-			const char* const* includeDirs, size_t includeDirCount,
-			char** output, BNTypeParserError** errors, size_t* errorCount
-		);
-		static bool ParseTypesFromSourceCallback(void* ctxt,
-			const char* source, const char* fileName, BNPlatform* platform,
-			BNTypeContainer* existingTypes,
-			const char* const* options, size_t optionCount,
-			const char* const* includeDirs, size_t includeDirCount,
-			const char* autoTypeSource, BNTypeParserResult* result,
-			BNTypeParserError** errors, size_t* errorCount
-		);
-		static bool ParseTypeStringCallback(void* ctxt,
-			const char* source, BNPlatform* platform,
-			BNTypeContainer* existingTypes,
-			BNQualifiedNameAndType* result,
-			BNTypeParserError** errors, size_t* errorCount
-		);
+		static bool PreprocessSourceCallback(void* ctxt, const char* source, const char* fileName, BNPlatform* platform,
+			BNTypeContainer* existingTypes, const char* const* options, size_t optionCount,
+			const char* const* includeDirs, size_t includeDirCount, char** output, BNTypeParserError** errors,
+			size_t* errorCount);
+		static bool ParseTypesFromSourceCallback(void* ctxt, const char* source, const char* fileName,
+			BNPlatform* platform, BNTypeContainer* existingTypes, const char* const* options, size_t optionCount,
+			const char* const* includeDirs, size_t includeDirCount, const char* autoTypeSource,
+			BNTypeParserResult* result, BNTypeParserError** errors, size_t* errorCount);
+		static bool ParseTypeStringCallback(void* ctxt, const char* source, BNPlatform* platform,
+			BNTypeContainer* existingTypes, BNQualifiedNameAndType* result, BNTypeParserError** errors,
+			size_t* errorCount);
 		static void FreeStringCallback(void* ctxt, char* result);
 		static void FreeResultCallback(void* ctxt, BNTypeParserResult* result);
 		static void FreeErrorListCallback(void* ctxt, BNTypeParserError* errors, size_t errorCount);
 
-	  public:
+	public:
 		static void Register(TypeParser* parser);
 		static std::vector<Ref<TypeParser>> GetList();
 		static Ref<TypeParser> GetByName(const std::string& name);
@@ -15621,16 +15781,9 @@ namespace BinaryNinja {
 		    \param errors Reference to a list into which any parse errors will be written
 		    \return True if preprocessing was successful
 		*/
-		virtual bool PreprocessSource(
-			const std::string& source,
-			const std::string& fileName,
-			Ref<Platform> platform,
-			std::optional<TypeContainer> existingTypes,
-			const std::vector<std::string>& options,
-			const std::vector<std::string>& includeDirs,
-			std::string& output,
-			std::vector<TypeParserError>& errors
-		) = 0;
+		virtual bool PreprocessSource(const std::string& source, const std::string& fileName, Ref<Platform> platform,
+			std::optional<TypeContainer> existingTypes, const std::vector<std::string>& options,
+			const std::vector<std::string>& includeDirs, std::string& output, std::vector<TypeParserError>& errors) = 0;
 
 		/*!
 		    Parse an entire block of source into types, variables, and functions
@@ -15645,17 +15798,10 @@ namespace BinaryNinja {
 		    \param errors Reference to a list into which any parse errors will be written
 		    \return True if parsing was successful
 		*/
-		virtual bool ParseTypesFromSource(
-			const std::string& source,
-			const std::string& fileName,
-			Ref<Platform> platform,
-			std::optional<TypeContainer> existingTypes,
-			const std::vector<std::string>& options,
-			const std::vector<std::string>& includeDirs,
-			const std::string& autoTypeSource,
-			TypeParserResult& result,
-			std::vector<TypeParserError>& errors
-		) = 0;
+		virtual bool ParseTypesFromSource(const std::string& source, const std::string& fileName,
+			Ref<Platform> platform, std::optional<TypeContainer> existingTypes, const std::vector<std::string>& options,
+			const std::vector<std::string>& includeDirs, const std::string& autoTypeSource, TypeParserResult& result,
+			std::vector<TypeParserError>& errors) = 0;
 
 		/*!
 		    Parse an entire source file into types, variables, and functions
@@ -15669,16 +15815,10 @@ namespace BinaryNinja {
 		    \param errors Reference to a list into which any parse errors will be written
 		    \return True if parsing was successful
 		*/
-		bool ParseTypesFromSourceFile(
-			const std::string& fileName,
-			Ref<Platform> platform,
-			std::optional<TypeContainer> existingTypes,
-			const std::vector<std::string>& options,
-			const std::vector<std::string>& includeDirs,
-			const std::string& autoTypeSource,
-			TypeParserResult& result,
-			std::vector<TypeParserError>& errors
-		);
+		bool ParseTypesFromSourceFile(const std::string& fileName, Ref<Platform> platform,
+			std::optional<TypeContainer> existingTypes, const std::vector<std::string>& options,
+			const std::vector<std::string>& includeDirs, const std::string& autoTypeSource, TypeParserResult& result,
+			std::vector<TypeParserError>& errors);
 
 		/*!
 		    Parse a single type and name from a string containing their definition.
@@ -15689,95 +15829,72 @@ namespace BinaryNinja {
 		    \param errors Reference to a list into which any parse errors will be written
 		    \return True if parsing was successful
 		*/
-		virtual bool ParseTypeString(
-			const std::string& source,
-			Ref<Platform> platform,
-			std::optional<TypeContainer> existingTypes,
-			QualifiedNameAndType& result,
-			std::vector<TypeParserError>& errors
-		) = 0;
+		virtual bool ParseTypeString(const std::string& source, Ref<Platform> platform,
+			std::optional<TypeContainer> existingTypes, QualifiedNameAndType& result,
+			std::vector<TypeParserError>& errors) = 0;
 	};
 
 	/*!
-		\ingroup typeparser
+	    \ingroup typeparser
 	*/
-	class CoreTypeParser: public TypeParser
+	class CoreTypeParser : public TypeParser
 	{
-	  public:
+	public:
 		CoreTypeParser(BNTypeParser* parser);
 		virtual ~CoreTypeParser() {}
 
 		virtual bool GetOptionText(BNTypeParserOption option, std::string value, std::string& result) const override;
 
-		virtual bool PreprocessSource(
-			const std::string& source,
-			const std::string& fileName,
-			Ref<Platform> platform,
-			std::optional<TypeContainer> existingTypes,
-			const std::vector<std::string>& options,
-			const std::vector<std::string>& includeDirs,
-			std::string& output,
-			std::vector<TypeParserError>& errors
-		) override;
+		virtual bool PreprocessSource(const std::string& source, const std::string& fileName, Ref<Platform> platform,
+			std::optional<TypeContainer> existingTypes, const std::vector<std::string>& options,
+			const std::vector<std::string>& includeDirs, std::string& output,
+			std::vector<TypeParserError>& errors) override;
 
-		virtual bool ParseTypesFromSource(
-			const std::string& source,
-			const std::string& fileName,
-			Ref<Platform> platform,
-			std::optional<TypeContainer> existingTypes,
-			const std::vector<std::string>& options,
-			const std::vector<std::string>& includeDirs,
-			const std::string& autoTypeSource,
-			TypeParserResult& result,
-			std::vector<TypeParserError>& errors
-		) override;
+		virtual bool ParseTypesFromSource(const std::string& source, const std::string& fileName,
+			Ref<Platform> platform, std::optional<TypeContainer> existingTypes, const std::vector<std::string>& options,
+			const std::vector<std::string>& includeDirs, const std::string& autoTypeSource, TypeParserResult& result,
+			std::vector<TypeParserError>& errors) override;
 
-		virtual bool ParseTypeString(
-			const std::string& source,
-			Ref<Platform> platform,
-			std::optional<TypeContainer> existingTypes,
-			QualifiedNameAndType& result,
-			std::vector<TypeParserError>& errors
-		) override;
+		virtual bool ParseTypeString(const std::string& source, Ref<Platform> platform,
+			std::optional<TypeContainer> existingTypes, QualifiedNameAndType& result,
+			std::vector<TypeParserError>& errors) override;
 	};
 
 	/*!
-		\ingroup typeprinter
+	    \ingroup typeprinter
 	*/
-	class TypePrinter: public StaticCoreRefCountObject<BNTypePrinter>
+	class TypePrinter : public StaticCoreRefCountObject<BNTypePrinter>
 	{
 		std::string m_nameForRegister;
-	  protected:
+
+	protected:
 		explicit TypePrinter(const std::string& name);
 		TypePrinter(BNTypePrinter* printer);
 
-		static bool GetTypeTokensCallback(void* ctxt, BNType* type, BNPlatform* platform,
-			BNQualifiedName* name, uint8_t baseConfidence, BNTokenEscapingType escaping,
-			BNInstructionTextToken** result, size_t* resultCount);
-		static bool GetTypeTokensBeforeNameCallback(void* ctxt, BNType* type,
-			BNPlatform* platform, uint8_t baseConfidence, BNType* parentType,
-			BNTokenEscapingType escaping, BNInstructionTextToken** result,
+		static bool GetTypeTokensCallback(void* ctxt, BNType* type, BNPlatform* platform, BNQualifiedName* name,
+			uint8_t baseConfidence, BNTokenEscapingType escaping, BNInstructionTextToken** result, size_t* resultCount);
+		static bool GetTypeTokensBeforeNameCallback(void* ctxt, BNType* type, BNPlatform* platform,
+			uint8_t baseConfidence, BNType* parentType, BNTokenEscapingType escaping, BNInstructionTextToken** result,
 			size_t* resultCount);
-		static bool GetTypeTokensAfterNameCallback(void* ctxt, BNType* type,
-			BNPlatform* platform, uint8_t baseConfidence, BNType* parentType,
-			BNTokenEscapingType escaping, BNInstructionTextToken** result,
+		static bool GetTypeTokensAfterNameCallback(void* ctxt, BNType* type, BNPlatform* platform,
+			uint8_t baseConfidence, BNType* parentType, BNTokenEscapingType escaping, BNInstructionTextToken** result,
 			size_t* resultCount);
-		static bool GetTypeStringCallback(void* ctxt, BNType* type, BNPlatform* platform,
-			BNQualifiedName* name, BNTokenEscapingType escaping, char** result);
-		static bool GetTypeStringBeforeNameCallback(void* ctxt, BNType* type,
-			BNPlatform* platform, BNTokenEscapingType escaping, char** result);
-		static bool GetTypeStringAfterNameCallback(void* ctxt, BNType* type,
-			BNPlatform* platform, BNTokenEscapingType escaping, char** result);
-		static bool GetTypeLinesCallback(void* ctxt, BNType* type, BNTypeContainer* types,
-			BNQualifiedName* name, int paddingCols, bool collapsed,
-			BNTokenEscapingType escaping, BNTypeDefinitionLine** result, size_t* resultCount);
+		static bool GetTypeStringCallback(void* ctxt, BNType* type, BNPlatform* platform, BNQualifiedName* name,
+			BNTokenEscapingType escaping, char** result);
+		static bool GetTypeStringBeforeNameCallback(
+			void* ctxt, BNType* type, BNPlatform* platform, BNTokenEscapingType escaping, char** result);
+		static bool GetTypeStringAfterNameCallback(
+			void* ctxt, BNType* type, BNPlatform* platform, BNTokenEscapingType escaping, char** result);
+		static bool GetTypeLinesCallback(void* ctxt, BNType* type, BNTypeContainer* types, BNQualifiedName* name,
+			int paddingCols, bool collapsed, BNTokenEscapingType escaping, BNTypeDefinitionLine** result,
+			size_t* resultCount);
 		static bool PrintAllTypesCallback(void* ctxt, BNQualifiedName* names, BNType** types, size_t typeCount,
 			BNBinaryView* data, int paddingCols, BNTokenEscapingType escaping, char** result);
 		static void FreeTokensCallback(void* ctxt, BNInstructionTextToken* tokens, size_t count);
 		static void FreeStringCallback(void* ctxt, char* string);
 		static void FreeLinesCallback(void* ctxt, BNTypeDefinitionLine* lines, size_t count);
 
-	  public:
+	public:
 		static void Register(TypePrinter* printer);
 		static std::vector<Ref<TypePrinter>> GetList();
 		static Ref<TypePrinter> GetByName(const std::string& name);
@@ -15792,13 +15909,9 @@ namespace BinaryNinja {
 		    \param escaping Style of escaping literals which may not be parsable
 		    \return List of text tokens representing the type
 		*/
-		virtual std::vector<InstructionTextToken> GetTypeTokens(
-			Ref<Type> type,
-			Ref<Platform> platform,
-			const QualifiedName& name,
-			uint8_t baseConfidence = BN_FULL_CONFIDENCE,
-			BNTokenEscapingType escaping = NoTokenEscapingType
-		);
+		virtual std::vector<InstructionTextToken> GetTypeTokens(Ref<Type> type, Ref<Platform> platform,
+			const QualifiedName& name, uint8_t baseConfidence = BN_FULL_CONFIDENCE,
+			BNTokenEscapingType escaping = NoTokenEscapingType);
 		/*!
 		    In a single-line text representation of a type, generate the tokens that should
 		    be printed before the type's name.
@@ -15810,13 +15923,9 @@ namespace BinaryNinja {
 		    \param escaping Style of escaping literals which may not be parsable
 		    \return List of text tokens representing the type
 		*/
-		virtual std::vector<InstructionTextToken> GetTypeTokensBeforeName(
-			Ref<Type> type,
-			Ref<Platform> platform,
-			uint8_t baseConfidence = BN_FULL_CONFIDENCE,
-			Ref<Type> parentType = nullptr,
-			BNTokenEscapingType escaping = NoTokenEscapingType
-		) = 0;
+		virtual std::vector<InstructionTextToken> GetTypeTokensBeforeName(Ref<Type> type, Ref<Platform> platform,
+			uint8_t baseConfidence = BN_FULL_CONFIDENCE, Ref<Type> parentType = nullptr,
+			BNTokenEscapingType escaping = NoTokenEscapingType) = 0;
 		/*!
 		    In a single-line text representation of a type, generate the tokens that should
 		    be printed after the type's name.
@@ -15828,13 +15937,9 @@ namespace BinaryNinja {
 		    \param escaping Style of escaping literals which may not be parsable
 		    \return List of text tokens representing the type
 		*/
-		virtual std::vector<InstructionTextToken> GetTypeTokensAfterName(
-			Ref<Type> type,
-			Ref<Platform> platform,
-			uint8_t baseConfidence = BN_FULL_CONFIDENCE,
-			Ref<Type> parentType = nullptr,
-			BNTokenEscapingType escaping = NoTokenEscapingType
-		) = 0;
+		virtual std::vector<InstructionTextToken> GetTypeTokensAfterName(Ref<Type> type, Ref<Platform> platform,
+			uint8_t baseConfidence = BN_FULL_CONFIDENCE, Ref<Type> parentType = nullptr,
+			BNTokenEscapingType escaping = NoTokenEscapingType) = 0;
 
 		/*!
 		    Generate a single-line text representation of a type
@@ -15844,12 +15949,8 @@ namespace BinaryNinja {
 		    \param escaping Style of escaping literals which may not be parsable
 		    \return String representing the type
 		*/
-		virtual std::string GetTypeString(
-			Ref<Type> type,
-			Ref<Platform> platform,
-			const QualifiedName& name,
-			BNTokenEscapingType escaping = NoTokenEscapingType
-		);
+		virtual std::string GetTypeString(Ref<Type> type, Ref<Platform> platform, const QualifiedName& name,
+			BNTokenEscapingType escaping = NoTokenEscapingType);
 		/*!
 		    In a single-line text representation of a type, generate the string that should
 		    be printed before the type's name.
@@ -15860,10 +15961,7 @@ namespace BinaryNinja {
 		    \return String representing the type
 		*/
 		virtual std::string GetTypeStringBeforeName(
-			Ref<Type> type,
-			Ref<Platform> platform,
-			BNTokenEscapingType escaping = NoTokenEscapingType
-		);
+			Ref<Type> type, Ref<Platform> platform, BNTokenEscapingType escaping = NoTokenEscapingType);
 		/*!
 		    In a single-line text representation of a type, generate the string that should
 		    be printed after the type's name.
@@ -15874,10 +15972,7 @@ namespace BinaryNinja {
 		    \return String representing the type
 		*/
 		virtual std::string GetTypeStringAfterName(
-			Ref<Type> type,
-			Ref<Platform> platform,
-			BNTokenEscapingType escaping = NoTokenEscapingType
-		);
+			Ref<Type> type, Ref<Platform> platform, BNTokenEscapingType escaping = NoTokenEscapingType);
 
 		/*!
 		    Generate a multi-line representation of a type
@@ -15889,14 +15984,9 @@ namespace BinaryNinja {
 		    \param escaping Style of escaping literals which may not be parsable
 		    \return List of type definition lines
 		*/
-		virtual std::vector<TypeDefinitionLine> GetTypeLines(
-			Ref<Type> type,
-			const TypeContainer& types,
-			const QualifiedName& name,
-			int paddingCols = 64,
-			bool collapsed = false,
-			BNTokenEscapingType escaping = NoTokenEscapingType
-		) = 0;
+		virtual std::vector<TypeDefinitionLine> GetTypeLines(Ref<Type> type, const TypeContainer& types,
+			const QualifiedName& name, int paddingCols = 64, bool collapsed = false,
+			BNTokenEscapingType escaping = NoTokenEscapingType) = 0;
 
 		/*!
 		    Print all types to a single big string, including headers, sections, etc
@@ -15906,12 +15996,8 @@ namespace BinaryNinja {
 		    \param escaping Style of escaping literals which may not be parsable
 		    \return All the types in a string
 		*/
-		virtual std::string PrintAllTypes(
-			const std::vector<std::pair<QualifiedName, Ref<Type>>>& types,
-			Ref<BinaryView> data,
-			int paddingCols = 64,
-			BNTokenEscapingType escaping = NoTokenEscapingType
-		);
+		virtual std::string PrintAllTypes(const std::vector<std::pair<QualifiedName, Ref<Type>>>& types,
+			Ref<BinaryView> data, int paddingCols = 64, BNTokenEscapingType escaping = NoTokenEscapingType);
 
 		/*!
 		    Default implementation of PrintAllTypes
@@ -15922,41 +16008,33 @@ namespace BinaryNinja {
 		    \param escaping Style of escaping literals which may not be parsable
 		    \return All the types in a string
 		*/
-		std::string DefaultPrintAllTypes(
-			const std::vector<std::pair<QualifiedName, Ref<Type>>>& types,
-			Ref<BinaryView> data,
-			int paddingCols = 64,
-			BNTokenEscapingType escaping = NoTokenEscapingType
-		);
+		std::string DefaultPrintAllTypes(const std::vector<std::pair<QualifiedName, Ref<Type>>>& types,
+			Ref<BinaryView> data, int paddingCols = 64, BNTokenEscapingType escaping = NoTokenEscapingType);
 	};
 
 	/*!
-		\ingroup typeprinter
+	    \ingroup typeprinter
 	*/
-	class CoreTypePrinter: public TypePrinter
+	class CoreTypePrinter : public TypePrinter
 	{
-	  public:
+	public:
 		CoreTypePrinter(BNTypePrinter* printer);
 		virtual ~CoreTypePrinter() {}
 
-		virtual std::vector<InstructionTextToken> GetTypeTokens(Ref<Type> type,
-			Ref<Platform> platform, const QualifiedName& name,
-			uint8_t baseConfidence, BNTokenEscapingType escaping) override;
-		virtual std::vector<InstructionTextToken> GetTypeTokensBeforeName(Ref<Type> type,
-			Ref<Platform> platform, uint8_t baseConfidence,
-			Ref<Type> parentType, BNTokenEscapingType escaping) override;
-		virtual std::vector<InstructionTextToken> GetTypeTokensAfterName(Ref<Type> type,
-			Ref<Platform> platform, uint8_t baseConfidence,
-			Ref<Type> parentType, BNTokenEscapingType escaping) override;
-		virtual std::string GetTypeString(Ref<Type> type, Ref<Platform> platform,
-			const QualifiedName& name, BNTokenEscapingType escaping) override;
-		virtual std::string GetTypeStringBeforeName(Ref<Type> type, Ref<Platform> platform,
-			BNTokenEscapingType escaping) override;
-		virtual std::string GetTypeStringAfterName(Ref<Type> type, Ref<Platform> platform,
-			BNTokenEscapingType escaping) override;
-		virtual std::vector<TypeDefinitionLine> GetTypeLines(Ref<Type> type,
-			const TypeContainer& types, const QualifiedName& name, int paddingCols,
-			bool collapsed, BNTokenEscapingType escaping) override;
+		virtual std::vector<InstructionTextToken> GetTypeTokens(Ref<Type> type, Ref<Platform> platform,
+			const QualifiedName& name, uint8_t baseConfidence, BNTokenEscapingType escaping) override;
+		virtual std::vector<InstructionTextToken> GetTypeTokensBeforeName(Ref<Type> type, Ref<Platform> platform,
+			uint8_t baseConfidence, Ref<Type> parentType, BNTokenEscapingType escaping) override;
+		virtual std::vector<InstructionTextToken> GetTypeTokensAfterName(Ref<Type> type, Ref<Platform> platform,
+			uint8_t baseConfidence, Ref<Type> parentType, BNTokenEscapingType escaping) override;
+		virtual std::string GetTypeString(
+			Ref<Type> type, Ref<Platform> platform, const QualifiedName& name, BNTokenEscapingType escaping) override;
+		virtual std::string GetTypeStringBeforeName(
+			Ref<Type> type, Ref<Platform> platform, BNTokenEscapingType escaping) override;
+		virtual std::string GetTypeStringAfterName(
+			Ref<Type> type, Ref<Platform> platform, BNTokenEscapingType escaping) override;
+		virtual std::vector<TypeDefinitionLine> GetTypeLines(Ref<Type> type, const TypeContainer& types,
+			const QualifiedName& name, int paddingCols, bool collapsed, BNTokenEscapingType escaping) override;
 		virtual std::string PrintAllTypes(const std::vector<std::pair<QualifiedName, Ref<Type>>>& types,
 			Ref<BinaryView> data, int paddingCols, BNTokenEscapingType escaping) override;
 	};
@@ -15965,26 +16043,26 @@ namespace BinaryNinja {
 	class DownloadProvider;
 
 	/*!
-		\ingroup downloadprovider
+	    \ingroup downloadprovider
 	*/
 	class DownloadInstance :
-	    public CoreRefCountObject<BNDownloadInstance, BNNewDownloadInstanceReference, BNFreeDownloadInstance>
+		public CoreRefCountObject<BNDownloadInstance, BNNewDownloadInstanceReference, BNFreeDownloadInstance>
 	{
-	  public:
+	public:
 		struct Response
 		{
 			uint16_t statusCode;
 			std::unordered_map<std::string, std::string> headers;
 		};
 
-	  protected:
+	protected:
 		DownloadInstance(DownloadProvider* provider);
 		DownloadInstance(BNDownloadInstance* instance);
 
 		static void DestroyInstanceCallback(void* ctxt);
 		static int PerformRequestCallback(void* ctxt, const char* url);
 		static int PerformCustomRequestCallback(void* ctxt, const char* method, const char* url, uint64_t headerCount,
-		    const char* const* headerKeys, const char* const* headerValues, BNDownloadInstanceResponse** response);
+			const char* const* headerKeys, const char* const* headerValues, BNDownloadInstanceResponse** response);
 		static void PerformFreeResponse(void* ctxt, BNDownloadInstanceResponse* response);
 		/*!
 		    Cleanup any resources created by the instance
@@ -16005,14 +16083,14 @@ namespace BinaryNinja {
 		    \return Zero on successful request, negative on failed request
 		*/
 		virtual int PerformCustomRequest(const std::string& method, const std::string& url,
-		    const std::unordered_map<std::string, std::string>& headers, Response& response) = 0;
+			const std::unordered_map<std::string, std::string>& headers, Response& response) = 0;
 
 		int64_t ReadDataCallback(uint8_t* data, uint64_t len);
 		uint64_t WriteDataCallback(uint8_t* data, uint64_t len);
 		bool NotifyProgressCallback(uint64_t progress, uint64_t total);
 		void SetError(const std::string& error);
 
-	  public:
+	public:
 		/*!
 		    Send a GET request to a url, synchronously
 		    \param url Full url to request
@@ -16030,8 +16108,8 @@ namespace BinaryNinja {
 		    \return Zero on successful request, negative on failed request
 		*/
 		int PerformCustomRequest(const std::string& method, const std::string& url,
-		    const std::unordered_map<std::string, std::string>& headers, Response& response,
-		    BNDownloadInstanceInputOutputCallbacks* callbacks);
+			const std::unordered_map<std::string, std::string>& headers, Response& response,
+			BNDownloadInstanceInputOutputCallbacks* callbacks);
 		/*!
 		    Retrieve the error from the last request sent by this instance
 		*/
@@ -16040,29 +16118,29 @@ namespace BinaryNinja {
 
 	class CoreDownloadInstance : public DownloadInstance
 	{
-	  public:
+	public:
 		CoreDownloadInstance(BNDownloadInstance* instance);
 		virtual ~CoreDownloadInstance() {};
 
 		virtual int PerformRequest(const std::string& url) override;
 		virtual int PerformCustomRequest(const std::string& method, const std::string& url,
-		    const std::unordered_map<std::string, std::string>& headers, DownloadInstance::Response& response) override;
+			const std::unordered_map<std::string, std::string>& headers, DownloadInstance::Response& response) override;
 	};
 
 	/*!
-		\ingroup downloadprovider
+	    \ingroup downloadprovider
 	*/
 	class DownloadProvider : public StaticCoreRefCountObject<BNDownloadProvider>
 	{
 		std::string m_nameForRegister;
 
-	  protected:
+	protected:
 		DownloadProvider(const std::string& name);
 		DownloadProvider(BNDownloadProvider* provider);
 
 		static BNDownloadInstance* CreateInstanceCallback(void* ctxt);
 
-	  public:
+	public:
 		virtual Ref<DownloadInstance> CreateNewInstance() = 0;
 
 		static std::vector<Ref<DownloadProvider>> GetList();
@@ -16072,7 +16150,7 @@ namespace BinaryNinja {
 
 	class CoreDownloadProvider : public DownloadProvider
 	{
-	  public:
+	public:
 		CoreDownloadProvider(BNDownloadProvider* provider);
 		virtual Ref<DownloadInstance> CreateNewInstance() override;
 	};
@@ -16081,18 +16159,18 @@ namespace BinaryNinja {
 	class WebsocketProvider;
 
 	/*!
-		\ingroup websocketprovider
+	    \ingroup websocketprovider
 	*/
 	class WebsocketClient :
-	    public CoreRefCountObject<BNWebsocketClient, BNNewWebsocketClientReference, BNFreeWebsocketClient>
+		public CoreRefCountObject<BNWebsocketClient, BNNewWebsocketClientReference, BNFreeWebsocketClient>
 	{
-	  protected:
+	protected:
 		WebsocketClient(WebsocketProvider* provider);
 		WebsocketClient(BNWebsocketClient* instance);
 
 		static void DestroyClientCallback(void* ctxt);
 		static bool ConnectCallback(void* ctxt, const char* host, uint64_t headerCount, const char* const* headerKeys,
-		    const char* const* headerValues);
+			const char* const* headerValues);
 		static bool WriteCallback(const uint8_t* data, uint64_t len, void* ctxt);
 		static bool DisconnectCallback(void* ctxt);
 		static void ErrorCallback(const char* msg, void* ctxt);
@@ -16110,7 +16188,7 @@ namespace BinaryNinja {
 		*/
 		virtual bool Connect(const std::string& host, const std::unordered_map<std::string, std::string>& headers) = 0;
 
-	  public:
+	public:
 		/*!
 		    Connect to a given url, asynchronously. The connection will be run in a separate thread managed by the
 		   websocket provider.
@@ -16131,7 +16209,7 @@ namespace BinaryNinja {
 		    \return True if the connection has started, but not necessarily if it succeeded
 		*/
 		bool Connect(const std::string& host, const std::unordered_map<std::string, std::string>& headers,
-		    BNWebsocketClientOutputCallbacks* callbacks);
+			BNWebsocketClientOutputCallbacks* callbacks);
 
 		/*!
 		    Write some data to the websocket
@@ -16147,34 +16225,34 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup websocketprovider
+	    \ingroup websocketprovider
 	*/
 	class CoreWebsocketClient : public WebsocketClient
 	{
-	  public:
+	public:
 		CoreWebsocketClient(BNWebsocketClient* instance);
 		virtual ~CoreWebsocketClient() {};
 
 		virtual bool Connect(
-		    const std::string& host, const std::unordered_map<std::string, std::string>& headers) override;
+			const std::string& host, const std::unordered_map<std::string, std::string>& headers) override;
 		virtual bool Write(const std::vector<uint8_t>& data) override;
 		virtual bool Disconnect() override;
 	};
 
 	/*!
-		\ingroup websocketprovider
+	    \ingroup websocketprovider
 	*/
 	class WebsocketProvider : public StaticCoreRefCountObject<BNWebsocketProvider>
 	{
 		std::string m_nameForRegister;
 
-	  protected:
+	protected:
 		WebsocketProvider(const std::string& name);
 		WebsocketProvider(BNWebsocketProvider* provider);
 
 		static BNWebsocketClient* CreateClientCallback(void* ctxt);
 
-	  public:
+	public:
 		virtual Ref<WebsocketClient> CreateNewClient() = 0;
 
 		static std::vector<Ref<WebsocketProvider>> GetList();
@@ -16184,14 +16262,14 @@ namespace BinaryNinja {
 
 	class CoreWebsocketProvider : public WebsocketProvider
 	{
-	  public:
+	public:
 		CoreWebsocketProvider(BNWebsocketProvider* provider);
 		virtual Ref<WebsocketClient> CreateNewClient() override;
 	};
 
 	// Scripting Provider
 	/*!
-		\ingroup scriptingprovider
+	    \ingroup scriptingprovider
 	*/
 	class ScriptingOutputListener
 	{
@@ -16202,7 +16280,7 @@ namespace BinaryNinja {
 		static void ErrorCallback(void* ctxt, const char* text);
 		static void InputReadyStateChangedCallback(void* ctxt, BNScriptingProviderInputReadyState state);
 
-	  public:
+	public:
 		ScriptingOutputListener();
 		BNScriptingOutputListener& GetCallbacks() { return m_callbacks; }
 
@@ -16215,18 +16293,18 @@ namespace BinaryNinja {
 	class ScriptingProvider;
 
 	/*!
-		\ingroup scriptingprovider
+	    \ingroup scriptingprovider
 	*/
 	class ScriptingInstance :
-	    public CoreRefCountObject<BNScriptingInstance, BNNewScriptingInstanceReference, BNFreeScriptingInstance>
+		public CoreRefCountObject<BNScriptingInstance, BNNewScriptingInstanceReference, BNFreeScriptingInstance>
 	{
-	  protected:
+	protected:
 		ScriptingInstance(ScriptingProvider* provider);
 		ScriptingInstance(BNScriptingInstance* instance);
 
 		static void DestroyInstanceCallback(void* ctxt);
 		static BNScriptingProviderExecuteResult ExecuteScriptInputCallback(void* ctxt, const char* input);
-		static BNScriptingProviderExecuteResult ExecuteScriptFromFilenameCallback(void *ctxt, const char* filename);
+		static BNScriptingProviderExecuteResult ExecuteScriptFromFilenameCallback(void* ctxt, const char* filename);
 		static void CancelScriptInputCallback(void* ctxt);
 		static void ReleaseBinaryViewCallback(void* ctxt, BNBinaryView* view);
 		static void SetCurrentBinaryViewCallback(void* ctxt, BNBinaryView* view);
@@ -16239,7 +16317,7 @@ namespace BinaryNinja {
 
 		virtual void DestroyInstance();
 
-	  public:
+	public:
 		virtual BNScriptingProviderExecuteResult ExecuteScriptInput(const std::string& input) = 0;
 		virtual BNScriptingProviderExecuteResult ExecuteScriptInputFromFilename(const std::string& filename) = 0;
 		virtual void CancelScriptInput();
@@ -16266,11 +16344,11 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup scriptingprovider
+	    \ingroup scriptingprovider
 	*/
 	class CoreScriptingInstance : public ScriptingInstance
 	{
-	  public:
+	public:
 		CoreScriptingInstance(BNScriptingInstance* instance);
 		virtual ~CoreScriptingInstance() {};
 
@@ -16288,14 +16366,14 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup scriptingprovider
+	    \ingroup scriptingprovider
 	*/
 	class ScriptingProvider : public StaticCoreRefCountObject<BNScriptingProvider>
 	{
 		std::string m_nameForRegister;
 		std::string m_apiNameForRegister;
 
-	  protected:
+	protected:
 		ScriptingProvider(const std::string& name, const std::string& apiName);
 		ScriptingProvider(BNScriptingProvider* provider);
 
@@ -16303,7 +16381,7 @@ namespace BinaryNinja {
 		static bool LoadModuleCallback(void* ctxt, const char* repository, const char* module, bool force);
 		static bool InstallModulesCallback(void* ctxt, const char* modules);
 
-	  public:
+	public:
 		virtual Ref<ScriptingInstance> CreateNewInstance() = 0;
 		virtual bool LoadModule(const std::string& repository, const std::string& module, bool force) = 0;
 		virtual bool InstallModules(const std::string& modules) = 0;
@@ -16319,7 +16397,7 @@ namespace BinaryNinja {
 
 	class CoreScriptingProvider : public ScriptingProvider
 	{
-	  public:
+	public:
 		CoreScriptingProvider(BNScriptingProvider* provider);
 		virtual Ref<ScriptingInstance> CreateNewInstance() override;
 		virtual bool LoadModule(const std::string& repository, const std::string& module, bool force) override;
@@ -16327,12 +16405,12 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup plugin
+	    \ingroup plugin
 	*/
 	class MainThreadAction :
-	    public CoreRefCountObject<BNMainThreadAction, BNNewMainThreadActionReference, BNFreeMainThreadAction>
+		public CoreRefCountObject<BNMainThreadAction, BNNewMainThreadActionReference, BNFreeMainThreadAction>
 	{
-	  public:
+	public:
 		MainThreadAction(BNMainThreadAction* action);
 		void Execute();
 		bool IsDone() const;
@@ -16340,35 +16418,36 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup plugin
+	    \ingroup plugin
 	*/
 	class MainThreadActionHandler
 	{
-	  public:
+	public:
 		virtual void AddMainThreadAction(MainThreadAction* action) = 0;
 	};
 
 	/*!
-		\ingroup plugin
+	    \ingroup plugin
 	*/
 	class BackgroundTask :
-	    public CoreRefCountObject<BNBackgroundTask, BNNewBackgroundTaskReference, BNFreeBackgroundTask>
+		public CoreRefCountObject<BNBackgroundTask, BNNewBackgroundTaskReference, BNFreeBackgroundTask>
 	{
-	  public:
-		BackgroundTask(BNBackgroundTask *task);
+	public:
+		BackgroundTask(BNBackgroundTask* task);
 
 		/*!
-			Provides a mechanism for reporting progress of
-			an optionally cancelable task to the user via the status bar in the UI.
-			If canCancel is is `True`, then the task can be cancelled either
-			programmatically or by the user via the UI.
+		    Provides a mechanism for reporting progress of
+		    an optionally cancelable task to the user via the status bar in the UI.
+		    If canCancel is is `True`, then the task can be cancelled either
+		    programmatically or by the user via the UI.
 
-			\note This API does not provide a means to execute a task. The caller is responsible to execute (and possibly cancel) the task.
+		    \note This API does not provide a means to execute a task. The caller is responsible to execute (and
+		   possibly cancel) the task.
 
-			\param initialText Text description of the progress of the background task (displayed in status bar of the UI)
-			\param canCancel Whether the task can be cancelled
+		    \param initialText Text description of the progress of the background task (displayed in status bar of the
+		   UI) \param canCancel Whether the task can be cancelled
 		*/
-		BackgroundTask(const std::string &initialText, bool canCancel);
+		BackgroundTask(const std::string& initialText, bool canCancel);
 
 		bool CanCancel() const;
 		bool IsCancelled() const;
@@ -16384,7 +16463,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup interaction
+	    \ingroup interaction
 	*/
 	struct FormInputField
 	{
@@ -16411,22 +16490,22 @@ namespace BinaryNinja {
 		static FormInputField MultilineText(const std::string& prompt);
 		static FormInputField Integer(const std::string& prompt);
 		static FormInputField Address(
-		    const std::string& prompt, BinaryView* view = nullptr, uint64_t currentAddress = 0);
+			const std::string& prompt, BinaryView* view = nullptr, uint64_t currentAddress = 0);
 		static FormInputField Choice(const std::string& prompt, const std::vector<std::string>& choices);
 		static FormInputField OpenFileName(const std::string& prompt, const std::string& ext);
 		static FormInputField SaveFileName(
-		    const std::string& prompt, const std::string& ext, const std::string& defaultName = "");
+			const std::string& prompt, const std::string& ext, const std::string& defaultName = "");
 		static FormInputField DirectoryName(const std::string& prompt, const std::string& defaultName = "");
 	};
 
 	/*!
 
-		\ingroup coreapi
+	    \ingroup coreapi
 	*/
 	class ReportCollection :
-	    public CoreRefCountObject<BNReportCollection, BNNewReportCollectionReference, BNFreeReportCollection>
+		public CoreRefCountObject<BNReportCollection, BNNewReportCollectionReference, BNFreeReportCollection>
 	{
-	  public:
+	public:
 		ReportCollection();
 		ReportCollection(BNReportCollection* reports);
 
@@ -16440,48 +16519,49 @@ namespace BinaryNinja {
 
 		void AddPlainTextReport(Ref<BinaryView> view, const std::string& title, const std::string& contents);
 		void AddMarkdownReport(Ref<BinaryView> view, const std::string& title, const std::string& contents,
-		    const std::string& plainText = "");
+			const std::string& plainText = "");
 		void AddHTMLReport(Ref<BinaryView> view, const std::string& title, const std::string& contents,
-		    const std::string& plainText = "");
+			const std::string& plainText = "");
 		void AddGraphReport(Ref<BinaryView> view, const std::string& title, Ref<FlowGraph> graph);
 
 		void UpdateFlowGraph(size_t i, Ref<FlowGraph> graph);
 	};
 
 	/*!
-		\ingroup interaction
+	    \ingroup interaction
 	*/
 	class InteractionHandler
 	{
-	  public:
+	public:
 		virtual void ShowPlainTextReport(
-		    Ref<BinaryView> view, const std::string& title, const std::string& contents) = 0;
+			Ref<BinaryView> view, const std::string& title, const std::string& contents) = 0;
 		virtual void ShowMarkdownReport(
-		    Ref<BinaryView> view, const std::string& title, const std::string& contents, const std::string& plainText);
+			Ref<BinaryView> view, const std::string& title, const std::string& contents, const std::string& plainText);
 		virtual void ShowHTMLReport(
-		    Ref<BinaryView> view, const std::string& title, const std::string& contents, const std::string& plainText);
+			Ref<BinaryView> view, const std::string& title, const std::string& contents, const std::string& plainText);
 		virtual void ShowGraphReport(Ref<BinaryView> view, const std::string& title, Ref<FlowGraph> graph);
 		virtual void ShowReportCollection(const std::string& title, Ref<ReportCollection> reports);
 
 		virtual bool GetTextLineInput(std::string& result, const std::string& prompt, const std::string& title) = 0;
 		virtual bool GetIntegerInput(int64_t& result, const std::string& prompt, const std::string& title);
 		virtual bool GetAddressInput(uint64_t& result, const std::string& prompt, const std::string& title,
-		    Ref<BinaryView> view, uint64_t currentAddr);
+			Ref<BinaryView> view, uint64_t currentAddr);
 		virtual bool GetChoiceInput(size_t& idx, const std::string& prompt, const std::string& title,
 			const std::vector<std::string>& choices) = 0;
 		virtual bool GetLargeChoiceInput(size_t& idx, const std::string& prompt, const std::string& title,
 			const std::vector<std::string>& choices) = 0;
 		virtual bool GetOpenFileNameInput(std::string& result, const std::string& prompt, const std::string& ext = "");
 		virtual bool GetSaveFileNameInput(std::string& result, const std::string& prompt, const std::string& ext = "",
-		    const std::string& defaultName = "");
+			const std::string& defaultName = "");
 		virtual bool GetDirectoryNameInput(
-		    std::string& result, const std::string& prompt, const std::string& defaultName = "");
+			std::string& result, const std::string& prompt, const std::string& defaultName = "");
 		virtual bool GetFormInput(std::vector<FormInputField>& fields, const std::string& title) = 0;
 
 		virtual BNMessageBoxButtonResult ShowMessageBox(const std::string& title, const std::string& text,
-		    BNMessageBoxButtonSet buttons = OKButtonSet, BNMessageBoxIcon icon = InformationIcon) = 0;
+			BNMessageBoxButtonSet buttons = OKButtonSet, BNMessageBoxIcon icon = InformationIcon) = 0;
 		virtual bool OpenUrl(const std::string& url) = 0;
-		virtual bool RunProgressDialog(const std::string& title, bool canCancel, std::function<void(std::function<bool(size_t, size_t)> progress)> task) = 0;
+		virtual bool RunProgressDialog(const std::string& title, bool canCancel,
+			std::function<void(std::function<bool(size_t, size_t)> progress)> task) = 0;
 	};
 
 	typedef BNPluginOrigin PluginOrigin;
@@ -16489,11 +16569,11 @@ namespace BinaryNinja {
 	typedef BNPluginType PluginType;
 
 	/*!
-		\ingroup pluginmanager
+	    \ingroup pluginmanager
 	*/
 	class RepoPlugin : public CoreRefCountObject<BNRepoPlugin, BNNewPluginReference, BNFreePlugin>
 	{
-	  public:
+	public:
 		RepoPlugin(BNRepoPlugin* plugin);
 		PluginStatus GetPluginStatus() const;
 		std::vector<std::string> GetApis() const;
@@ -16540,11 +16620,11 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup pluginmanager
+	    \ingroup pluginmanager
 	*/
 	class Repository : public CoreRefCountObject<BNRepository, BNNewRepositoryReference, BNFreeRepository>
 	{
-	  public:
+	public:
 		Repository(BNRepository* repository);
 		std::string GetUrl() const;
 		std::string GetRepoPath() const;
@@ -16557,12 +16637,12 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup pluginmanager
+	    \ingroup pluginmanager
 	*/
 	class RepositoryManager :
-	    public CoreRefCountObject<BNRepositoryManager, BNNewRepositoryManagerReference, BNFreeRepositoryManager>
+		public CoreRefCountObject<BNRepositoryManager, BNNewRepositoryManagerReference, BNFreeRepositoryManager>
 	{
-	  public:
+	public:
 		RepositoryManager(const std::string& enabledPluginsPath);
 		RepositoryManager(BNRepositoryManager* repoManager);
 		RepositoryManager();
@@ -16570,99 +16650,111 @@ namespace BinaryNinja {
 		std::vector<Ref<Repository>> GetRepositories();
 		Ref<Repository> GetRepositoryByPath(const std::string& repoName);
 		bool AddRepository(const std::string& url,  // URL to raw plugins.json file
-		    const std::string& repoPath);           // Relative path within the repositories directory
+			const std::string& repoPath);           // Relative path within the repositories directory
 		Ref<Repository> GetDefaultRepository();
 	};
 
 	/*! \c Settings provides a way to define and access settings in a hierarchical fashion. The value of a setting can
-		be defined for each hierarchical level, where each level overrides the preceding level. The backing-store for setting
-		values at each level is also configurable. This allows for ephemeral or platform-independent persistent settings storage
-		for components within Binary Ninja or consumers of the Binary Ninja API.
+	    be defined for each hierarchical level, where each level overrides the preceding level. The backing-store for
+	   setting values at each level is also configurable. This allows for ephemeral or platform-independent persistent
+	   settings storage for components within Binary Ninja or consumers of the Binary Ninja API.
 
-		Each \c Settings instance has an \c instanceId which identifies a schema. The schema defines the settings contents
-		and the way in which settings are retrieved and manipulated. A new \c Settings instance defaults to using a value of <em><tt>default</tt></em>
-		for the \c instanceId . The <em><tt>default</tt></em> settings schema defines all of the settings available for the active Binary Ninja components
-		which include at a minimum, the settings defined by the Binary Ninja core. The <em><tt>default</tt></em> schema may additionally define settings
-		for the UI and/or installed plugins. Extending existing schemas, or defining new ones is accomplished by calling \c RegisterGroup()
-		and \c RegisterSetting() methods, or by deserializing an existing schema with \c DeserializeSchema() .
+	    Each \c Settings instance has an \c instanceId which identifies a schema. The schema defines the settings
+	   contents and the way in which settings are retrieved and manipulated. A new \c Settings instance defaults to
+	   using a value of <em><tt>default</tt></em> for the \c instanceId . The <em><tt>default</tt></em> settings schema
+	   defines all of the settings available for the active Binary Ninja components which include at a minimum, the
+	   settings defined by the Binary Ninja core. The <em><tt>default</tt></em> schema may additionally define settings
+	    for the UI and/or installed plugins. Extending existing schemas, or defining new ones is accomplished by calling
+	   \c RegisterGroup() and \c RegisterSetting() methods, or by deserializing an existing schema with \c
+	   DeserializeSchema() .
 
-		\note All settings in the <em><tt>default</tt></em> settings schema are rendered with UI elements in the Settings View of Binary Ninja UI.
+	    \note All settings in the <em><tt>default</tt></em> settings schema are rendered with UI elements in the
+	   Settings View of Binary Ninja UI.
 
-		Allowing setting overrides is an important feature and Binary Ninja accomplishes this by allowing one to override a setting at various
-		levels. The levels and their associated storage are shown in the following table. Default setting values are optional, and if specified,
-		saved in the schema itself.
+	    Allowing setting overrides is an important feature and Binary Ninja accomplishes this by allowing one to
+	   override a setting at various levels. The levels and their associated storage are shown in the following table.
+	   Default setting values are optional, and if specified, saved in the schema itself.
 
-			================= ========================== ============== ==============================================
-			Setting Level     Settings Scope             Preference     Storage
-			================= ========================== ============== ==============================================
-			Default           SettingsDefaultScope       Lowest         Settings Schema
-			User              SettingsUserScope          -              <User Directory>/settings.json
-			Project           SettingsProjectScope       -              <Project Directory>/settings.json
-			Resource          SettingsResourceScope      Highest        Raw BinaryView (Storage in BNDB)
-			================= ========================== ============== ==============================================
+	        ================= ========================== ============== ==============================================
+	        Setting Level     Settings Scope             Preference     Storage
+	        ================= ========================== ============== ==============================================
+	        Default           SettingsDefaultScope       Lowest         Settings Schema
+	        User              SettingsUserScope          -              <User Directory>/settings.json
+	        Project           SettingsProjectScope       -              <Project Directory>/settings.json
+	        Resource          SettingsResourceScope      Highest        Raw BinaryView (Storage in BNDB)
+	        ================= ========================== ============== ==============================================
 
-		Settings are identified by a key, which is a string in the form of <b><tt><group>.<name></tt></b> or <b><tt><group>.<subGroup>.<name></tt></b> . Groups provide
-		a simple way to categorize settings. Sub-groups are optional and multiple sub-groups are allowed. When defining a settings group, the
-		\c RegisterGroup method allows for specifying a UI friendly title for use in the Binary Ninja UI. Defining a new setting requires a
-		unique setting key and a JSON string of property, value pairs. The following table describes the available properties and values.
+	    Settings are identified by a key, which is a string in the form of <b><tt><group>.<name></tt></b> or
+	   <b><tt><group>.<subGroup>.<name></tt></b> . Groups provide a simple way to categorize settings. Sub-groups are
+	   optional and multiple sub-groups are allowed. When defining a settings group, the \c RegisterGroup method allows
+	   for specifying a UI friendly title for use in the Binary Ninja UI. Defining a new setting requires a unique
+	   setting key and a JSON string of property, value pairs. The following table describes the available properties
+	   and values.
 
-			==================   ======================================   ==================   ========   =======================================================================
-			Property             JSON Data Type                           Prerequisite         Optional   {Allowed Values} and Notes
-			==================   ======================================   ==================   ========   =======================================================================
-			"title"              string                                   None                 No         Concise Setting Title
-			"type"               string                                   None                 No         {"array", "boolean", "number", "string", "object"}
-			"sorted"             boolean                                  "type" is "array"    Yes        Automatically sort list items (default is false)
-			"isSerialized"       boolean                                  "type" is "string"   Yes        Treat the string as a serialized JSON object
-			"enum"               array : {string}                         "type" is "array"    Yes        Enumeration definitions
-			"enumDescriptions"   array : {string}                         "type" is "array"    Yes        Enumeration descriptions that match "enum" array
-			"minValue"           number                                   "type" is "number"   Yes        Specify 0 to infer unsigned (default is signed)
-			"maxValue"           number                                   "type" is "number"   Yes        Values less than or equal to INT_MAX result in a QSpinBox UI element
-			"precision"          number                                   "type" is "number"   Yes        Specify precision for a QDoubleSpinBox
-			"default"            {array, boolean, number, string, null}   None                 Yes        Specify optimal default value
-			"aliases"            array : {string}                         None                 Yes        Array of deprecated setting key(s)
-			"description"        string                                   None                 No         Detailed setting description
-			"ignore"             array : {string}                         None                 Yes        {"SettingsUserScope", "SettingsProjectScope", "SettingsResourceScope"}
-			"message"            string                                   None                 Yes        An optional message with additional emphasis
-			"readOnly"           bool                                     None                 Yes        Only enforced by UI elements
-			"optional"           bool                                     None                 Yes        Indicates setting can be null
-			"hidden"             bool                                     "type" is "string"   Yes        Indicates the UI should conceal the content. The "ignore" property is required to specify the applicable storage scopes
-			"requiresRestart     bool                                     None                 Yes        Enable restart notification in the UI upon change
-			"uiSelectionAction"  string                                   "type" is "string"   Yes        {"file", "directory", <Registered UIAction Name>} Informs the UI to add a button to open a selection dialog or run a registered UIAction
-			==================   ======================================   ==================   ========   =======================================================================
+	        ==================   ======================================   ==================   ========
+	   ======================================================================= Property             JSON Data Type
+	   Prerequisite         Optional   {Allowed Values} and Notes
+	        ==================   ======================================   ==================   ========
+	   ======================================================================= "title"              string None No
+	   Concise Setting Title "type"               string                                   None                 No
+	   {"array", "boolean", "number", "string", "object"} "sorted"             boolean "type" is "array"    Yes
+	   Automatically sort list items (default is false) "isSerialized"       boolean "type" is "string"   Yes Treat the
+	   string as a serialized JSON object "enum"               array : {string}                         "type" is
+	   "array"    Yes        Enumeration definitions "enumDescriptions"   array : {string} "type" is "array"    Yes
+	   Enumeration descriptions that match "enum" array "minValue"           number "type" is "number"   Yes Specify 0
+	   to infer unsigned (default is signed) "maxValue"           number                                   "type" is
+	   "number"   Yes        Values less than or equal to INT_MAX result in a QSpinBox UI element "precision" number
+	   "type" is "number"   Yes        Specify precision for a QDoubleSpinBox "default"            {array, boolean,
+	   number, string, null}   None                 Yes        Specify optimal default value "aliases"            array
+	   : {string}                         None                 Yes        Array of deprecated setting key(s)
+	        "description"        string                                   None                 No         Detailed
+	   setting description "ignore"             array : {string}                         None                 Yes
+	   {"SettingsUserScope", "SettingsProjectScope", "SettingsResourceScope"} "message"            string None Yes An
+	   optional message with additional emphasis "readOnly"           bool                                     None Yes
+	   Only enforced by UI elements "optional"           bool                                     None Yes Indicates
+	   setting can be null "hidden"             bool                                     "type" is "string"   Yes
+	   Indicates the UI should conceal the content. The "ignore" property is required to specify the applicable storage
+	   scopes "requiresRestart     bool                                     None                 Yes        Enable
+	   restart notification in the UI upon change "uiSelectionAction"  string                                   "type"
+	   is "string"   Yes        {"file", "directory", <Registered UIAction Name>} Informs the UI to add a button to open
+	   a selection dialog or run a registered UIAction
+	        ==================   ======================================   ==================   ========
+	   =======================================================================
 
-		\note In order to facilitate deterministic analysis results, settings from the <em><tt>default</tt></em> schema that impact analysis are serialized
-		from Default, User, and Project scope into Resource scope during initial BinaryView analysis. This allows an analysis database to be opened
-		at a later time with the same settings, regardless if Default, User, or Project settings have been modified.
+	    \note In order to facilitate deterministic analysis results, settings from the <em><tt>default</tt></em> schema
+	   that impact analysis are serialized from Default, User, and Project scope into Resource scope during initial
+	   BinaryView analysis. This allows an analysis database to be opened at a later time with the same settings,
+	   regardless if Default, User, or Project settings have been modified.
 
-		\note Settings that do not impact analysis (e.g. many UI settings) should use the \e "ignore" property to exclude
-			\e "SettingsProjectScope" and \e "SettingsResourceScope" from the applicable scopes for the setting.
+	    \note Settings that do not impact analysis (e.g. many UI settings) should use the \e "ignore" property to
+	   exclude \e "SettingsProjectScope" and \e "SettingsResourceScope" from the applicable scopes for the setting.
 
-		<b>Example analysis plugin setting:</b>
-	 	\code{.cpp}
-		auto settings = Settings::Instance()
+	    <b>Example analysis plugin setting:</b>
+	    \code{.cpp}
+	    auto settings = Settings::Instance()
 
-	 	settings->RegisterGroup("myPlugin", "My Plugin")
+	    settings->RegisterGroup("myPlugin", "My Plugin")
 
-		settings->RegisterSetting("myPlugin.enablePreAnalysis",
-			R"~({
-			"title": "My Pre-Analysis Plugin",
-			"type": "boolean",
-			"default": false,
-			"description": "Enable extra analysis before core analysis.",
-			"ignore": ["SettingsProjectScope", "SettingsResourceScope"]
-			})~");
+	    settings->RegisterSetting("myPlugin.enablePreAnalysis",
+	        R"~({
+	        "title": "My Pre-Analysis Plugin",
+	        "type": "boolean",
+	        "default": false,
+	        "description": "Enable extra analysis before core analysis.",
+	        "ignore": ["SettingsProjectScope", "SettingsResourceScope"]
+	        })~");
 
-		Metadata options = {{"myPlugin.enablePreAnalysis", Metadata(true)}};
-		Ref<BinaryView> bv = Load("/bin/ls", true, {}, options);
+	    Metadata options = {{"myPlugin.enablePreAnalysis", Metadata(true)}};
+	    Ref<BinaryView> bv = Load("/bin/ls", true, {}, options);
 
-		Settings::Instance()->Get<bool>("myPlugin.enablePreAnalysis"); // false
+	    Settings::Instance()->Get<bool>("myPlugin.enablePreAnalysis"); // false
 	    Settings::Instance()->Get<bool>("myPlugin.enablePreAnalysis", bv); // true
-		\endcode
-
-	 	<b>Getting a settings value:</b>
-	 	\code{.cpp}
-	    bool excludeUnreferencedStrings = Settings::Instance()->Get<bool>("ui.stringView.excludeUnreferencedStrings", bv);
 	    \endcode
+
+	    <b>Getting a settings value:</b>
+	    \code{.cpp}
+	    bool excludeUnreferencedStrings = Settings::Instance()->Get<bool>("ui.stringView.excludeUnreferencedStrings",
+	   bv); \endcode
 
 	    \ingroup settings
 	*/
@@ -16673,68 +16765,70 @@ namespace BinaryNinja {
 		Settings() = delete;
 		Settings(const std::string& m_instanceId);
 
-	  public:
+	public:
 		Settings(BNSettings* settings);
 		static Ref<Settings> Instance(const std::string& schemaId = "");
 		virtual ~Settings() {}
 
 		/*! Sets the file that this \c Settings instance uses when initially loading, and modifying \
-			settings for the specified scope.
+		    settings for the specified scope.
 
-			\note At times it may be useful to make ephemeral changes to settings that are not saved to file. This can be accomplished \
-			by calling \c LoadSettingsFile without specifying a filename. This action also resets settings to their default value.
+		    \note At times it may be useful to make ephemeral changes to settings that are not saved to file. This can
+		   be accomplished \ by calling \c LoadSettingsFile without specifying a filename. This action also resets
+		   settings to their default value.
 
-			\param fileName the settings filename
-			\param scope the BNSettingsScope
-			\param view a BinaryView object
-			\return True if the load is successful, False otherwise
+		    \param fileName the settings filename
+		    \param scope the BNSettingsScope
+		    \param view a BinaryView object
+		    \return True if the load is successful, False otherwise
 		*/
-		bool LoadSettingsFile(const std::string& fileName, BNSettingsScope scope = SettingsAutoScope, Ref<BinaryView> view = nullptr);
+		bool LoadSettingsFile(
+			const std::string& fileName, BNSettingsScope scope = SettingsAutoScope, Ref<BinaryView> view = nullptr);
 
 		/*! Sets the resource identifier for this \c Settings instance. When accessing setting values at the
-			\c SettingsResourceScope level, the resource identifier is passed along through the backing store interface.
+		    \c SettingsResourceScope level, the resource identifier is passed along through the backing store interface.
 
-			\note Currently the only available backing store for \c SettingsResourceScope is a \c BinaryView object. In the context
-			of a \c BinaryView the resource identifier is the \c BinaryViewType name. All settings for this type of backing store
-			are saved in the \e 'Raw' \c BinaryViewType . This enables the configuration of setting values such that they are available
-			during \c BinaryView creation and initialization.
+		    \note Currently the only available backing store for \c SettingsResourceScope is a \c BinaryView object. In
+		   the context of a \c BinaryView the resource identifier is the \c BinaryViewType name. All settings for this
+		   type of backing store are saved in the \e 'Raw' \c BinaryViewType . This enables the configuration of setting
+		   values such that they are available during \c BinaryView creation and initialization.
 
-			\param resourceId a unique identifier
+		    \param resourceId a unique identifier
 		*/
 		void SetResourceId(const std::string& resourceId = "");
 
 		/*! Registers a group in the schema for this \c Settings instance
 
-			\param group a unique identifier
-			\param title a user friendly name appropriate for UI presentation
-			\return True on success, False on failure
+		    \param group a unique identifier
+		    \param title a user friendly name appropriate for UI presentation
+		    \return True on success, False on failure
 		*/
 		bool RegisterGroup(const std::string& group, const std::string& title);
 
 		/*! Registers a new setting with this \c Settings instance
 
-			\param key a unique setting identifier in the form <b>'<group>.<name>'</b>
-			\param properties a JSON string describes the setting schema
-			\return True on success, False on failure.
+		    \param key a unique setting identifier in the form <b>'<group>.<name>'</b>
+		    \param properties a JSON string describes the setting schema
+		    \return True on success, False on failure.
 		*/
 		bool RegisterSetting(const std::string& key, const std::string& properties);
 
 		/*! Determine if a setting identifier exists in the active settings schema
 
-			\param key the setting identifier
-			\return True if the identifier exists in this active settings schema, False otherwise
+		    \param key the setting identifier
+		    \return True if the identifier exists in this active settings schema, False otherwise
 		*/
 		bool Contains(const std::string& key);
 
 		/*! Determine if the active settings schema is empty
 
-			\return True if the active settings schema is empty, False otherwise
+		    \return True if the active settings schema is empty, False otherwise
 		*/
 		bool IsEmpty();
 
 		/*! Retrieve the list of setting identifiers in the active settings schema
 
-			\return List of setting identifiers
+		    \return List of setting identifiers
 		*/
 		std::vector<std::string> Keys();
 
@@ -16754,63 +16848,64 @@ namespace BinaryNinja {
 		bool DeserializeSchema(const std::string& schema, BNSettingsScope scope = SettingsAutoScope, bool merge = true);
 		std::string SerializeSchema();
 		bool DeserializeSettings(
-		    const std::string& contents, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
+			const std::string& contents, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
 		std::string SerializeSettings(Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
 
 		bool Reset(const std::string& key, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
 		bool ResetAll(
-		    Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope, bool schemaOnly = true);
+			Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope, bool schemaOnly = true);
 
 		/*! Get the current setting value for a particular key
 
-			\code{.cpp}
-		 	bool excludeUnreferencedStrings = Settings::Instance()->Get<bool>("ui.stringView.excludeUnreferencedStrings", data);
-			\endcode
+		    \code{.cpp}
+		    bool excludeUnreferencedStrings =
+		   Settings::Instance()->Get<bool>("ui.stringView.excludeUnreferencedStrings", data); \endcode
 
-			\tparam T type for the value you are retrieving
-			\param key Key for the setting
-			\param view BinaryView, for factoring in resource-scoped settings
-			\param scope Scope for the settings
-			\return Value for the setting, with type T
+		    \tparam T type for the value you are retrieving
+		    \param key Key for the setting
+		    \param view BinaryView, for factoring in resource-scoped settings
+		    \param scope Scope for the settings
+		    \return Value for the setting, with type T
 		*/
 		template <typename T>
 		T Get(const std::string& key, Ref<BinaryView> view = nullptr, BNSettingsScope* scope = nullptr);
 
 		/*! Get the current settings value for a particular key, as a JSON representation of its value.
 
-			\code{.cpp}
+		    \code{.cpp}
 		    string value = Settings::Instance()->GetJson("analysis.mode");
-			// '"full"'
-		 	\endcode
+		    // '"full"'
+		    \endcode
 
-			\param key Key for the setting
-			\param view BinaryView, for factoring in resource-scoped settings
-			\param scope Scope for the settings
-			\return JSON value for the setting, as a string
+		    \param key Key for the setting
+		    \param view BinaryView, for factoring in resource-scoped settings
+		    \param scope Scope for the settings
+		    \return JSON value for the setting, as a string
 		*/
 		std::string GetJson(const std::string& key, Ref<BinaryView> view = nullptr, BNSettingsScope* scope = nullptr);
 
 		bool Set(const std::string& key, bool value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
+			BNSettingsScope scope = SettingsAutoScope);
 		bool Set(const std::string& key, double value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
+			BNSettingsScope scope = SettingsAutoScope);
 		bool Set(const std::string& key, int value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
+			BNSettingsScope scope = SettingsAutoScope);
 		bool Set(const std::string& key, int64_t value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
+			BNSettingsScope scope = SettingsAutoScope);
 		bool Set(const std::string& key, uint64_t value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
+			BNSettingsScope scope = SettingsAutoScope);
 		bool Set(const std::string& key, const char* value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
+			BNSettingsScope scope = SettingsAutoScope);
 		bool Set(const std::string& key, const std::string& value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
+			BNSettingsScope scope = SettingsAutoScope);
 		bool Set(const std::string& key, const std::vector<std::string>& value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
+			BNSettingsScope scope = SettingsAutoScope);
 		bool SetJson(const std::string& key, const std::string& value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
+			BNSettingsScope scope = SettingsAutoScope);
 
 		// Function Settings
-		bool DeserializeSettings(const std::string& contents, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+		bool DeserializeSettings(
+			const std::string& contents, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
 		std::string SerializeSettings(Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
 
 		bool Reset(const std::string& key, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
@@ -16821,25 +16916,30 @@ namespace BinaryNinja {
 
 		std::string GetJson(const std::string& key, Ref<Function> func, BNSettingsScope* scope = nullptr);
 
-		bool Set(const std::string& key, bool value, Ref<Function> func,  BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, double value, Ref<Function> func,  BNSettingsScope scope = SettingsAutoScope);
+		bool Set(const std::string& key, bool value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+		bool Set(const std::string& key, double value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
 		bool Set(const std::string& key, int value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
 		bool Set(const std::string& key, int64_t value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
 		bool Set(const std::string& key, uint64_t value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, const char* value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, const std::string& value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, const std::vector<std::string>& value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
-		bool SetJson(const std::string& key, const std::string& value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+		bool Set(
+			const std::string& key, const char* value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+		bool Set(const std::string& key, const std::string& value, Ref<Function> func,
+			BNSettingsScope scope = SettingsAutoScope);
+		bool Set(const std::string& key, const std::vector<std::string>& value, Ref<Function> func,
+			BNSettingsScope scope = SettingsAutoScope);
+		bool SetJson(const std::string& key, const std::string& value, Ref<Function> func,
+			BNSettingsScope scope = SettingsAutoScope);
 	};
 
 	// explicit specializations
 	/*! \cond DOXYGEN_HIDE
-		Prevent these from having docs autogenerated twice, due to an odd quirk with doxygen
+	    Prevent these from having docs autogenerated twice, due to an odd quirk with doxygen
 	*/
 	template <>
 	std::string Settings::QueryProperty<std::string>(const std::string& key, const std::string& property);
 	template <>
-	std::vector<std::string> Settings::QueryProperty<std::vector<std::string>>(const std::string& key, const std::string& property);
+	std::vector<std::string> Settings::QueryProperty<std::vector<std::string>>(
+		const std::string& key, const std::string& property);
 	template <>
 	bool Settings::Get<bool>(const std::string& key, Ref<BinaryView> view, BNSettingsScope* scope);
 	template <>
@@ -16852,7 +16952,7 @@ namespace BinaryNinja {
 	std::string Settings::Get<std::string>(const std::string& key, Ref<BinaryView> view, BNSettingsScope* scope);
 	template <>
 	std::vector<std::string> Settings::Get<std::vector<std::string>>(
-	    const std::string& key, Ref<BinaryView> view, BNSettingsScope* scope);
+		const std::string& key, Ref<BinaryView> view, BNSettingsScope* scope);
 	/*! \endcond*/
 
 	template <>
@@ -16866,78 +16966,80 @@ namespace BinaryNinja {
 	template <>
 	std::string Settings::Get<std::string>(const std::string& key, Ref<Function> func, BNSettingsScope* scope);
 	template <>
-	std::vector<std::string> Settings::Get<std::vector<std::string>>(const std::string& key, Ref<Function> func, BNSettingsScope* scope);
+	std::vector<std::string> Settings::Get<std::vector<std::string>>(
+		const std::string& key, Ref<Function> func, BNSettingsScope* scope);
 
 	typedef BNMetadataType MetadataType;
 
 	/*! DataRenderer objects tell the Linear View how to render specific types.
 
-		The `IsValidForData` method returns a boolean to indicate if your derived class
-		is able to render the type, given the `addr` and `context`. The `context` is a list of Type
-		objects which represents the chain of nested objects that is being displayed.
+	    The `IsValidForData` method returns a boolean to indicate if your derived class
+	    is able to render the type, given the `addr` and `context`. The `context` is a list of Type
+	    objects which represents the chain of nested objects that is being displayed.
 
-		The `GetLinesForData` method returns a list of `DisassemblyTextLine` objects, each one
-		representing a single line of Linear View output. The `prefix` variable is a list of `InstructionTextToken`'s
-		which have already been generated by other `DataRenderer`'s.
+	    The `GetLinesForData` method returns a list of `DisassemblyTextLine` objects, each one
+	    representing a single line of Linear View output. The `prefix` variable is a list of `InstructionTextToken`'s
+	    which have already been generated by other `DataRenderer`'s.
 
-		After defining the `DataRenderer` subclass you must then register it with the core. This is done by calling
-		either `DataRendererContainer::RegisterGenericDataRenderer()` or
-	 	`DataRendererContainer::RegisterTypeSpecificDataRenderer()`.
-	 	A "generic" type renderer is able to be overridden by a "type specific" renderer. For instance there is a
-	 	generic struct render which renders any struct that hasn't been explicitly overridden by a "type specific" renderer.
+	    After defining the `DataRenderer` subclass you must then register it with the core. This is done by calling
+	    either `DataRendererContainer::RegisterGenericDataRenderer()` or
+	    `DataRendererContainer::RegisterTypeSpecificDataRenderer()`.
+	    A "generic" type renderer is able to be overridden by a "type specific" renderer. For instance there is a
+	    generic struct render which renders any struct that hasn't been explicitly overridden by a "type specific"
+	   renderer.
 
-		\ingroup datarenderer
+	    \ingroup datarenderer
 	*/
 	class DataRenderer : public CoreRefCountObject<BNDataRenderer, BNNewDataRendererReference, BNFreeDataRenderer>
 	{
 		static bool IsValidForDataCallback(
-		    void* ctxt, BNBinaryView* data, uint64_t addr, BNType* type, BNTypeContext* typeCtx, size_t ctxCount);
+			void* ctxt, BNBinaryView* data, uint64_t addr, BNType* type, BNTypeContext* typeCtx, size_t ctxCount);
 		static BNDisassemblyTextLine* GetLinesForDataCallback(void* ctxt, BNBinaryView* data, uint64_t addr,
-		    BNType* type, const BNInstructionTextToken* prefix, size_t prefixCount, size_t width, size_t* count,
+			BNType* type, const BNInstructionTextToken* prefix, size_t prefixCount, size_t width, size_t* count,
 			BNTypeContext* typeCxt, size_t ctxCount, const char* language);
 		static void FreeCallback(void* ctxt);
 		static void FreeLinesCallback(void* ctxt, BNDisassemblyTextLine* lines, size_t count);
 
-	  public:
+	public:
 		DataRenderer();
 		DataRenderer(BNDataRenderer* renderer);
 		virtual bool IsValidForData(
-		    BinaryView* data, uint64_t addr, Type* type, std::vector<std::pair<Type*, size_t>>& context);
+			BinaryView* data, uint64_t addr, Type* type, std::vector<std::pair<Type*, size_t>>& context);
 		virtual std::vector<DisassemblyTextLine> GetLinesForData(BinaryView* data, uint64_t addr, Type* type,
-		    const std::vector<InstructionTextToken>& prefix, size_t width,
+			const std::vector<InstructionTextToken>& prefix, size_t width,
 			std::vector<std::pair<Type*, size_t>>& context, const std::string& language = std::string());
 		std::vector<DisassemblyTextLine> RenderLinesForData(BinaryView* data, uint64_t addr, Type* type,
-		    const std::vector<InstructionTextToken>& prefix, size_t width,
-		    std::vector<std::pair<Type*, size_t>>& context, const std::string& language = std::string());
+			const std::vector<InstructionTextToken>& prefix, size_t width,
+			std::vector<std::pair<Type*, size_t>>& context, const std::string& language = std::string());
 
 		static bool IsStructOfTypeName(
-		    Type* type, const QualifiedName& name, std::vector<std::pair<Type*, size_t>>& context);
+			Type* type, const QualifiedName& name, std::vector<std::pair<Type*, size_t>>& context);
 		static bool IsStructOfTypeName(
-		    Type* type, const std::string& name, std::vector<std::pair<Type*, size_t>>& context);
+			Type* type, const std::string& name, std::vector<std::pair<Type*, size_t>>& context);
 	};
 
 	/*! Used for registering DataRenderers
 
-		\see DataRenderer
+	    \see DataRenderer
 
-		\ingroup datarenderer
+	    \ingroup datarenderer
 	*/
 	class DataRendererContainer
 	{
-	  public:
+	public:
 		static void RegisterGenericDataRenderer(DataRenderer* renderer);
 		static void RegisterTypeSpecificDataRenderer(DataRenderer* renderer);
 	};
 
 	/*!
 
-		\ingroup coreapi
+	    \ingroup coreapi
 	*/
 	class DisassemblyTextRenderer :
-	    public CoreRefCountObject<BNDisassemblyTextRenderer, BNNewDisassemblyTextRendererReference,
-	        BNFreeDisassemblyTextRenderer>
+		public CoreRefCountObject<BNDisassemblyTextRenderer, BNNewDisassemblyTextRendererReference,
+			BNFreeDisassemblyTextRenderer>
 	{
-	  public:
+	public:
 		DisassemblyTextRenderer(Function* func, DisassemblySettings* settings = nullptr);
 		DisassemblyTextRenderer(LowLevelILFunction* func, DisassemblySettings* settings = nullptr);
 		DisassemblyTextRenderer(MediumLevelILFunction* func, DisassemblySettings* settings = nullptr);
@@ -16962,34 +17064,33 @@ namespace BinaryNinja {
 		virtual void GetInstructionAnnotations(std::vector<InstructionTextToken>& tokens, uint64_t addr);
 		virtual bool GetInstructionText(uint64_t addr, size_t& len, std::vector<DisassemblyTextLine>& lines);
 		std::vector<DisassemblyTextLine> PostProcessInstructionTextLines(uint64_t addr, size_t len,
-		    const std::vector<DisassemblyTextLine>& lines, const std::string& indentSpaces = "");
+			const std::vector<DisassemblyTextLine>& lines, const std::string& indentSpaces = "");
 
 		virtual bool GetDisassemblyText(uint64_t addr, size_t& len, std::vector<DisassemblyTextLine>& lines);
 		void ResetDeduplicatedComments();
 
 		bool AddSymbolToken(std::vector<InstructionTextToken>& tokens, uint64_t addr, size_t size, size_t operand);
-		static BNSymbolDisplayResult AddSymbolTokenStatic(
-			std::vector<InstructionTextToken>& tokens, uint64_t addr, size_t size, size_t operand,
-			BinaryView* data, size_t maxSymbolWidth, Function* func, uint8_t confidence = BN_FULL_CONFIDENCE,
-			BNSymbolDisplayType symbolDisplay = DisplaySymbolOnly,
-			BNOperatorPrecedence precedence = TopLevelOperatorPrecedence,
-			uint64_t instrAddr = -1, uint64_t exprIndex = -1);
+		static BNSymbolDisplayResult AddSymbolTokenStatic(std::vector<InstructionTextToken>& tokens, uint64_t addr,
+			size_t size, size_t operand, BinaryView* data, size_t maxSymbolWidth, Function* func,
+			uint8_t confidence = BN_FULL_CONFIDENCE, BNSymbolDisplayType symbolDisplay = DisplaySymbolOnly,
+			BNOperatorPrecedence precedence = TopLevelOperatorPrecedence, uint64_t instrAddr = -1,
+			uint64_t exprIndex = -1);
 		void AddStackVariableReferenceTokens(
-		    std::vector<InstructionTextToken>& tokens, const StackVariableReference& ref);
+			std::vector<InstructionTextToken>& tokens, const StackVariableReference& ref);
 
 		static bool IsIntegerToken(BNInstructionTextTokenType type);
 		void AddIntegerToken(std::vector<InstructionTextToken>& tokens, const InstructionTextToken& token,
-		    Architecture* arch, uint64_t addr);
+			Architecture* arch, uint64_t addr);
 
 		void WrapComment(DisassemblyTextLine& line, std::vector<DisassemblyTextLine>& lines, const std::string& comment,
-		    bool hasAutoAnnotations, const std::string& leadingSpaces = "  ", const std::string& indentSpaces = "");
+			bool hasAutoAnnotations, const std::string& leadingSpaces = "  ", const std::string& indentSpaces = "");
 		static std::string GetDisplayStringForInteger(Ref<BinaryView> binaryView, BNIntegerDisplayType type,
-		    uint64_t value, size_t inputWidth, bool isSigned = true);
+			uint64_t value, size_t inputWidth, bool isSigned = true);
 		static std::string GetStringLiteralPrefix(BNStringType type);
 	};
 
 	/*!
-		\ingroup lineardisassembly
+	    \ingroup lineardisassembly
 	*/
 	struct LinearViewObjectIdentifier
 	{
@@ -17005,12 +17106,12 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup lineardisassembly
+	    \ingroup lineardisassembly
 	*/
 	class LinearViewObject :
-	    public CoreRefCountObject<BNLinearViewObject, BNNewLinearViewObjectReference, BNFreeLinearViewObject>
+		public CoreRefCountObject<BNLinearViewObject, BNNewLinearViewObjectReference, BNFreeLinearViewObject>
 	{
-	  public:
+	public:
 		LinearViewObject(BNLinearViewObject* obj);
 
 		Ref<LinearViewObject> GetFirstChild();
@@ -17043,36 +17144,36 @@ namespace BinaryNinja {
 		static Ref<LinearViewObject> CreateMappedMediumLevelILSSAForm(BinaryView* view, DisassemblySettings* settings);
 		static Ref<LinearViewObject> CreateHighLevelIL(BinaryView* view, DisassemblySettings* settings);
 		static Ref<LinearViewObject> CreateHighLevelILSSAForm(BinaryView* view, DisassemblySettings* settings);
-		static Ref<LinearViewObject> CreateLanguageRepresentation(BinaryView* view, DisassemblySettings* settings,
-			const std::string& language = "Pseudo C");
+		static Ref<LinearViewObject> CreateLanguageRepresentation(
+			BinaryView* view, DisassemblySettings* settings, const std::string& language = "Pseudo C");
 		static Ref<LinearViewObject> CreateDataOnly(BinaryView* view, DisassemblySettings* settings);
 
 		static Ref<LinearViewObject> CreateSingleFunctionDisassembly(Function* func, DisassemblySettings* settings);
 		static Ref<LinearViewObject> CreateSingleFunctionLiftedIL(Function* func, DisassemblySettings* settings);
 		static Ref<LinearViewObject> CreateSingleFunctionLowLevelIL(Function* func, DisassemblySettings* settings);
 		static Ref<LinearViewObject> CreateSingleFunctionLowLevelILSSAForm(
-		    Function* func, DisassemblySettings* settings);
+			Function* func, DisassemblySettings* settings);
 		static Ref<LinearViewObject> CreateSingleFunctionMediumLevelIL(Function* func, DisassemblySettings* settings);
 		static Ref<LinearViewObject> CreateSingleFunctionMediumLevelILSSAForm(
-		    Function* func, DisassemblySettings* settings);
+			Function* func, DisassemblySettings* settings);
 		static Ref<LinearViewObject> CreateSingleFunctionMappedMediumLevelIL(
-		    Function* func, DisassemblySettings* settings);
+			Function* func, DisassemblySettings* settings);
 		static Ref<LinearViewObject> CreateSingleFunctionMappedMediumLevelILSSAForm(
-		    Function* func, DisassemblySettings* settings);
+			Function* func, DisassemblySettings* settings);
 		static Ref<LinearViewObject> CreateSingleFunctionHighLevelIL(Function* func, DisassemblySettings* settings);
 		static Ref<LinearViewObject> CreateSingleFunctionHighLevelILSSAForm(
-		    Function* func, DisassemblySettings* settings);
+			Function* func, DisassemblySettings* settings);
 		static Ref<LinearViewObject> CreateSingleFunctionLanguageRepresentation(
-		    Function* func, DisassemblySettings* settings, const std::string& language = "Pseudo C");
+			Function* func, DisassemblySettings* settings, const std::string& language = "Pseudo C");
 	};
 
 	/*!
-		\ingroup lineardisassembly
+	    \ingroup lineardisassembly
 	*/
 	class LinearViewCursor :
-	    public CoreRefCountObject<BNLinearViewCursor, BNNewLinearViewCursorReference, BNFreeLinearViewCursor>
+		public CoreRefCountObject<BNLinearViewCursor, BNNewLinearViewCursorReference, BNFreeLinearViewCursor>
 	{
-	  public:
+	public:
 		LinearViewCursor(LinearViewObject* root);
 		LinearViewCursor(BNLinearViewCursor* cursor);
 
@@ -17101,16 +17202,36 @@ namespace BinaryNinja {
 
 		Ref<LinearViewCursor> Duplicate();
 
+		/*! Get the list of Render Layers which will be applied to this cursor, at the
+		    end of calls to GetLines.
+
+		    \return List of Render Layers
+		 */
+		std::vector<class RenderLayer*> GetRenderLayers() const;
+
+		/*! Add a Render Layer to be applied to this cursor. Note that layers will
+		    be applied in the order in which they are added.
+
+		    \param layer Render Layer to add
+		 */
+		void AddRenderLayer(class RenderLayer* layer);
+
+		/*! Remove a Render Layer from being applied to this cursor
+
+		    \param layer Render Layer to remove
+		 */
+		void RemoveRenderLayer(class RenderLayer* layer);
+
 		static int Compare(LinearViewCursor* a, LinearViewCursor* b);
 	};
 
 	/*!
 
-		\ingroup simplifyname
+	    \ingroup simplifyname
 	*/
 	class SimplifyName
 	{
-	  public:
+	public:
 		// Use these functions to interface with the simplifier
 		static std::string to_string(const std::string& input);
 		static std::string to_string(const QualifiedName& input);
@@ -17130,7 +17251,7 @@ namespace BinaryNinja {
 		operator std::string() const;
 		operator QualifiedName();
 
-	  private:
+	private:
 		const char* m_rust_string;
 		const char** m_rust_array;
 		uint64_t m_length;
@@ -17156,7 +17277,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup debuginfo
+	    \ingroup debuginfo
 	*/
 	struct DebugFunctionInfo
 	{
@@ -17170,28 +17291,27 @@ namespace BinaryNinja {
 		std::vector<VariableNameAndType> localVariables;
 
 		DebugFunctionInfo(std::string shortName, std::string fullName, std::string rawName, uint64_t address,
-		    Ref<Type> type, Ref<Platform> platform, const std::vector<std::string>& components,
+			Ref<Type> type, Ref<Platform> platform, const std::vector<std::string>& components,
 			const std::vector<VariableNameAndType>& localVariables) :
-		    shortName(shortName), fullName(fullName), rawName(rawName),
-		    address(address), platform(platform), components(components),
-			localVariables(localVariables)
+			shortName(shortName), fullName(fullName), rawName(rawName), address(address), platform(platform),
+			components(components), localVariables(localVariables)
 		{}
 	};
 
 	/*!
-		\ingroup debuginfo
+	    \ingroup debuginfo
 	*/
 	class DebugInfo : public CoreRefCountObject<BNDebugInfo, BNNewDebugInfoReference, BNFreeDebugInfoReference>
 	{
-	  public:
+	public:
 		DebugInfo(BNDebugInfo* debugInfo);
 
 		std::vector<std::string> GetParsers() const;
 
 		/*! Type Container for all types in the DebugInfo that resulted from the parse of
-			the given parser.
-			\param parserName Name of parser
-			\return Type Container for types from that parser
+		    the given parser.
+		    \param parserName Name of parser
+		    \return Type Container for types from that parser
 		 */
 		TypeContainer GetTypeContainer(const std::string& parserName);
 
@@ -17221,16 +17341,17 @@ namespace BinaryNinja {
 
 		bool AddType(const std::string& name, Ref<Type> type, const std::vector<std::string>& components = {});
 		bool AddFunction(const DebugFunctionInfo& function);
-		bool AddDataVariable(uint64_t address, Ref<Type> type, const std::string& name = "", const std::vector<std::string>& components = {});
+		bool AddDataVariable(uint64_t address, Ref<Type> type, const std::string& name = "",
+			const std::vector<std::string>& components = {});
 	};
 
 	/*!
-		\ingroup debuginfo
+	    \ingroup debuginfo
 	*/
 	class DebugInfoParser :
-	    public CoreRefCountObject<BNDebugInfoParser, BNNewDebugInfoParserReference, BNFreeDebugInfoParserReference>
+		public CoreRefCountObject<BNDebugInfoParser, BNNewDebugInfoParserReference, BNFreeDebugInfoParserReference>
 	{
-	  public:
+	public:
 		DebugInfoParser(BNDebugInfoParser* parser);
 
 		static Ref<DebugInfoParser> GetByName(const std::string& name);
@@ -17238,21 +17359,23 @@ namespace BinaryNinja {
 		static std::vector<Ref<DebugInfoParser>> GetListForView(const Ref<BinaryView> data);
 
 		std::string GetName() const;
-		Ref<DebugInfo> Parse(Ref<BinaryView> view, Ref<BinaryView> debugView, Ref<DebugInfo> existingDebugInfo = nullptr, std::function<bool(size_t, size_t)> progress = {}) const;
+		Ref<DebugInfo> Parse(Ref<BinaryView> view, Ref<BinaryView> debugView,
+			Ref<DebugInfo> existingDebugInfo = nullptr, std::function<bool(size_t, size_t)> progress = {}) const;
 
 		bool IsValidForView(const Ref<BinaryView> view) const;
 	};
 
 	/*!
-		\ingroup debuginfo
+	    \ingroup debuginfo
 	*/
 	class CustomDebugInfoParser : public DebugInfoParser
 	{
 		static bool IsValidCallback(void* ctxt, BNBinaryView* view);
-		static bool ParseCallback(void* ctxt, BNDebugInfo* debugInfo, BNBinaryView* view, BNBinaryView* debugFile, BNProgressFunction progress, void* progressCtxt);
+		static bool ParseCallback(void* ctxt, BNDebugInfo* debugInfo, BNBinaryView* view, BNBinaryView* debugFile,
+			BNProgressFunction progress, void* progressCtxt);
 		BNDebugInfoParser* Register(const std::string& name);
 
-	  public:
+	public:
 		CustomDebugInfoParser(const std::string& name);
 		virtual ~CustomDebugInfoParser() {}
 
@@ -17263,13 +17386,13 @@ namespace BinaryNinja {
 
 	/*! Class for storing secrets (e.g. tokens) in a system-specific manner
 
-	 	\ingroup secretsprovider
+	    \ingroup secretsprovider
 	*/
 	class SecretsProvider : public StaticCoreRefCountObject<BNSecretsProvider>
 	{
 		std::string m_nameForRegister;
 
-	  protected:
+	protected:
 		SecretsProvider(const std::string& name);
 		SecretsProvider(BNSecretsProvider* provider);
 
@@ -17278,7 +17401,7 @@ namespace BinaryNinja {
 		static bool StoreDataCallback(void* ctxt, const char* key, const char* data);
 		static bool DeleteDataCallback(void* ctxt, const char* key);
 
-	  public:
+	public:
 		/*! Check if data for a specific key exists, but do not retrieve it
 
 		    \param key Key for data
@@ -17329,11 +17452,11 @@ namespace BinaryNinja {
 
 	/*!
 
-		\ingroup secretsprovider
+	    \ingroup secretsprovider
 	*/
 	class CoreSecretsProvider : public SecretsProvider
 	{
-	  public:
+	public:
 		CoreSecretsProvider(BNSecretsProvider* provider);
 
 		virtual bool HasData(const std::string& key) override;
@@ -17344,14 +17467,14 @@ namespace BinaryNinja {
 
 	/*! Components are objects that can contain Functions and other Components.
 
-		\note Components should not be instantiated directly. Instead use BinaryView::CreateComponent()
+	    \note Components should not be instantiated directly. Instead use BinaryView::CreateComponent()
 
-		They can be queried for information about the functions contained within them.
+	    They can be queried for information about the functions contained within them.
 
-	 	Components have a Guid, which persistent across saves and loads of the database, and should be
-	 	used for retrieving components when such is required and a reference to the Component cannot be held.
+	    Components have a Guid, which persistent across saves and loads of the database, and should be
+	    used for retrieving components when such is required and a reference to the Component cannot be held.
 
-	 	\ingroup coreapi
+	    \ingroup coreapi
 
 	*/
 	class Component : public CoreRefCountObject<BNComponent, BNNewComponentReference, BNFreeComponent>
@@ -17361,7 +17484,7 @@ namespace BinaryNinja {
 
 		/*! Get the unique identifier for this component.
 
-			\return Component GUID
+		    \return Component GUID
 		*/
 		std::string GetGuid();
 
@@ -17372,67 +17495,68 @@ namespace BinaryNinja {
 
 		/*! The displayed name for the component
 
-		 	@threadunsafe
+		    @threadunsafe
 
-			This can differ from the GetOriginalName() value if the parent
-		 	component also contains other components with the same name.
+		    This can differ from the GetOriginalName() value if the parent
+		    component also contains other components with the same name.
 
-		 	Subsequent duplicates will return the original name with " (1)", " (2)" and so on appended.
+		    Subsequent duplicates will return the original name with " (1)", " (2)" and so on appended.
 
-		 	This name can change whenever a different duplicate is removed.
+		    This name can change whenever a different duplicate is removed.
 
-		 	\note For looking up Components, utilizing Guid is highly recommended, as it will *always* map to this component,
-		 	and as Guid lookups are faster by nature.
+		    \note For looking up Components, utilizing Guid is highly recommended, as it will *always* map to this
+		   component, and as Guid lookups are faster by nature.
 
-			\return Component name
+		    \return Component name
 		*/
 		std::string GetDisplayName();
 
 		/*! The original name for the component
 
-		 	@threadunsafe
+		    @threadunsafe
 
-			This may differ from Component::GetName() whenever the parent contains Components with the same original name.
+		    This may differ from Component::GetName() whenever the parent contains Components with the same original
+		   name.
 
-		 	This function will always return the value originally set for this Component.
+		    This function will always return the value originally set for this Component.
 
-			\return Component name
+		    \return Component name
 		*/
 		std::string GetName();
 
 		/*! Set the name for the component
 
-		 	@threadunsafe
+		    @threadunsafe
 
-			\see GetName(), GetOriginalName()
+		    \see GetName(), GetOriginalName()
 
 		    \param name New component name.
 		*/
-		void SetName(const std::string &name);
+		void SetName(const std::string& name);
 
 		/*! Get the parent component. If it's a top level component, it will return the "root" Component.
 
-		 	@threadsafe
+		    @threadsafe
 
-			\return Parent Component
+		    \return Parent Component
 		*/
 		Ref<Component> GetParent();
 
 		/*! Add a function to this component
 
-		 	@threadsafe
+		    @threadsafe
 
-			\param func Function to add.
-			\return True if the function was successfully added.
+		    \param func Function to add.
+		    \return True if the function was successfully added.
 		*/
 		bool AddFunction(Ref<Function> func);
 
 		/*! Move a component to this component.
 
-		 	@threadsafe
+		    @threadsafe
 
-			\param component Component to add.
-			\return True if the component was successfully added.
+		    \param component Component to add.
+		    \return True if the component was successfully added.
 		*/
 		bool AddComponent(Ref<Component> component);
 
@@ -17440,23 +17564,23 @@ namespace BinaryNinja {
 
 		/*! Remove a Component from this Component, moving it to the root component.
 
-		 	@threadsafe
+		    @threadsafe
 
-			This will not remove a component from the tree entirely.
+		    This will not remove a component from the tree entirely.
 
-			\see BinaryView::GetRootComponent(), BinaryView::RemoveComponent()
+		    \see BinaryView::GetRootComponent(), BinaryView::RemoveComponent()
 
-			\param component Component to remove
-			\return True if the component was successfully removed
+		    \param component Component to remove
+		    \return True if the component was successfully removed
 		*/
 		bool RemoveComponent(Ref<Component> component);
 
 		/*! Remove a function
 
-		 	@threadsafe
+		    @threadsafe
 
-			\param func Function to remove
-			\return True if the function was successfully removed.
+		    \param func Function to remove
+		    \return True if the function was successfully removed.
 		*/
 		bool RemoveFunction(Ref<Function> func);
 
@@ -17464,208 +17588,208 @@ namespace BinaryNinja {
 
 		/*! Get a list of types referenced by the functions in this Component.
 
-		 	@threadsafe
+		    @threadsafe
 
-			\return vector of Type objects
+		    \return vector of Type objects
 		*/
 		std::vector<Ref<Type>> GetReferencedTypes();
 
 		/*! Get a list of components contained by this component.
 
-		 	@threadsafe
+		    @threadsafe
 
-			\return vector of Component objects
+		    \return vector of Component objects
 		*/
 		std::vector<Ref<Component>> GetContainedComponents();
 
 		/*! Get a list of functions contained within this Component.
 
-		 	@threadsafe
+		    @threadsafe
 
-			\return vector of Function objects
+		    \return vector of Function objects
 		*/
 		std::vector<Ref<Function>> GetContainedFunctions();
 
 		/*! Get a list of datavariables added to this component
 
-		 	@threadsafe
+		    @threadsafe
 
-			\return list of DataVariables
+		    \return list of DataVariables
 		*/
 		std::vector<DataVariable> GetContainedDataVariables();
 
 		/*! Get a list of DataVariables referenced by the functions in this Component.
 
-		 	@threadsafe
+		    @threadsafe
 
-			\return vector of DataVariable objects
+		    \return vector of DataVariable objects
 		*/
 		std::vector<DataVariable> GetReferencedDataVariables();
 	};
 
-	class TypeLibrary: public CoreRefCountObject<BNTypeLibrary, BNNewTypeLibraryReference, BNFreeTypeLibrary>
+	class TypeLibrary : public CoreRefCountObject<BNTypeLibrary, BNNewTypeLibraryReference, BNFreeTypeLibrary>
 	{
 	public:
 		TypeLibrary(BNTypeLibrary* handle);
 
 		/*! Creates an empty type library object with a random GUID and the provided name.
 
-			\param arch
-			\param name
+		    \param arch
+		    \param name
 		*/
 		TypeLibrary(Ref<Architecture> arch, const std::string& name);
 
 		/*! Decompresses a type library from a file
 
-			\param path
-			\return The string contents of the decompressed type library
+		    \param path
+		    \return The string contents of the decompressed type library
 		*/
 		std::string Decompress(const std::string& path);
 
 		/*! Decompresses a type library from a file
 
-			\param path
-			\param output
-			\return True if the type library was successfully decompressed
+		    \param path
+		    \param output
+		    \return True if the type library was successfully decompressed
 		*/
 		static bool DecompressToFile(const std::string& path, const std::string& output);
 
 		/*! Loads a finalized type library instance from file
 
-			\param path
-			\return True if the type library was successfully loaded
+		    \param path
+		    \return True if the type library was successfully loaded
 		*/
 		static Ref<TypeLibrary> LoadFromFile(const std::string& path);
 
 		/*! Looks up the first type library found with a matching name. Keep in mind that names are
-			not necessarily unique.
+		    not necessarily unique.
 
-			\param arch
-			\param name
-			\return
+		    \param arch
+		    \param name
+		    \return
 		*/
 		static Ref<TypeLibrary> LookupByName(Ref<Architecture> arch, const std::string& name);
 
 		/*! Attempts to grab a type library associated with the provided Architecture and GUID pair
 
-			\param arch
-			\param guid
-			\return
+		    \param arch
+		    \param guid
+		    \return
 		*/
 		static Ref<TypeLibrary> LookupByGuid(Ref<Architecture> arch, const std::string& guid);
 
 		/*! Saves a finalized type library instance to file
 
-			\param path
+		    \param path
 		*/
 		bool WriteToFile(const std::string& path);
 
 		/*! The Architecture this type library is associated with
 
-			\return
+		    \return
 		*/
 		Ref<Architecture> GetArchitecture();
 
 		/*! Returns the GUID associated with the type library
 
-			\return
+		    \return
 		*/
 		std::string GetGuid();
 
 		/*! The primary name associated with this type library
 
-			\return
+		    \return
 		*/
 		std::string GetName();
 
 		/*! A list of extra names that will be considered a match by ``Platform::GetTypeLibrariesByName``
 
-			\return
+		    \return
 		*/
 		std::set<std::string> GetAlternateNames();
 
 		/*! The dependency name of a library is the name used to record dependencies across
-			type libraries. This allows, for example, a library with the name "musl_libc" to have
-			dependencies on it recorded as "libc_generic", allowing a type library to be used across
-			multiple platforms where each has a specific libc that also provides the name "libc_generic"
-			as an `alternate_name`.
+		    type libraries. This allows, for example, a library with the name "musl_libc" to have
+		    dependencies on it recorded as "libc_generic", allowing a type library to be used across
+		    multiple platforms where each has a specific libc that also provides the name "libc_generic"
+		    as an `alternate_name`.
 
-			\return
+		    \return
 		*/
 		std::string GetDependencyName();
 
 		/*! Returns a list of all platform names that this type library will register with during platform
-			type registration.
+		    type registration.
 
-			This returns strings, not Platform objects, as type libraries can be distributed with support for
-			Platforms that may not be present.
+		    This returns strings, not Platform objects, as type libraries can be distributed with support for
+		    Platforms that may not be present.
 
-			\return
+		    \return
 		*/
 		std::set<std::string> GetPlatformNames();
 
 		/*! Retrieves a metadata associated with the given key stored in the type library
 
-			\param key Key to query
-			\return Metadata associated with the key
+		    \param key Key to query
+		    \return Metadata associated with the key
 		*/
 		Ref<Metadata> QueryMetadata(const std::string& key);
 
 		/*! Sets the GUID of a type library instance that has not been finalized
 
-			\param guid
+		    \param guid
 		*/
 		void SetGuid(const std::string& guid);
 
 		/*! Type Container for all TYPES within the Type Library. Objects are not included.
-			The Type Container's Platform will be the first platform associated with the Type Library.
-			\return Type Library Type Container
+		    The Type Container's Platform will be the first platform associated with the Type Library.
+		    \return Type Library Type Container
 		 */
 		TypeContainer GetTypeContainer();
 
 		/*! Direct extracts a reference to a contained object -- when attempting to extract types from a library
-			into a BinaryView, consider using BinaryView::ImportTypeLibraryObject instead.
+		    into a BinaryView, consider using BinaryView::ImportTypeLibraryObject instead.
 
-			\param name
-			\return
+		    \param name
+		    \return
 		*/
 		Ref<Type> GetNamedObject(const QualifiedName& name);
 
 		/*! Direct extracts a reference to a contained type -- when attempting to extract types from a library
-			into a BinaryView, consider using BinaryView.ImportTypeLibraryType>` instead.
+		    into a BinaryView, consider using BinaryView.ImportTypeLibraryType>` instead.
 
-			\param name
-			\return
+		    \param name
+		    \return
 		*/
 		Ref<Type> GetNamedType(const QualifiedName& name);
 
 		/*! A list containing all named objects (functions, exported variables) provided by a type library
 
-			\return
+		    \return
 		*/
 		std::vector<QualifiedNameAndType> GetNamedObjects();
 
 		/*! A list containing all named types provided by a type library
 
-			\return
+		    \return
 		*/
 		std::vector<QualifiedNameAndType> GetNamedTypes();
 
 		/*! Sets the name of a type library instance that has not been finalized
 
-			\param name
+		    \param name
 		*/
 		void SetName(const std::string& name);
 
 		/*! Adds an extra name to this type library used during library lookups and dependency resolution
 
-			\param alternate
+		    \param alternate
 		*/
 		void AddAlternateName(const std::string& alternate);
 
 		/*! Sets the dependency name of a type library instance that has not been finalized
 
-			\param depName
+		    \param depName
 		*/
 		void SetDependencyName(const std::string& depName);
 
@@ -17676,75 +17800,76 @@ namespace BinaryNinja {
 
 		/*! Associate a platform with a type library instance that has not been finalized.
 
-			This will cause the library to be searchable by Platform::GetTypeLibrariesByName when loaded.
+		    This will cause the library to be searchable by Platform::GetTypeLibrariesByName when loaded.
 
-			This does not have side affects until finalization of the type library.
+		    This does not have side affects until finalization of the type library.
 
-			\param platform
+		    \param platform
 		*/
 		void AddPlatform(Ref<Platform> platform);
 
 		/*! Stores an object for the given key in the current type library. Objects stored using StoreMetadata can be
-			retrieved from any reference to the library.
+		    retrieved from any reference to the library.
 
-			This is primarily intended as a way to store Platform specific information relevant to BinaryView implementations;
-			for example the PE BinaryViewType uses type library metadata to retrieve ordinal information, when available.
+		    This is primarily intended as a way to store Platform specific information relevant to BinaryView
+		   implementations; for example the PE BinaryViewType uses type library metadata to retrieve ordinal
+		   information, when available.
 
-			\param key Key value to associate the Metadata object with
-			\param value Object to store.
+		    \param key Key value to associate the Metadata object with
+		    \param value Object to store.
 		*/
 		void StoreMetadata(const std::string& key, Ref<Metadata> value);
 
 		/*! Removes the metadata associated with key from the current type library.
 
-			\param key Key associated with metadata
+		    \param key Key associated with metadata
 		*/
 		void RemoveMetadata(const std::string& key);
 
 		/*! Returns a base Metadata object associated with the current type library.
 
-			\return Metadata object associated with the type library
+		    \return Metadata object associated with the type library
 		*/
 		Ref<Metadata> GetMetadata();
 
 		/*! Directly inserts a named object into the type library's object store.
-			This is not done recursively, so care should be taken that types referring to other types
-			through NamedTypeReferences are already appropriately prepared.
+		    This is not done recursively, so care should be taken that types referring to other types
+		    through NamedTypeReferences are already appropriately prepared.
 
-			To add types and objects from an existing BinaryView, it is recommended to use
-			BinaryView::ExportObjectToLibrary, which will automatically pull in all referenced types and record
-			additional dependencies as needed.
+		    To add types and objects from an existing BinaryView, it is recommended to use
+		    BinaryView::ExportObjectToLibrary, which will automatically pull in all referenced types and record
+		    additional dependencies as needed.
 
-			\param name
-			\param type
+		    \param name
+		    \param type
 		*/
 		void AddNamedObject(const QualifiedName& name, Ref<Type> type);
 
 		/*! Directly inserts a named object into the type library's object store.
-			This is not done recursively, so care should be taken that types referring to other types
-			through NamedTypeReferences are already appropriately prepared.
+		    This is not done recursively, so care should be taken that types referring to other types
+		    through NamedTypeReferences are already appropriately prepared.
 
-			To add types and objects from an existing BinaryView, it is recommended to use
-			BinaryView::ExportTypeToLibrary, which will automatically pull in all referenced types and record
-			additional dependencies as needed.
+		    To add types and objects from an existing BinaryView, it is recommended to use
+		    BinaryView::ExportTypeToLibrary, which will automatically pull in all referenced types and record
+		    additional dependencies as needed.
 
-			\param name
-			\param type
+		    \param name
+		    \param type
 		*/
 		void AddNamedType(const QualifiedName& name, Ref<Type> type);
 
 		/*! Manually flag NamedTypeReferences to the given QualifiedName as originating from another source
-			TypeLibrary with the given dependency name.
+		    TypeLibrary with the given dependency name.
 
-			\warning Use this api with extreme caution.
+		    \warning Use this api with extreme caution.
 
-			\param name
-			\param source
+		    \param name
+		    \param source
 		*/
 		void AddNamedTypeSource(const QualifiedName& name, const std::string& source);
 
-		/*! Flags a newly created type library instance as finalized and makes it available for Platform and Architecture
-			type library searches
+		/*! Flags a newly created type library instance as finalized and makes it available for Platform and
+		   Architecture type library searches
 
 		*/
 		void Finalize();
@@ -17756,8 +17881,10 @@ namespace BinaryNinja {
 		BNTypeArchiveNotification m_callbacks;
 
 		static void OnTypeAddedCallback(void* ctx, BNTypeArchive* archive, const char* id, BNType* definition);
-		static void OnTypeUpdatedCallback(void* ctx, BNTypeArchive* archive, const char* id, BNType* oldDefinition, BNType* newDefinition);
-		static void OnTypeRenamedCallback(void* ctx, BNTypeArchive* archive, const char* id, const BNQualifiedName* oldName, const BNQualifiedName* newName);
+		static void OnTypeUpdatedCallback(
+			void* ctx, BNTypeArchive* archive, const char* id, BNType* oldDefinition, BNType* newDefinition);
+		static void OnTypeRenamedCallback(void* ctx, BNTypeArchive* archive, const char* id,
+			const BNQualifiedName* oldName, const BNQualifiedName* newName);
 		static void OnTypeDeletedCallback(void* ctx, BNTypeArchive* archive, const char* id, BNType* definition);
 
 	public:
@@ -17785,7 +17912,8 @@ namespace BinaryNinja {
 		    \param oldDefinition Previous definition
 		    \param newDefinition Current definition
 		 */
-		virtual void OnTypeUpdated(Ref<TypeArchive> archive, const std::string& id, Ref<Type> oldDefinition, Ref<Type> newDefinition)
+		virtual void OnTypeUpdated(
+			Ref<TypeArchive> archive, const std::string& id, Ref<Type> oldDefinition, Ref<Type> newDefinition)
 		{
 			(void)archive;
 			(void)id;
@@ -17800,7 +17928,8 @@ namespace BinaryNinja {
 		    \param oldName Previous name
 		    \param newName Current name
 		 */
-		virtual void OnTypeRenamed(Ref<TypeArchive> archive, const std::string& id, const QualifiedName& oldName, const QualifiedName& newName)
+		virtual void OnTypeRenamed(
+			Ref<TypeArchive> archive, const std::string& id, const QualifiedName& oldName, const QualifiedName& newName)
 		{
 			(void)archive;
 			(void)oldName;
@@ -17827,7 +17956,7 @@ namespace BinaryNinja {
 
 	    \ingroup binaryview
 	 */
-	class TypeArchive: public CoreRefCountObject<BNTypeArchive, BNNewTypeArchiveReference, BNFreeTypeArchiveReference>
+	class TypeArchive : public CoreRefCountObject<BNTypeArchive, BNNewTypeArchiveReference, BNFreeTypeArchiveReference>
 	{
 	public:
 		TypeArchive(BNTypeArchive* archive);
@@ -18034,7 +18163,8 @@ namespace BinaryNinja {
 		    \throws ExceptionWithStackTrace if an exception occurs
 		    \return Target type ids
 		 */
-		std::unordered_set<std::string> GetOutgoingDirectTypeReferences(const std::string& id, std::string snapshot = "") const;
+		std::unordered_set<std::string> GetOutgoingDirectTypeReferences(
+			const std::string& id, std::string snapshot = "") const;
 
 		/*! Get all types a given type references, and any types that the referenced types reference
 
@@ -18043,7 +18173,8 @@ namespace BinaryNinja {
 		    \throws ExceptionWithStackTrace if an exception occurs
 		    \return Target type ids
 		 */
-		std::unordered_set<std::string> GetOutgoingRecursiveTypeReferences(const std::string& id, std::string snapshot = "") const;
+		std::unordered_set<std::string> GetOutgoingRecursiveTypeReferences(
+			const std::string& id, std::string snapshot = "") const;
 
 		/*! Get all types that reference a given type
 
@@ -18052,7 +18183,8 @@ namespace BinaryNinja {
 		    \throws ExceptionWithStackTrace if an exception occurs
 		    \return Source type ids
 		 */
-		std::unordered_set<std::string> GetIncomingDirectTypeReferences(const std::string& id, std::string snapshot = "") const;
+		std::unordered_set<std::string> GetIncomingDirectTypeReferences(
+			const std::string& id, std::string snapshot = "") const;
 
 		/*! Get all types that reference a given type, and all types that reference them, recursively
 
@@ -18061,7 +18193,8 @@ namespace BinaryNinja {
 		    \throws ExceptionWithStackTrace if an exception occurs
 		    \return Source type ids
 		 */
-		std::unordered_set<std::string> GetIncomingRecursiveTypeReferences(const std::string& id, std::string snapshot = "") const;
+		std::unordered_set<std::string> GetIncomingRecursiveTypeReferences(
+			const std::string& id, std::string snapshot = "") const;
 
 		/*! Do some function in a transaction making a new snapshot whose id is passed to func. If func throws,
 		    the transaction will be rolled back and the snapshot will not be created.
@@ -18071,7 +18204,8 @@ namespace BinaryNinja {
 		    \throws ExceptionWithStackTrace if an exception occurs
 		    \return Created snapshot id
 		 */
-		std::string NewSnapshotTransaction(std::function<void(const std::string& id)> func, const std::vector<std::string>& parents);
+		std::string NewSnapshotTransaction(
+			std::function<void(const std::string& id)> func, const std::vector<std::string>& parents);
 
 		/*! Register a notification listener
 
@@ -18133,20 +18267,15 @@ namespace BinaryNinja {
 		    \throws ExceptionWithStackTrace if an exception occurs
 		    \return Snapshot id, if merge was successful. std::nullopt, otherwise
 		 */
-		std::optional<std::string> MergeSnapshots(
-			const std::string& baseSnapshot,
-			const std::string& firstSnapshot,
-			const std::string& secondSnapshot,
-			const std::unordered_map<std::string, std::string>& mergeConflictsIn,
-			std::unordered_set<std::string>& mergeConflictsOut,
-			std::function<bool(size_t, size_t)> progress
-		);
+		std::optional<std::string> MergeSnapshots(const std::string& baseSnapshot, const std::string& firstSnapshot,
+			const std::string& secondSnapshot, const std::unordered_map<std::string, std::string>& mergeConflictsIn,
+			std::unordered_set<std::string>& mergeConflictsOut, std::function<bool(size_t, size_t)> progress);
 	};
 
 	/*! A TypeContainer is a generic interface to access various Binary Ninja models
-		that contain types. Types are stored with both a unique id and a unique name.
+	    that contain types. Types are stored with both a unique id and a unique name.
 
-		\ingroup types
+	    \ingroup types
 	 */
 	class TypeContainer
 	{
@@ -18157,28 +18286,28 @@ namespace BinaryNinja {
 
 		/*! Get the Type Container for a given BinaryView
 
-			\param data BinaryView source
+		    \param data BinaryView source
 		 */
 		TypeContainer(Ref<BinaryView> data);
 
 		/*! Get the Type Container for a Type Library
 
-			\note The Platform for the Type Container will be the first Platform
-			      associated with the Type Library
-			\param library TypeLibrary source
+		    \note The Platform for the Type Container will be the first Platform
+		          associated with the Type Library
+		    \param library TypeLibrary source
 		 */
 		TypeContainer(Ref<TypeLibrary> library);
 
 
 		/*! Get the Type Container for a Type Archive
 
-			\param archive TypeArchive source
+		    \param archive TypeArchive source
 		 */
 		TypeContainer(Ref<TypeArchive> archive);
 
 		/*! Get the Type Container for a Platform
 
-			\param platform Platform source
+		    \param platform Platform source
 		 */
 		TypeContainer(Ref<Platform> platform);
 
@@ -18193,201 +18322,182 @@ namespace BinaryNinja {
 		BNTypeContainer* GetObject() const { return m_object; }
 
 		/*! Get an id string for the Type Container. This will be unique within a given
-			analysis session, but may not be globally unique.
+		    analysis session, but may not be globally unique.
 
-			\return Identifier string
+		    \return Identifier string
 		 */
 		std::string GetId() const;
 
 		/*! Get a user-friendly name for the Type Container.
 
-			\return Display name
+		    \return Display name
 		 */
 		std::string GetName() const;
 
 		/*! Get the type of underlying model the Type Container is accessing.
 
-			\return Container type enum
+		    \return Container type enum
 		 */
 		BNTypeContainerType GetType() const;
 
 		/*! Test if the Type Container supports mutable operations (add, rename, delete)
 
-			\return True if mutable
+		    \return True if mutable
 		 */
 		bool IsMutable() const;
 
 		/*! Get the Platform object associated with this Type Container. All Type Containers
-			have exactly one associated Platform (as opposed to, e.g. Type Libraries).
+		    have exactly one associated Platform (as opposed to, e.g. Type Libraries).
 
-			\return Associated Platform object
+		    \return Associated Platform object
 		 */
 		Ref<Platform> GetPlatform() const;
 
 
 		/*! Add or update a single type in the Type Container. If the Type Container already contains
-			a type with the same name as a type being added, the existing type will be
-			replaced with the definition given to this function, and references will be
-			updated in the source model.
+		    a type with the same name as a type being added, the existing type will be
+		    replaced with the definition given to this function, and references will be
+		    updated in the source model.
 
-			\param name Name of type to add
-			\param type Definition of type to add
-			\return String of added type's id, if successful, std::nullopt otherwise
+		    \param name Name of type to add
+		    \param type Definition of type to add
+		    \return String of added type's id, if successful, std::nullopt otherwise
 		 */
 		std::optional<std::string> AddType(QualifiedName name, Ref<Type> type);
 
 		/*! Add or update types to a Type Container. If the Type Container already contains
-			a type with the same name as a type being added, the existing type will be
-			replaced with the definition given to this function, and references will be
-			updated in the source model.
+		    a type with the same name as a type being added, the existing type will be
+		    replaced with the definition given to this function, and references will be
+		    updated in the source model.
 
-			An optional progress callback is included because adding many types can be a slow operation.
+		    An optional progress callback is included because adding many types can be a slow operation.
 
-			\param types List of (name, definition) pairs of new types to add
-			\param progress Optional function to call for progress updates
-			\return Map of name -> id of type in Type Container for all added types if successful,
-			        std::nullopt otherwise.
+		    \param types List of (name, definition) pairs of new types to add
+		    \param progress Optional function to call for progress updates
+		    \return Map of name -> id of type in Type Container for all added types if successful,
+		            std::nullopt otherwise.
 		 */
 		std::optional<std::unordered_map<QualifiedName, std::string>> AddTypes(
 			const std::vector<std::pair<QualifiedName, Ref<Type>>>& types,
 			std::function<bool(size_t, size_t)> progress = {});
 
 		/*! Rename a type in the Type Container. All references to this type will be updated
-			(by id) to use the new name.
+		    (by id) to use the new name.
 
-			\param typeId Id of type to update
-			\param newName New name for the type
-			\return True if successful
+		    \param typeId Id of type to update
+		    \param newName New name for the type
+		    \return True if successful
 		 */
 		bool RenameType(const std::string& typeId, const QualifiedName& newName);
 
 		/*! Delete a type in the Type Container. Behavior of references to this type is
-			not specified and you may end up with broken references if any still exist.
+		    not specified and you may end up with broken references if any still exist.
 
-			\param typeId Id of type to delete
-			\return True if successful
+		    \param typeId Id of type to delete
+		    \return True if successful
 		 */
 		bool DeleteType(const std::string& typeId);
 
 
 		/*! Get the unique id of the type in the Type Container with the given name.
-			If no type with that name exists, returns std::nullopt.
+		    If no type with that name exists, returns std::nullopt.
 
-			\param typeName Name of type
-			\return Type id, if exists, else, std::nullopt
+		    \param typeName Name of type
+		    \return Type id, if exists, else, std::nullopt
 		 */
 		std::optional<std::string> GetTypeId(const QualifiedName& typeName) const;
 
 		/*! Get the unique name of the type in the Type Container with the given id.
-			If no type with that id exists, returns std::nullopt.
+		    If no type with that id exists, returns std::nullopt.
 
-			\param typeId Id of type
-			\return Type name, if exists, else, std::nullopt
+		    \param typeId Id of type
+		    \return Type name, if exists, else, std::nullopt
 		 */
 		std::optional<QualifiedName> GetTypeName(const std::string& typeId) const;
 
 		/*! Get the definition of the type in the Type Container with the given id.
-			If no type with that id exists, returns std::nullopt.
+		    If no type with that id exists, returns std::nullopt.
 
-			\param typeId Id of type
-			\return Type object, if exists, else, std::nullopt
+		    \param typeId Id of type
+		    \return Type object, if exists, else, std::nullopt
 		 */
 		std::optional<Ref<Type>> GetTypeById(const std::string& typeId) const;
 
 		/*! Get a mapping of all types in a Type Container.
 
-			\return All types in a map of type id -> (type name, type definition)
+		    \return All types in a map of type id -> (type name, type definition)
 		 */
 		std::optional<std::unordered_map<std::string, std::pair<QualifiedName, Ref<Type>>>> GetTypes() const;
 
 
 		/*! Get the definition of the type in the Type Container with the given name.
-			If no type with that name exists, returns None.
+		    If no type with that name exists, returns None.
 
-			\param typeName Name of type
-			\return Type object, if exists, else, None
+		    \param typeName Name of type
+		    \return Type object, if exists, else, None
 		 */
 		std::optional<Ref<Type>> GetTypeByName(const QualifiedName& typeName) const;
 
 		/*! Get all type ids in a Type Container.
 
-			\return List of all type ids
+		    \return List of all type ids
 		 */
 		std::optional<std::unordered_set<std::string>> GetTypeIds() const;
 
 		/*! Get all type names in a Type Container.
 
-			\return List of all type names
+		    \return List of all type names
 		 */
 		std::optional<std::unordered_set<QualifiedName>> GetTypeNames() const;
 
 		/*! Get a mapping of all type ids and type names in a Type Container.
 
-			\return Map of type id -> type name
+		    \return Map of type id -> type name
 		 */
 		std::optional<std::unordered_map<std::string, QualifiedName>> GetTypeNamesAndIds() const;
 
 		/*! Parse a single type and name from a string containing their definition,
-			with knowledge of the types in the Type Container.
+		    with knowledge of the types in the Type Container.
 
-			\param source Source code to parse
-			\param importDependencies If Type Library / Type Archive types should be imported during parsing
-			\param result Reference into which the resulting type and name will be written
-			\param errors Reference to a list into which any parse errors will be written
-			\return True if parsing was successful
+		    \param source Source code to parse
+		    \param importDependencies If Type Library / Type Archive types should be imported during parsing
+		    \param result Reference into which the resulting type and name will be written
+		    \param errors Reference to a list into which any parse errors will be written
+		    \return True if parsing was successful
 		 */
-		bool ParseTypeString(
-			const std::string& source,
-			bool importDependencies,
-			QualifiedNameAndType& result,
-			std::vector<TypeParserError>& errors
-		);
+		bool ParseTypeString(const std::string& source, bool importDependencies, QualifiedNameAndType& result,
+			std::vector<TypeParserError>& errors);
 
 		/*!
-			\deprecated Use `ParseTypeString` with the extra `importDependencies` param
+		    \deprecated Use `ParseTypeString` with the extra `importDependencies` param
 		 */
 		bool ParseTypeString(
-			const std::string& source,
-			QualifiedNameAndType& result,
-			std::vector<TypeParserError>& errors
-		);
+			const std::string& source, QualifiedNameAndType& result, std::vector<TypeParserError>& errors);
 
 		/*! Parse an entire block of source into types, variables, and functions, with
-			knowledge of the types in the Type Container.
+		    knowledge of the types in the Type Container.
 
-			\param text Source code to parse
-			\param fileName Name of the file containing the source (optional: exists on disk)
-			\param options Optional string arguments to pass as options, e.g. command line arguments
-			\param includeDirs Optional list of directories to include in the header search path
-			\param autoTypeSource Optional source of types if used for automatically generated types
-			\param importDependencies If Type Library / Type Archive types should be imported during parsing
-			\param result Reference to structure into which the results will be written
-			\param errors Reference to a list into which any parse errors will be written
-			\return True if successful
+		    \param text Source code to parse
+		    \param fileName Name of the file containing the source (optional: exists on disk)
+		    \param options Optional string arguments to pass as options, e.g. command line arguments
+		    \param includeDirs Optional list of directories to include in the header search path
+		    \param autoTypeSource Optional source of types if used for automatically generated types
+		    \param importDependencies If Type Library / Type Archive types should be imported during parsing
+		    \param result Reference to structure into which the results will be written
+		    \param errors Reference to a list into which any parse errors will be written
+		    \return True if successful
 		 */
-		bool ParseTypesFromSource(
-			const std::string& text,
-			const std::string& fileName,
-			const std::vector<std::string>& options,
-			const std::vector<std::string>& includeDirs,
-			const std::string& autoTypeSource,
-			bool importDependencies,
-			TypeParserResult& result,
-			std::vector<TypeParserError>& errors
-		);
+		bool ParseTypesFromSource(const std::string& text, const std::string& fileName,
+			const std::vector<std::string>& options, const std::vector<std::string>& includeDirs,
+			const std::string& autoTypeSource, bool importDependencies, TypeParserResult& result,
+			std::vector<TypeParserError>& errors);
 
 		/*!
-			\deprecated Use `ParseTypesFromSource` with the extra `importDependencies` param
+		    \deprecated Use `ParseTypesFromSource` with the extra `importDependencies` param
 		 */
-		bool ParseTypesFromSource(
-			const std::string& text,
-			const std::string& fileName,
-			const std::vector<std::string>& options,
-			const std::vector<std::string>& includeDirs,
-			const std::string& autoTypeSource,
-			TypeParserResult& result,
-			std::vector<TypeParserError>& errors
-		);
+		bool ParseTypesFromSource(const std::string& text, const std::string& fileName,
+			const std::vector<std::string>& options, const std::vector<std::string>& includeDirs,
+			const std::string& autoTypeSource, TypeParserResult& result, std::vector<TypeParserError>& errors);
 	};
 
 	/*!
@@ -18421,7 +18531,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup baseaddressdetection
+	    \ingroup baseaddressdetection
 	*/
 	class BaseAddressDetection
 	{
@@ -18433,23 +18543,26 @@ namespace BinaryNinja {
 
 		/*! Analyze program, identify pointers and points-of-interest, and detect candidate base addresses
 
-			\param settings Base address detection settings
-			\return true on success, false otherwise
+		    \param settings Base address detection settings
+		    \return true on success, false otherwise
 		 */
 		bool DetectBaseAddress(BaseAddressDetectionSettings& settings);
 
 		/*! Get the top 10 candidate base addresses and thier scores
 
-			\param confidence Confidence level that indicates the likelihood the top base address candidate is correct
-			\param lastTestedBaseAddress Last base address tested before analysis was aborted or completed
-			\return Set of pairs containing candidate base addresses and their scores
+		    \param confidence Confidence level that indicates the likelihood the top base address candidate is correct
+		    \param lastTestedBaseAddress Last base address tested before analysis was aborted or completed
+		    \return Set of pairs containing candidate base addresses and their scores
 		 */
-		std::set<std::pair<size_t, uint64_t>> GetScores(BNBaseAddressDetectionConfidence* confidence, uint64_t *lastTestedBaseAddress);
+		std::set<std::pair<size_t, uint64_t>> GetScores(
+			BNBaseAddressDetectionConfidence* confidence, uint64_t* lastTestedBaseAddress);
 
-		/*! Get a vector of BNBaseAddressDetectionReasons containing information that indicates why a base address was reported as a candidate
+		/*! Get a vector of BNBaseAddressDetectionReasons containing information that indicates why a base address was
+		   reported as a candidate
 
-			\param baseAddress Base address to query reasons for
-			\return Vector of reason structures containing information about why a base address was reported as a candidate
+		    \param baseAddress Base address to query reasons for
+		    \return Vector of reason structures containing information about why a base address was reported as a
+		   candidate
 		 */
 		std::vector<BNBaseAddressDetectionReason> GetReasonsForBaseAddress(uint64_t baseAddress);
 
@@ -18459,14 +18572,14 @@ namespace BinaryNinja {
 
 		/*! Determine if base address detection is aborted
 
-			\return true if aborted by user, false otherwise
+		    \return true if aborted by user, false otherwise
 		 */
 		bool IsAborted();
 	};
 
 
 	/*!
-		\ingroup firmwareninja
+	    \ingroup firmwareninja
 	*/
 	struct FirmwareNinjaDevice
 	{
@@ -18477,7 +18590,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup firmwareninja
+	    \ingroup firmwareninja
 	*/
 	struct FirmwareNinjaFunctionMemoryAccesses
 	{
@@ -18487,7 +18600,7 @@ namespace BinaryNinja {
 	};
 
 	/*!
-		\ingroup firmwareninja
+	    \ingroup firmwareninja
 	*/
 	struct FirmwareNinjaDeviceAccesses
 	{
@@ -18497,62 +18610,260 @@ namespace BinaryNinja {
 	};
 
 
-	/*! FirmwareNinjaReferenceNode is a class used to build reference trees to memory regions, functions, and data
-		variables. This class is only available in the Ultimate Edition of Binary Ninja.
+	/*! FirmwareNinjaReferenceNode is a class used to build reference trees for memory regions, functions, and data
+	    variables. This class is only available in the Ultimate Edition of Binary Ninja.
 
-		\ingroup firmwareninja
+	    \ingroup firmwareninja
 	*/
-	class FirmwareNinjaReferenceNode : public CoreRefCountObject<BNFirmwareNinjaReferenceNode, BNNewFirmwareNinjaReferenceNodeReference, BNFreeFirmwareNinjaReferenceNode>
+	class FirmwareNinjaReferenceNode :
+		public CoreRefCountObject<BNFirmwareNinjaReferenceNode, BNNewFirmwareNinjaReferenceNodeReference,
+			BNFreeFirmwareNinjaReferenceNode>
 	{
-		BNFirmwareNinjaReferenceNode* m_object;
 	public:
 		FirmwareNinjaReferenceNode(BNFirmwareNinjaReferenceNode* node);
 		~FirmwareNinjaReferenceNode();
 
-		/*! Determine if the reference tree node is for a function
+		/*! Returns true if the reference tree node contains a function
 
-			\return true if the reference tree node is for a function, false otherwise
+		    \return true if the reference tree node contains a function, false otherwise
 		 */
 		bool IsFunction();
 
-		/*! Determine if the reference tree node is for a data variable
+		/*! Returns true if the reference tree node contains a data variable
 
-			\return true if the reference tree node is for a data variable, false otherwise
+		    \return true if the reference tree node contains a data variable, false otherwise
 		 */
 		bool IsDataVariable();
 
-		/*! Determine if the reference tree node contains child nodes
+		/*! Returns true if the reference tree node contains child nodes
 
-			\return true if the reference tree node contains child nodes, false otherwise
+		    \return true if the reference tree node contains child nodes, false otherwise
 		 */
 		bool HasChildren();
 
-		/*! Query the function contained in the reference tree node
+		/*! Get the function contained in the reference tree node
 
-			\param function Output function object
-			\return true if the function was queried successfully, false otherwise
+		    \param function Output function object
+		    \return true if the function was queried successfully, false if the reference tree node does not contain a
+		   function
 		 */
 		bool GetFunction(Ref<Function>& function);
 
-		/*! Query the data variable contained in the reference tree node
+		/*! Get the data variable contained in the reference tree node
 
-			\param function Output data variable object
-			\return true if the data variable was queried successfully, false otherwise
+		    \param function Output data variable object
+		    \return true if the data variable was queried successfully, false if the reference tree node does not
+		   contain a data variable
 		 */
 		bool GetDataVariable(DataVariable& variable);
 
-		/*! Query the child nodes contained in the reference tree node
+		/*! Get the child nodes contained in the reference tree node
 
-			\return Vector of child reference tree nodes
+		    \return Vector of child reference tree nodes
 		 */
 		std::vector<Ref<FirmwareNinjaReferenceNode>> GetChildren();
 	};
 
+	/*! FirmwareNinjaRelationship is a class used to represent inter-binary and cross-binary relationships. This class
+	   is only available in the Ultimate Edition of Binary Ninja.
 
-	/*! FirmwareNinja is a class containing features specific to embedded firmware analysis. This class is only
-		available in the Ultimate Edition of Binary Ninja.
+	    \ingroup firmwareninja
+	*/
+	class FirmwareNinjaRelationship :
+		public CoreRefCountObject<BNFirmwareNinjaRelationship, BNNewFirmwareNinjaRelationshipReference,
+			BNFreeFirmwareNinjaRelationship>
+	{
+	public:
+		FirmwareNinjaRelationship(Ref<BinaryView> view, BNFirmwareNinjaRelationship* relationship = nullptr);
+		~FirmwareNinjaRelationship();
 
-		\ingroup firmwareninja
+		/*! Set the primary relationship object to an address
+
+		    \param address Address in current binary view
+		 */
+		void SetPrimaryAddress(uint64_t address);
+
+		/*! Set the primary relationship object to a data variable
+
+		    \param var DataVariable in current binary view
+		 */
+		void SetPrimaryDataVariable(DataVariable& variable);
+
+		/*! Set the primary relationship object to a function
+
+		    \param function Function in current binary view
+		 */
+		void SetPrimaryFunction(Ref<Function> function);
+
+		/*! Determine if the primary object is an address
+
+		  \return true if the primary object is an address, false otherwise
+		 */
+		bool PrimaryIsAddress() const;
+
+		/*! Returns true if the primary object is a data variable
+
+		  \return true if the primary object is a data variable, false otherwise
+		 */
+		bool PrimaryIsDataVariable() const;
+
+		/*! Returns true if the primary object is a function
+
+		  \return true if the primary object is a function, false otherwise
+		 */
+		bool PrimaryIsFunction() const;
+
+		/*! Get the primary data variable contained in the relationship
+
+		  \param var Output data variable
+		  \return true if the data variable was queried successfully, false if the primary object is not a data variable
+		 */
+		bool GetPrimaryDataVariable(DataVariable& var);
+
+		/*! Get the primary address contained in the relationship
+
+		  \return Optional address with a value if the primary object is an address
+		 */
+		std::optional<uint64_t> GetPrimaryAddress() const;
+
+		/*! Get the primary function contained in the relationship
+
+		  \return Function object if the primary object is a function, nullptr otherwise
+		 */
+		Ref<Function> GetPrimaryFunction() const;
+
+		/*! Set the secondary relationship object to an address
+
+		    \param address Address in current binary view
+		 */
+		void SetSecondaryAddress(uint64_t address);
+
+		/*! Set the secondary relationship object to a data variable
+
+		    \param var DataVariable in current binary view
+		 */
+		void SetSecondaryDataVariable(DataVariable& variable);
+
+		/*! Set the secondary relationship object to a function
+
+		    \param function Function in current binary view
+		 */
+		void SetSecondaryFunction(Ref<Function> function);
+
+		/*! Set the secondary relationship object to an external address
+
+		    \param projectFile Project file for external binary in the project
+		    \param address Address in the external binary
+		 */
+		void SetSecondaryExternalAddress(Ref<ProjectFile> projectFile, uint64_t address);
+
+		/*! Set the secondary relationship object to an external symbol
+
+		    \param projectFile Project file for the external binary in the project
+		    \param sybmol Symbol in external binary
+		 */
+		void SetSecondaryExternalSymbol(Ref<ProjectFile> projectFile, const std::string& symbol);
+
+		/*! Determine if the secondary object is an address in the current binary view
+
+		  \return true if the secondary object is an address in the current binary view, false otherwise
+		 */
+		bool SecondaryIsAddress() const;
+
+		/*! Returns true if the secondary object is a data variable in the current binary view
+
+		  \return true if the secondary object is a data variable in the current binary view, false otherwise
+		 */
+		bool SecondaryIsDataVariable() const;
+
+		/*! Returns true if the secondary object is a function in the current binary view
+
+		  \return true if the secondary object is a function in the current binary view, false otherwise
+		 */
+		bool SecondaryIsFunction() const;
+
+		/*! Returns true if the secondary object is an address contained in another binary in the project
+
+		  \return true if the secondary object is an external address, false otherwise
+		 */
+		bool SecondaryIsExternalAddress() const;
+
+		/*! Returns true if the secondary object is a symbol contained in another binary in the project
+
+		  \return true if the secondary object is an external symbol, false otherwise
+		 */
+		bool SecondaryIsExternalSymbol() const;
+
+		/*! Get the secondary object's external project file
+
+		  \return The secondary object's external project file or nullptr if the secondary object is not an external
+		  address
+		 */
+		Ref<ProjectFile> GetSecondaryExternalProjectFile() const;
+
+		/*! Get the secondary address from the relationship
+
+		  \return Optional address containing a value, if the secondary object is an address
+		 */
+		std::optional<uint64_t> GetSecondaryAddress() const;
+
+		/*! Get the secondary data variable from the relationship
+
+		  \param var Output data variable
+		  \return true if the data variable was queried successfully, false if the secondary object is not a data
+		  variable
+		 */
+		bool GetSecondaryDataVariable(DataVariable& variable);
+
+		/*! Get the secondary function from the relationship
+
+		  \return Function object if the secondary object is a function, nullptr otherwise
+		 */
+		Ref<Function> GetSecondaryFunction() const;
+
+
+		/*! Get the secondary external address from the relationship
+
+		  \return External symbol string, or empty string if the secondary object is not an external symbol
+		 */
+		std::string GetSecondaryExternalSymbol() const;
+
+
+		/*! Set the description of the relationship
+
+		  \param description Description string
+		 */
+		void SetDescription(const std::string& description);
+
+		/*! Get the description of the relationship
+
+		  \return Description string, or empty string if not set
+		 */
+		std::string GetDescription() const;
+
+		/*! Set the provenance for the relationship
+
+		  \param provenance Provenance string
+		 */
+		void SetProvenance(const std::string& provenance);
+
+		/*! Get the provenance for the relationship
+
+		  \return Provenance string, or empty string if not set
+		 */
+		std::string GetProvenance() const;
+
+		/*! Get the relationship identifier
+
+		  \return Relationship GUID string
+		 */
+		std::string GetGuid() const;
+	};
+
+	/*! FirmwareNinja is a class containing features specific to firmware analysis. This class is only available in the
+	    Ultimate Edition of Binary Ninja.
+
+	    \ingroup firmwareninja
 	*/
 	class FirmwareNinja
 	{
@@ -18565,126 +18876,143 @@ namespace BinaryNinja {
 
 		/*! Store a user-defined Firmware Ninja device to the binary view metadata
 
-			\param device Hardware device information
-			\return true on success, false otherwise
+		    \param device Hardware device information
+		    \return true on success, false otherwise
 		 */
 		bool StoreCustomDevice(FirmwareNinjaDevice& device);
 
 		/*! Remove a user-defined Firmware Ninja device from the binary view metadata
 
-			\param name Name of the device to remove
-			\return true on success, false otherwise
+		    \param name Name of the device to remove
+		    \return true on success, false otherwise
 		 */
 		bool RemoveCustomDevice(const std::string& name);
 
 		/*! Query all user-defined Firmware Ninja devices from the binary view metadata
 
-			\return Vector of user-defined Firmware Ninja devices
+		    \return Vector of user-defined Firmware Ninja devices
 		 */
 		std::vector<FirmwareNinjaDevice> QueryCustomDevices();
 
 		/*! Query names of all boards that are compatable with the current binary view and contain bundled device
-			definitions
+		    definitions
 
-			\return Vector of board names
+		    \return Vector of board names
 		 */
 		std::vector<std::string> QueryBoardNames();
 
 		/*! Query Firmware Ninja device definitions for the specified board
 
-			\param board Name of the board to query devices for
-			\return Vector of Firmware Ninja device definitions
+		    \param board Name of the board to query devices for
+		    \return Vector containing Firmware Ninja device definitions
 		 */
 		std::vector<FirmwareNinjaDevice> QueryDevicesForBoard(const std::string& board);
 
 		/*! Find sections in the binary with Firmware Ninja heuristics and entropy analysis
 
-			\param board highCodeEntropyThreshold High threshold for code entropy value range
-			\param board lowCodeEntropyThreshold Low threshold for code entropy value range
-			\param blockSize Size of blocks to analyze
-			\param mode Analysis mode of operation
-			\return Vector of Firmware Ninja section information
+		    \param board highCodeEntropyThreshold High threshold for code entropy value range
+		    \param board lowCodeEntropyThreshold Low threshold for code entropy value range
+		    \param blockSize Size of blocks to analyze
+		    \param mode Analysis mode of operation
+		    \return Vector containing Firmware Ninja section information
 		 */
 		std::vector<BNFirmwareNinjaSection> FindSections(float highCodeEntropyThreshold, float lowCodeEntropyThreshold,
 			size_t blockSize, BNFirmwareNinjaSectionAnalysisMode mode);
 
 		/*! Find functions that access memory-mapped I/O and other non-file backed memory regions
 
-			\param progress Progress callback function
-			\param progressContext Progress context
-			\return Vector of Firmware Ninja function memory accesses information
+		    \param progress Progress callback function
+		    \param progressContext Progress context
+		    \return Vector containing Firmware Ninja function memory accesses
 		 */
-		std::vector<FirmwareNinjaFunctionMemoryAccesses> GetFunctionMemoryAccesses(BNProgressFunction progress,
-			void* progressContext);
+		std::vector<FirmwareNinjaFunctionMemoryAccesses> GetFunctionMemoryAccesses(
+			BNProgressFunction progress, void* progressContext);
 
 		/*! Store Firmware Ninja function memory accesses information in the binary view metadata
 
-			\param fma Vector of Firmware Ninja function memory accesses information
+		    \param fma Vector containin Firmware Ninja function memory accesses
 		 */
 		void StoreFunctionMemoryAccesses(const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma);
 
-		/*! Query cached Firmware Ninja function memory accesses information from the binary view metadata
+		/*! Query Firmware Ninja function memory accesses that are stored in the binary view metadata
 
-			\return Vector of Firmware Ninja memory analyis information
+		    \return Vector containing Firmware Ninja function memory accesses
 		 */
 		std::vector<FirmwareNinjaFunctionMemoryAccesses> QueryFunctionMemoryAccesses();
 
-		/*! Compute number of accesses mad to memory-mapped hardware devices for each board that is compatible with the
-			current architecture
+		/*! Compute number of accesses made to memory-mapped hardware devices for each bundled board that is compatible
+		   with the current architecture
 
-			\param fma Vector of Firmware Ninja function memory accesses information
-			\return Vector of Firmware Ninja device accesses information for each board
+		    \param fma Vector containing Firmware Ninja function memory accesses
+		    \return Vector containing Firmware Ninja device accesses for each board
 		 */
 		std::vector<FirmwareNinjaDeviceAccesses> GetBoardDeviceAccesses(
 			const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma);
 
 
-		/*! Returns a tree of reference nodes that reference the memory region represented by the given device
+		/*! Returns a tree of reference nodes that reference the memory region represented by the given Firmware Ninja
+		    device
 
-			\param device Firmware Ninja device
-			\param fma Vector of Firmware Ninja function memory accesses information
-			\param value (Optional) only include components that originate with a write of this value to the device
-			\return Root reference node of tree
+		    \param device Firmware Ninja device
+		    \param fma Vector containing Firmware Ninja function memory accesses
+		    \param value (Optional) only build reference trees that originate with a write of the specified value
+		    \return Root reference node for the tree
 		 */
-		Ref<FirmwareNinjaReferenceNode> GetReferenceTree(
-			FirmwareNinjaDevice& device,
-			const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma,
-			uint64_t* value = nullptr
-		);
+		Ref<FirmwareNinjaReferenceNode> GetReferenceTree(FirmwareNinjaDevice& device,
+			const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma, uint64_t* value = nullptr);
 
 		/*! Returns a tree of reference nodes that reference the memory region represented by the given section
 
-			\param device Firmware Ninja device
-			\param fma Vector of Firmware Ninja function memory accesses information
-			\param value (Optional) only include components that originate with a write of this value to the device
-			\return Root reference node of tree
+		    \param device Firmware Ninja device
+		    \param fma Vector containing Firmware Ninja function memory accesses
+		    \param value (Optional) only build reference trees that originate with a write of the specified value
+		    \return Root reference node of tree
 		 */
 		Ref<FirmwareNinjaReferenceNode> GetReferenceTree(
-			Section& section,
-			const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma,
-			uint64_t* value = nullptr
-		);
+			Section& section, const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma, uint64_t* value = nullptr);
 
 
 		/*! Returns a tree of reference nodes that reference the given address
 
-			\param device Firmware Ninja device
-			\param fma Vector of Firmware Ninja function memory accesses information
-			\param value (Optional) only include components that originate with a write of this value to the device
-			\return Root reference node of tree
+		    \param device Firmware Ninja device
+		    \param fma Vector containing Firmware Ninja function memory accesses
+		    \param value (Optional) only build reference trees that originate with a write of the specified value
+		    \return Root reference node of tree
 		 */
 		Ref<FirmwareNinjaReferenceNode> GetReferenceTree(
-			uint64_t address,
-			const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma,
-			uint64_t* value = nullptr
-		);
+			uint64_t address, const std::vector<FirmwareNinjaFunctionMemoryAccesses>& fma, uint64_t* value = nullptr);
+
+		/*! Query Firmware Ninja relationships from the binary view metadata
+
+		  \return Vector containing Firmware Ninja relationships
+		 */
+		std::vector<Ref<FirmwareNinjaRelationship>> QueryRelationships();
+
+		/*! Store a Firmware Ninja relationship in the binary view metadata
+
+		    \param relationship Firmware Ninja relationship
+		 */
+		void AddRelationship(Ref<FirmwareNinjaRelationship> relationship);
+
+		/* Query a Firmware Ninja relationship by GUID
+
+		    \param guid GUID of the relationship to query
+		    \return Firmware Ninja relationship if found, nullptr otherwise
+		 */
+		Ref<FirmwareNinjaRelationship> GetRelationshipByGuid(const std::string& guid);
+
+		/*! Remove a Firmware Ninja relationship from the binary view metadata
+
+		    \param guid GUID of the relationship to remove
+		 */
+		void RemoveRelationshipByGuid(const std::string& guid);
 	};
 
 
 	/*!
-		\ingroup demangler
+	    \ingroup demangler
 	*/
-	class Demangler: public StaticCoreRefCountObject<BNDemangler>
+	class Demangler : public StaticCoreRefCountObject<BNDemangler>
 	{
 		std::string m_nameForRegister;
 
@@ -18700,20 +19028,20 @@ namespace BinaryNinja {
 
 	public:
 		/*! Register a custom Demangler. Newly registered demanglers will get priority over
-			previously registered demanglers and built-in demanglers.
+		    previously registered demanglers and built-in demanglers.
 		 */
 		static void Register(Demangler* demangler);
 
 		/*! Get the list of currently registered demanglers, sorted by lowest to highest priority.
 
-			\return List of demanglers
+		    \return List of demanglers
 		 */
 		static std::vector<Ref<Demangler>> GetList();
 		static Ref<Demangler> GetByName(const std::string& name);
 
 		/*! Promote a demangler to the highest-priority position.
 
-			\param demangler Demangler to promote
+		    \param demangler Demangler to promote
 		 */
 		static void Promote(Ref<Demangler> demangler);
 
@@ -18721,48 +19049,48 @@ namespace BinaryNinja {
 
 		/*! Determine if a given name is mangled and this demangler can process it
 
-			The most recently registered demangler that claims a name is a mangled string
-			(returns true from this function), and then returns a value from Demangle will
-			determine the result of a call to DemangleGeneric. Returning True from this
-			does not require the demangler to succeed the call to Demangle, but simply
-			implies that it may succeed.
+		    The most recently registered demangler that claims a name is a mangled string
+		    (returns true from this function), and then returns a value from Demangle will
+		    determine the result of a call to DemangleGeneric. Returning True from this
+		    does not require the demangler to succeed the call to Demangle, but simply
+		    implies that it may succeed.
 
-			\param name Raw mangled name string
-			\return True if the demangler thinks it can handle the name
+		    \param name Raw mangled name string
+		    \return True if the demangler thinks it can handle the name
 		 */
 		virtual bool IsMangledString(const std::string& name) = 0;
 
 		/*! Demangle a raw name into a Type and QualifiedName.
 
-			Any unresolved named types referenced by the resulting Type will be created as
-			empty structures or void typedefs in the view, if the result is used on
-			a data structure in the view. Given this, the call to Demangle should NOT
-			cause any side-effects creating types in the view trying to resolve this
-			and instead just return a type with unresolved named type references.
+		    Any unresolved named types referenced by the resulting Type will be created as
+		    empty structures or void typedefs in the view, if the result is used on
+		    a data structure in the view. Given this, the call to Demangle should NOT
+		    cause any side-effects creating types in the view trying to resolve this
+		    and instead just return a type with unresolved named type references.
 
-			The most recently registered demangler that claims a name is a mangled string
-			(returns true from IsMangledString), and then returns a value from
-			this function will determine the result of a call to DemangleGeneric.
-			If this call returns None, the next most recently used demangler(s) will be tried instead.
+		    The most recently registered demangler that claims a name is a mangled string
+		    (returns true from IsMangledString), and then returns a value from
+		    this function will determine the result of a call to DemangleGeneric.
+		    If this call returns None, the next most recently used demangler(s) will be tried instead.
 
-			If the mangled name has no type information, but a name is still possible to extract,
-			this function may return a successful result with outType=nullptr, which will be accepted.
+		    If the mangled name has no type information, but a name is still possible to extract,
+		    this function may return a successful result with outType=nullptr, which will be accepted.
 
-			\param arch Architecture for context in which the name exists, eg for pointer sizes
-			\param name Raw mangled name
-			\param outType Resulting type, if one can be deduced, will be written here. Otherwise nullptr will be written
-			\param outVarName Resulting variable name
-			\param view (Optional) BinaryView context in which the name exists, eg for type lookup
-			\return True if demangling was successful and results were stored into out-parameters
+		    \param arch Architecture for context in which the name exists, eg for pointer sizes
+		    \param name Raw mangled name
+		    \param outType Resulting type, if one can be deduced, will be written here. Otherwise nullptr will be
+		   written \param outVarName Resulting variable name \param view (Optional) BinaryView context in which the name
+		   exists, eg for type lookup \return True if demangling was successful and results were stored into
+		   out-parameters
 		 */
 		virtual bool Demangle(Ref<Architecture> arch, const std::string& name, Ref<Type>& outType,
 			QualifiedName& outVarName, Ref<BinaryView> view = nullptr) = 0;
 	};
 
 	/*!
-		\ingroup demangler
+	    \ingroup demangler
 	*/
-	class CoreDemangler: public Demangler
+	class CoreDemangler : public Demangler
 	{
 	public:
 		CoreDemangler(BNDemangler* demangler);
@@ -18773,27 +19101,19 @@ namespace BinaryNinja {
 			QualifiedName& outVarName, Ref<BinaryView> view);
 	};
 
-	namespace Unicode
-	{
+	namespace Unicode {
 		std::string UTF16ToUTF8(const uint8_t* utf16, const size_t len);
 		std::string UTF32ToUTF8(const uint8_t* utf32);
 		bool GetBlockRange(const std::string& name, std::pair<uint32_t, uint32_t>& range);
-		std::vector<std::vector<std::pair<uint32_t, uint32_t>>> GetBlocksForNames(const std::vector<std::string>& names);
+		std::vector<std::vector<std::pair<uint32_t, uint32_t>>> GetBlocksForNames(
+			const std::vector<std::string>& names);
 		std::vector<std::string> GetBlockNames();
 		std::map<std::string, std::pair<uint32_t, uint32_t>> GetBlockRanges();
-		std::string GetUTF8String(
-			const std::vector<std::vector<std::pair<uint32_t, uint32_t>>>& unicodeBlocks,
-			const uint8_t* data,
-			const size_t offset,
-			const size_t dataLen
-		);
-		std::string ToEscapedString(
-			const std::vector<std::vector<std::pair<uint32_t, uint32_t>>>& unicodeBlocks,
-			bool utf8Enabled,
-			const void* data,
-			const size_t dataLen
-		);
-	} // namespace Unicode
+		std::string GetUTF8String(const std::vector<std::vector<std::pair<uint32_t, uint32_t>>>& unicodeBlocks,
+			const uint8_t* data, const size_t offset, const size_t dataLen);
+		std::string ToEscapedString(const std::vector<std::vector<std::pair<uint32_t, uint32_t>>>& unicodeBlocks,
+			bool utf8Enabled, const void* data, const size_t dataLen);
+	}  // namespace Unicode
 
 	/*! HighLevelILTokenEmitter contains methods for emitting text tokens for High Level IL instructions.
 	    Methods are provided for typical patterns found in various high level languages.
@@ -18803,8 +19123,9 @@ namespace BinaryNinja {
 
 	    \ingroup highlevelil
 	*/
-	class HighLevelILTokenEmitter:
-		public CoreRefCountObject<BNHighLevelILTokenEmitter, BNNewHighLevelILTokenEmitterReference, BNFreeHighLevelILTokenEmitter>
+	class HighLevelILTokenEmitter :
+		public CoreRefCountObject<BNHighLevelILTokenEmitter, BNNewHighLevelILTokenEmitterReference,
+			BNFreeHighLevelILTokenEmitter>
 	{
 	public:
 		HighLevelILTokenEmitter(BNHighLevelILTokenEmitter* emitter);
@@ -18834,7 +19155,8 @@ namespace BinaryNinja {
 		}
 
 		void PrependCollapseIndicator();
-		void PrependCollapseIndicator(Ref<Function> function, const HighLevelILInstruction& instr, uint64_t designator = 0);
+		void PrependCollapseIndicator(
+			Ref<Function> function, const HighLevelILInstruction& instr, uint64_t designator = 0);
 		void PrependCollapseIndicator(BNInstructionTextTokenContext context, uint64_t hash);
 		bool HasCollapsableRegions();
 		void SetHasCollapsableRegions(bool state);
@@ -19007,17 +19329,221 @@ namespace BinaryNinja {
 		static void AddNamesForOuterStructureMembers(
 			BinaryView* data, Type* type, const HighLevelILInstruction& var, std::vector<std::string>& nameList);
 	};
+
+	/*! RenderLayer is a plugin class that allows you to customize the presentation of
+	    Linear and Graph view output, adding, changing, or removing lines before they are
+	    presented in the UI.
+	 */
+	class RenderLayer : public StaticCoreRefCountObject<BNRenderLayer>
+	{
+		std::string m_nameForRegister;
+		static std::unordered_map<BNRenderLayer*, RenderLayer*> g_registeredInstances;
+
+	protected:
+		explicit RenderLayer(const std::string& name);
+		RenderLayer(BNRenderLayer* layer);
+		virtual ~RenderLayer() = default;
+		static void ApplyToFlowGraphCallback(void* ctxt, BNFlowGraph* graph);
+		static void ApplyToLinearViewObjectCallback(void* ctxt, BNLinearViewObject* obj, BNLinearViewObject* prev,
+			BNLinearViewObject* next, BNLinearDisassemblyLine* inLines, size_t inLineCount,
+			BNLinearDisassemblyLine** outLines, size_t* outLineCount);
+		static void FreeLinesCallback(void* ctxt, BNLinearDisassemblyLine* lines, size_t count);
+
+	public:
+		/*! Register a custom Render Layer.
+
+		    Specify enableState to change whether the layer is enabled by default in the UI.
+		    If it is set to AlwaysEnabled, the Render Layer will always be enabled
+		    and will not be displayed in the UI.
+
+		    \param layer Render Layer to register
+		    \param enableState Whether the layer should be enabled by default
+		*/
+		static void Register(RenderLayer* layer,
+			BNRenderLayerDefaultEnableState enableState = DisabledByDefaultRenderLayerDefaultEnableState);
+
+		/*! Get the list of all currently registered Render Layers.
+
+		    \return List of Render Layers
+		*/
+		static std::vector<Ref<RenderLayer>> GetList();
+
+		/*! Look up a Render Layer by its name
+
+		    \param name Name of Render Layer
+		    \return Render Layer, if it exists. Otherwise, nullptr.
+		*/
+		static Ref<RenderLayer> GetByName(const std::string& name);
+
+		/*! Get the name of a Render Layer
+
+		    \return Render Layer's name
+		*/
+		std::string GetName() const;
+
+		/*! Get whether the Render Layer is enabled by default
+
+		    \return Default enable state
+		 */
+		BNRenderLayerDefaultEnableState GetDefaultEnableState() const;
+
+		/*! Apply this Render Layer to a single Basic Block of Disassembly lines.
+		    Subclasses should modify the input `lines` list to make modifications to
+		    the presentation of the block.
+
+		    \note This function will only handle Disassembly lines, and not any ILs.
+
+		    \param block Basic Block containing those lines
+		    \param lines Lines of text for the block, to be modified by this function
+		 */
+		virtual void ApplyToDisassemblyBlock(Ref<BasicBlock> block, std::vector<DisassemblyTextLine>& lines)
+		{
+			(void)block;
+			(void)lines;
+		}
+
+		/*! Apply this Render Layer to a single Basic Block of Low Level IL lines.
+		    Subclasses should modify the input `lines` list to make modifications to
+		    the presentation of the block.
+
+		    \note This function will only handle Lifted IL/LLIL/LLIL(SSA) lines.
+		    You can use the block's `function_graph_type` property to determine which is being handled.
+
+		    \param block Basic Block containing those lines
+		    \param lines Lines of text for the block, to be modified by this function
+		 */
+		virtual void ApplyToLowLevelILBlock(Ref<BasicBlock> block, std::vector<DisassemblyTextLine>& lines)
+		{
+			(void)block;
+			(void)lines;
+		}
+
+		/*! Apply this Render Layer to a single Basic Block of Medium Level IL lines.
+		    Subclasses should modify the input `lines` list to make modifications to
+		    the presentation of the block.
+
+		    \note This function will only handle MLIL/MLIL(SSA)/Mapped MLIL/Mapped MLIL(SSA) lines.
+		    You can use the block's `function_graph_type` property to determine which is being handled.
+
+		    \param block Basic Block containing those lines
+		    \param lines Lines of text for the block, to be modified by this function
+		 */
+		virtual void ApplyToMediumLevelILBlock(Ref<BasicBlock> block, std::vector<DisassemblyTextLine>& lines)
+		{
+			(void)block;
+			(void)lines;
+		}
+
+		/*! Apply this Render Layer to a single Basic Block of High Level IL lines.
+		    Subclasses should modify the input `lines` list to make modifications to
+		    the presentation of the block.
+
+		    \note This function will only handle HLIL/HLIL(SSA)/Language Representation lines.
+		    You can use the block's `function_graph_type` property to determine which is being handled.
+
+		    \warning This function will NOT apply to High Level IL bodies as displayed
+		    in Linear View! Those are handled by `ApplyToHighLevelILBody` instead as they
+		    do not have a Basic Block associated with them.
+
+		    \param block Basic Block containing those lines
+		    \param lines Lines of text for the block, to be modified by this function
+		 */
+		virtual void ApplyToHighLevelILBlock(Ref<BasicBlock> block, std::vector<DisassemblyTextLine>& lines)
+		{
+			(void)block;
+			(void)lines;
+		}
+
+		/*! Apply this Render Layer to the entire body of a High Level IL function.
+		    Subclasses should modify the input `lines` list to make modifications to
+		    the presentation of the function.
+
+		    \warning This function only applies to Linear View, and not to Graph View!
+		    If you want to handle Graph View too, you will need to use `ApplyToHighLevelILBlock`
+		    and handle the lines one block at a time.
+
+		    \param function Function containing those lines
+		    \param lines Lines of text for the function, to be modified by this function
+		 */
+		virtual void ApplyToHighLevelILBody(Ref<Function> function, std::vector<LinearDisassemblyLine>& lines)
+		{
+			(void)function;
+			(void)lines;
+		}
+
+		/*! Apply to lines generated by Linear View that are not part of a function.
+		    It is up to your implementation to figure out which type of Linear View Object
+		    lines these are, and what to do with them.
+
+		    \param obj Linear View Object being rendered
+		    \param prev Linear View Object located directly above this one
+		    \param next Linear View Object located directly below this one
+		    \param lines Lines rendered by `obj`, to be modified by this function
+		 */
+		virtual void ApplyToMiscLinearLines(Ref<LinearViewObject> obj, Ref<LinearViewObject> prev,
+			Ref<LinearViewObject> next, std::vector<LinearDisassemblyLine>& lines)
+		{
+			(void)obj;
+			(void)prev;
+			(void)next;
+			(void)lines;
+		}
+
+		/*! Apply to lines generated by a Basic Block, of any type. If not overridden, this
+		    function will call the appropriate ApplyToXLevelILBlock function.
+
+		    \param block Basic Block containing those lines
+		    \param lines Lines of text for the block, to be modified by this function
+		 */
+		virtual void ApplyToBlock(Ref<BasicBlock> block, std::vector<DisassemblyTextLine>& lines);
+
+		/*! Apply this Render Layer to a Flow Graph, potentially modifying its nodes,
+		    their edges, their lines, and their lines' content.
+
+		    \note If you override this function, you will need to call the parent
+		    implementation if you want to use the higher level ApplyToXLevelILBlock
+		    functionality.
+
+		    \param graph Graph to modify
+		*/
+		virtual void ApplyToFlowGraph(Ref<FlowGraph> graph);
+
+		/*! Apply this Render Layer to the lines produced by a LinearViewObject for rendering
+		    in Linear View, potentially modifying the lines and their contents.
+
+		    \note If you override this function, you will need to call the parent
+		    implementation if you want to use the higher level ApplyToXLevelILBlock
+		    functionality.
+
+		    \param obj Linear View Object being rendered
+		    \param prev Linear View Object located directly above this one
+		    \param next Linear View Object located directly below this one
+		    \param lines Lines originally rendered by the Linear View Object
+		    \return Updated set of lines to display in Linear View
+		*/
+		virtual void ApplyToLinearViewObject(Ref<LinearViewObject> obj, Ref<LinearViewObject> prev,
+			Ref<LinearViewObject> next, std::vector<LinearDisassemblyLine>& lines);
+	};
+
+	class CoreRenderLayer : public RenderLayer
+	{
+	public:
+		CoreRenderLayer(BNRenderLayer* layer);
+		virtual ~CoreRenderLayer() = default;
+
+		virtual void ApplyToFlowGraph(Ref<FlowGraph> graph) override;
+		virtual void ApplyToLinearViewObject(Ref<LinearViewObject> obj, Ref<LinearViewObject> prev,
+			Ref<LinearViewObject> next, std::vector<LinearDisassemblyLine>& lines) override;
+	};
 }  // namespace BinaryNinja
 
 
-namespace BinaryNinja::Http
-{
+namespace BinaryNinja::Http {
 	struct Request;
 	struct Response;
-}
+}  // namespace BinaryNinja::Http
 
-namespace BinaryNinja::Collaboration
-{
+namespace BinaryNinja::Collaboration {
 
 	class AnalysisMergeConflict;
 	class TypeArchiveMergeConflict;
@@ -19038,7 +19564,8 @@ namespace BinaryNinja::Collaboration
 		std::function<bool(Ref<CollabChangeset>)> callback;
 	};
 
-	bool DatabaseConflictHandlerCallback(void* ctxt, const char** keys, BNAnalysisMergeConflict** conflicts, size_t count);
+	bool DatabaseConflictHandlerCallback(
+		void* ctxt, const char** keys, BNAnalysisMergeConflict** conflicts, size_t count);
 	bool TypeArchiveConflictHandlerCallback(void* ctxt, BNTypeArchiveMergeConflict** conflicts, size_t count);
 	bool NameChangesetCallback(void* ctxt, BNCollaborationChangeset* changeset);
 
@@ -19053,7 +19580,7 @@ namespace BinaryNinja::Collaboration
 
 	/*!
 
-		\ingroup collaboration
+	    \ingroup collaboration
 	*/
 	struct RemoteException : std::runtime_error
 	{
@@ -19061,9 +19588,10 @@ namespace BinaryNinja::Collaboration
 	};
 
 	/*!
-		\ingroup collaboration
+	    \ingroup collaboration
 	*/
-	class CollabUser : public CoreRefCountObject<BNCollaborationUser, BNNewCollaborationUserReference, BNFreeCollaborationUser>
+	class CollabUser :
+		public CoreRefCountObject<BNCollaborationUser, BNNewCollaborationUserReference, BNFreeCollaborationUser>
 	{
 	public:
 		CollabUser(BNCollaborationUser* collabUser);
@@ -19082,9 +19610,10 @@ namespace BinaryNinja::Collaboration
 	};
 
 	/*!
-		\ingroup collaboration
+	    \ingroup collaboration
 	*/
-	class CollabGroup : public CoreRefCountObject<BNCollaborationGroup, BNNewCollaborationGroupReference, BNFreeCollaborationGroup>
+	class CollabGroup :
+		public CoreRefCountObject<BNCollaborationGroup, BNNewCollaborationGroupReference, BNFreeCollaborationGroup>
 	{
 	public:
 		CollabGroup(BNCollaborationGroup* group);
@@ -19094,11 +19623,10 @@ namespace BinaryNinja::Collaboration
 		void SetName(const std::string& name);
 		void SetUsernames(const std::vector<std::string>& usernames);
 		bool ContainsUser(const std::string& username);
-
 	};
 
 	/*!
-		\ingroup collaboration
+	    \ingroup collaboration
 	*/
 	class Remote : public CoreRefCountObject<BNRemote, BNNewRemoteReference, BNFreeRemote>
 	{
@@ -19121,267 +19649,270 @@ namespace BinaryNinja::Collaboration
 		bool IsAdmin();
 
 		/*!
-			Determine if a remote is the same as the currently connected Enterprise Server
-			On non-Enterprise clients, this always returns false.
-			\return True if the remote is the same
+		    Determine if a remote is the same as the currently connected Enterprise Server
+		    On non-Enterprise clients, this always returns false.
+		    \return True if the remote is the same
 		*/
 		bool IsEnterprise();
 
 
 		/*!
-			Load remote metadata, including version, id, and auth backends
-			\throws RemoteException If there is an error in any request, or if the remote version is not supported
+		    Load remote metadata, including version, id, and auth backends
+		    \throws RemoteException If there is an error in any request, or if the remote version is not supported
 		*/
 		bool LoadMetadata();
 
 
 		/*!
-			Request an authentication token for a user given a username and password
-			\param username CollabUser's username
-			\param password CollabUser's password
-			\return Authentication token
-			\throws RemoteException If there is an error in any request
+		    Request an authentication token for a user given a username and password
+		    \param username CollabUser's username
+		    \param password CollabUser's password
+		    \return Authentication token
+		    \throws RemoteException If there is an error in any request
 		*/
 		std::string RequestAuthenticationToken(const std::string& username, const std::string& password);
 
 
 		/*!
-			Establish a connection to the remote, using a username and token
-			\param username CollabUser's username
-			\param token CollabUser's authentication token
-			\throws RemoteException If there is an error in any request
+		    Establish a connection to the remote, using a username and token
+		    \param username CollabUser's username
+		    \param token CollabUser's authentication token
+		    \throws RemoteException If there is an error in any request
 		*/
 		void Connect(const std::string& username, const std::string& token);
 
 
 		/*!
-			Disconnect from the remote
+		    Disconnect from the remote
 		*/
 		void Disconnect();
 
 		/*!
-			Get all projects in the Remote
-			\return All projects
-			\throws RemoteException if projects have not been pulled or if the remote is not connected
+		    Get all projects in the Remote
+		    \return All projects
+		    \throws RemoteException if projects have not been pulled or if the remote is not connected
 		*/
 		std::vector<Ref<RemoteProject>> GetProjects();
 
 
 		/*!
-			Get a project in the remote by its id
-			\param id Project's id
-			\return Project, or null shared_ptr if not found
-			\throws RemoteException If projects have not been pulled or if the remote is not connected
+		    Get a project in the remote by its id
+		    \param id Project's id
+		    \return Project, or null shared_ptr if not found
+		    \throws RemoteException If projects have not been pulled or if the remote is not connected
 		*/
 		Ref<RemoteProject> GetProjectById(const std::string& id);
 
 
 		/*!
-			Get a project in the remote by its name
-			\param name Project's name
-			\return Project, or null shared_ptr if not found
-			\throws RemoteException If projects have not been pulled or if the remote is not connected
+		    Get a project in the remote by its name
+		    \param name Project's name
+		    \return Project, or null shared_ptr if not found
+		    \throws RemoteException If projects have not been pulled or if the remote is not connected
 		*/
 		Ref<RemoteProject> GetProjectByName(const std::string& name);
 
 
 		/*!
-			Pull list of projects from the remote. Necessary before calling GetProjects()
-			\param progress Function to call on progress updates
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Pull list of projects from the remote. Necessary before calling GetProjects()
+		    \param progress Function to call on progress updates
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
 		void PullProjects(std::function<bool(size_t, size_t)> progress = {});
 
 
 		/*!
-			Create a new project on the remote (and pull it)
-			\param name Project name
-			\param description Project description
-			\return Reference to the created project
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Create a new project on the remote (and pull it)
+		    \param name Project name
+		    \param description Project description
+		    \return Reference to the created project
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
 		Ref<RemoteProject> CreateProject(const std::string& name, const std::string& description);
 
 
 		/*!
-			Create a new project on the remote from a local project
-			\param localProject The local project that should be copied to the server
-			\param progress Function to call on progress updates
-			\return Reference to the created project
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Create a new project on the remote from a local project
+		    \param localProject The local project that should be copied to the server
+		    \param progress Function to call on progress updates
+		    \return Reference to the created project
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
-		Ref<RemoteProject> ImportLocalProject(Ref<Project> localProject, std::function<bool(size_t, size_t)> progress = {});
+		Ref<RemoteProject> ImportLocalProject(
+			Ref<Project> localProject, std::function<bool(size_t, size_t)> progress = {});
 
 
 		/*!
-			Push fields of a modified project to the remote
-			\param project Updated project
-			\param extraFields Extra post fields for the request
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Push fields of a modified project to the remote
+		    \param project Updated project
+		    \param extraFields Extra post fields for the request
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
-		void PushProject(Ref<RemoteProject> project, const std::vector<std::pair<std::string, std::string>>& extraFields = {});
+		void PushProject(
+			Ref<RemoteProject> project, const std::vector<std::pair<std::string, std::string>>& extraFields = {});
 
 
 		/*!
-			Delete a project from the remote
-			\param project Pointer to project to delete (will invalidate pointer)
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Delete a project from the remote
+		    \param project Pointer to project to delete (will invalidate pointer)
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
 		void DeleteProject(const Ref<RemoteProject> project);
 
 		/*!
-			Get all groups in the Project
-			\return All groups
-			\throws RemoteException if groups have not been pulled or if the remote is not connected
+		    Get all groups in the Project
+		    \return All groups
+		    \throws RemoteException if groups have not been pulled or if the remote is not connected
 		*/
 		std::vector<Ref<CollabGroup>> GetGroups();
 
 
 		/*!
-			Get a group in the project by its id
-			\param id Group's id
-			\return Group, or null shared_ptr if not found
-			\throws RemoteException If groups have not been pulled or if the remote is not connected
+		    Get a group in the project by its id
+		    \param id Group's id
+		    \return Group, or null shared_ptr if not found
+		    \throws RemoteException If groups have not been pulled or if the remote is not connected
 		*/
 		Ref<CollabGroup> GetGroupById(uint64_t id);
 
 
 		/*!
-			Get a group in the project by its name. Will check for both name and <project id>/name
-			\param name Group's name
-			\return Group, or null shared_ptr if not found
-			\throws RemoteException If groups have not been pulled or if the remote is not connected
+		    Get a group in the project by its name. Will check for both name and <project id>/name
+		    \param name Group's name
+		    \return Group, or null shared_ptr if not found
+		    \throws RemoteException If groups have not been pulled or if the remote is not connected
 		*/
 		Ref<CollabGroup> GetGroupByName(const std::string& name);
 
 
 		/*!
-			Search groups on the remote
-			\param prefix Prefix to search for
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Search groups on the remote
+		    \param prefix Prefix to search for
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
 		std::vector<std::pair<uint64_t, std::string>> SearchGroups(const std::string& prefix);
 
 
 		/*!
-			Pull list of groups from the remote. Necessary before calling GetGroups()
-			\param progress Function to call on progress updates
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Pull list of groups from the remote. Necessary before calling GetGroups()
+		    \param progress Function to call on progress updates
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
 		void PullGroups(std::function<bool(size_t, size_t)> progress = {});
 
 
 		/*!
-			Create a new group on the remote (and pull it)
-			\param name Group name
-			\return Reference to the created group
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Create a new group on the remote (and pull it)
+		    \param name Group name
+		    \return Reference to the created group
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
 		Ref<CollabGroup> CreateGroup(const std::string& name, const std::vector<std::string>& usernames);
 
 
 		/*!
-			Push fields of a modified group to the remote
-			\param group Updated group
-			\param extraFields Extra post fields for the request
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Push fields of a modified group to the remote
+		    \param group Updated group
+		    \param extraFields Extra post fields for the request
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
-		void PushGroup(Ref<CollabGroup> group, const std::vector<std::pair<std::string, std::string>>& extraFields = {});
+		void PushGroup(
+			Ref<CollabGroup> group, const std::vector<std::pair<std::string, std::string>>& extraFields = {});
 
 
 		/*!
-			Delete a group from the remote
-			\param group Pointer to group to delete (will invalidate pointer)
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Delete a group from the remote
+		    \param group Pointer to group to delete (will invalidate pointer)
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
 		void DeleteGroup(const Ref<CollabGroup> group);
 
 
 		/*!
-			Get all users in the Remote
-			\return All users
-			\throws RemoteException if users have not been pulled or if the remote is not connected
+		    Get all users in the Remote
+		    \return All users
+		    \throws RemoteException if users have not been pulled or if the remote is not connected
 		*/
 		std::vector<Ref<CollabUser>> GetUsers();
 
 
 		/*!
-			Get a user in the remote by their id
-			\param id CollabUser's id
-			\return CollabUser, or null shared_ptr if not found
-			\throws RemoteException If users have not been pulled or if the remote is not connected
+		    Get a user in the remote by their id
+		    \param id CollabUser's id
+		    \return CollabUser, or null shared_ptr if not found
+		    \throws RemoteException If users have not been pulled or if the remote is not connected
 		*/
 		Ref<CollabUser> GetUserById(const std::string& id);
 
 
 		/*!
-			Get a user in the remote by their username
-			\param username CollabUser's username
-			\return CollabUser, or null shared_ptr if not found
-			\throws RemoteException If users have not been pulled or if the remote is not connected
+		    Get a user in the remote by their username
+		    \param username CollabUser's username
+		    \return CollabUser, or null shared_ptr if not found
+		    \throws RemoteException If users have not been pulled or if the remote is not connected
 		*/
 		Ref<CollabUser> GetUserByUsername(const std::string& username);
 
 
 		/*!
-			Get the currently logged-in user's CollabUser object
-			\return The current user's CollabUser, or null shared_ptr if not found
-			\throws RemoteException if users have not been pulled or if the remote is not connected
+		    Get the currently logged-in user's CollabUser object
+		    \return The current user's CollabUser, or null shared_ptr if not found
+		    \throws RemoteException if users have not been pulled or if the remote is not connected
 		*/
 		Ref<CollabUser> GetCurrentUser();
 
 
 		/*!
-			Search users on the remote
-			\param prefix Prefix to search for
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Search users on the remote
+		    \param prefix Prefix to search for
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
 		std::vector<std::pair<std::string, std::string>> SearchUsers(const std::string& prefix);
 
 
 		/*!
-			Pull list of users from the remote. Necessary before calling GetUsers()
-			\param progress Function to call on progress updates
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Pull list of users from the remote. Necessary before calling GetUsers()
+		    \param progress Function to call on progress updates
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
 		void PullUsers(std::function<bool(size_t, size_t)> progress = {});
 
 
 		/*!
-			Create a new user on the remote (and pull it)
-			\param name CollabUser name
-			\param email CollabUser email
-			\param is_active If the user should initially be active
-			\param password CollabUser password
-			\param groupIds List of group ids the user will be added to
-			\param userPermissionIds List of permission ids the user will be granted
-			\return Reference to the created user
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Create a new user on the remote (and pull it)
+		    \param name CollabUser name
+		    \param email CollabUser email
+		    \param is_active If the user should initially be active
+		    \param password CollabUser password
+		    \param groupIds List of group ids the user will be added to
+		    \param userPermissionIds List of permission ids the user will be granted
+		    \return Reference to the created user
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
 		Ref<CollabUser> CreateUser(const std::string& username, const std::string& email, bool is_active,
 			const std::string& password, const std::vector<uint64_t>& groupIds,
 			const std::vector<uint64_t>& userPermissionIds);
 
 		/*!
-			Push fields of a modified user to the remote
-			\param user Updated user
-			\param extraFields Extra post fields for the request (eg password)
-			\throws RemoteException If there is an error in any request or if the remote is not connected
+		    Push fields of a modified user to the remote
+		    \param user Updated user
+		    \param extraFields Extra post fields for the request (eg password)
+		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		*/
 		void PushUser(Ref<CollabUser> user, const std::vector<std::pair<std::string, std::string>>& extraFields = {});
 
 		/*!
-			Perform an arbitrary HTTP request. An "Authorization: Token <token>" header will be added
-			with the Remote's token for the current login session.
-			\param request Request structure with headers and content.
-			\param response Response structure with body
-			\return Zero or greater on success
+		    Perform an arbitrary HTTP request. An "Authorization: Token <token>" header will be added
+		    with the Remote's token for the current login session.
+		    \param request Request structure with headers and content.
+		    \param response Response structure with body
+		    \return Zero or greater on success
 		*/
 		int Request(Http::Request request, Http::Response& ret);
 	};
 
 	/*!
-		\ingroup collaboration
+	    \ingroup collaboration
 	*/
 	class RemoteFolder : public CoreRefCountObject<BNRemoteFolder, BNNewRemoteFolderReference, BNFreeRemoteFolder>
 	{
@@ -19400,14 +19931,17 @@ namespace BinaryNinja::Collaboration
 
 	class RemoteFile;
 
-	class CollabUndoEntry : public CoreRefCountObject<BNCollaborationUndoEntry, BNNewCollaborationUndoEntryReference, BNFreeCollaborationUndoEntry>
+	class CollabUndoEntry :
+		public CoreRefCountObject<BNCollaborationUndoEntry, BNNewCollaborationUndoEntryReference,
+			BNFreeCollaborationUndoEntry>
 	{
 	public:
 		CollabUndoEntry(BNCollaborationUndoEntry* entry);
-
 	};
 
-	class CollabSnapshot : public CoreRefCountObject<BNCollaborationSnapshot, BNNewCollaborationSnapshotReference, BNFreeCollaborationSnapshot>
+	class CollabSnapshot :
+		public CoreRefCountObject<BNCollaborationSnapshot, BNNewCollaborationSnapshotReference,
+			BNFreeCollaborationSnapshot>
 	{
 	public:
 		CollabSnapshot(BNCollaborationSnapshot* snapshot);
@@ -19518,16 +20052,15 @@ namespace BinaryNinja::Collaboration
 		std::vector<uint8_t> Download(std::function<bool(size_t, size_t)> progress = {});
 
 		/*!
-		    Download the contents of the analysis cache for this snapshot, returns an empty vector if there is no cache (eg: old snapshots)
-		    \param progress Function to call on progress updates
-		    \return Contents of the analysis cache
-		    \throws RemoteException If there is an error in any request or if the remote is not connected
+		    Download the contents of the analysis cache for this snapshot, returns an empty vector if there is no cache
+		   (eg: old snapshots) \param progress Function to call on progress updates \return Contents of the analysis
+		   cache \throws RemoteException If there is an error in any request or if the remote is not connected
 		 */
 		std::vector<uint8_t> DownloadAnalysisCache(std::function<bool(size_t, size_t)> progress = {});
 	};
 
 	/*!
-		\ingroup collaboration
+	    \ingroup collaboration
 	*/
 	class RemoteFile : public CoreRefCountObject<BNRemoteFile, BNNewRemoteFileReference, BNFreeRemoteFile>
 	{
@@ -19594,14 +20127,9 @@ namespace BinaryNinja::Collaboration
 		    \return Reference to the created snapshot
 		    \throws RemoteException If there is an error in any request or if the remote is not connected
 		 */
-		Ref<CollabSnapshot> CreateSnapshot(
-			std::string name,
-			std::vector<uint8_t> contents,
-			std::vector<uint8_t> analysisCacheContents,
-			std::optional<std::vector<uint8_t>> fileContents,
-			std::vector<std::string> parentIds,
-			std::function<bool(size_t, size_t)> progress = {}
-		);
+		Ref<CollabSnapshot> CreateSnapshot(std::string name, std::vector<uint8_t> contents,
+			std::vector<uint8_t> analysisCacheContents, std::optional<std::vector<uint8_t>> fileContents,
+			std::vector<std::string> parentIds, std::function<bool(size_t, size_t)> progress = {});
 
 		/*!
 		    Delete a snapshot from the remote
@@ -19634,9 +20162,11 @@ namespace BinaryNinja::Collaboration
 	};
 
 	/*!
-		\ingroup collaboration
+	    \ingroup collaboration
 	*/
-	class CollabPermission : public CoreRefCountObject<BNCollaborationPermission, BNNewCollaborationPermissionReference, BNFreeCollaborationPermission>
+	class CollabPermission :
+		public CoreRefCountObject<BNCollaborationPermission, BNNewCollaborationPermissionReference,
+			BNFreeCollaborationPermission>
 	{
 	public:
 		CollabPermission(BNCollaborationPermission* permission);
@@ -19657,7 +20187,7 @@ namespace BinaryNinja::Collaboration
 	};
 
 	/*!
-		\ingroup collaboration
+	    \ingroup collaboration
 	*/
 	class RemoteProject : public CoreRefCountObject<BNRemoteProject, BNNewRemoteProjectReference, BNFreeRemoteProject>
 	{
@@ -19691,10 +20221,15 @@ namespace BinaryNinja::Collaboration
 		Ref<RemoteFile> GetFileByName(const std::string& name);
 		void PullFiles(std::function<bool(size_t, size_t)> progress = {});
 		void PullFolders(std::function<bool(size_t, size_t)> progress = {});
-		Ref<RemoteFile> CreateFile(const std::string& filename, std::vector<uint8_t>& contents, const std::string& name, const std::string& description, Ref<RemoteFolder> folder, BNRemoteFileType type, std::function<bool(size_t, size_t)> progress = {}, Ref<ProjectFile> coreFile = nullptr);
-		Ref<RemoteFolder> CreateFolder(const std::string& name, const std::string& description, Ref<RemoteFolder> parent, std::function<bool(size_t, size_t)> progress = {}, Ref<ProjectFolder> coreFolder = nullptr);
+		Ref<RemoteFile> CreateFile(const std::string& filename, std::vector<uint8_t>& contents, const std::string& name,
+			const std::string& description, Ref<RemoteFolder> folder, BNRemoteFileType type,
+			std::function<bool(size_t, size_t)> progress = {}, Ref<ProjectFile> coreFile = nullptr);
+		Ref<RemoteFolder> CreateFolder(const std::string& name, const std::string& description,
+			Ref<RemoteFolder> parent, std::function<bool(size_t, size_t)> progress = {},
+			Ref<ProjectFolder> coreFolder = nullptr);
 		void PushFile(Ref<RemoteFile> file, const std::vector<std::pair<std::string, std::string>>& extraFields = {});
-		void PushFolder(Ref<RemoteFolder> folder, const std::vector<std::pair<std::string, std::string>>& extraFields = {});
+		void PushFolder(
+			Ref<RemoteFolder> folder, const std::vector<std::pair<std::string, std::string>>& extraFields = {});
 		void DeleteFolder(const Ref<RemoteFolder> folder);
 		void DeleteFile(const Ref<RemoteFile> file);
 		Ref<RemoteFolder> GetFolderById(const std::string& id);
@@ -19703,16 +20238,21 @@ namespace BinaryNinja::Collaboration
 		Ref<CollabPermission> GetPermissionById(const std::string& id);
 		void PullGroupPermissions(std::function<bool(size_t, size_t)> progress = {});
 		void PullUserPermissions(std::function<bool(size_t, size_t)> progress = {});
-		Ref<CollabPermission> CreateGroupPermission(int groupId, BNCollaborationPermissionLevel level, std::function<bool(size_t, size_t)> progress = {});
-		Ref<CollabPermission> CreateUserPermission(const std::string& userId, BNCollaborationPermissionLevel level, std::function<bool(size_t, size_t)> progress = {});
-		void PushPermission(Ref<CollabPermission> permission, const std::vector<std::pair<std::string, std::string>>& extraFields = {});
+		Ref<CollabPermission> CreateGroupPermission(
+			int groupId, BNCollaborationPermissionLevel level, std::function<bool(size_t, size_t)> progress = {});
+		Ref<CollabPermission> CreateUserPermission(const std::string& userId, BNCollaborationPermissionLevel level,
+			std::function<bool(size_t, size_t)> progress = {});
+		void PushPermission(
+			Ref<CollabPermission> permission, const std::vector<std::pair<std::string, std::string>>& extraFields = {});
 		void DeletePermission(Ref<CollabPermission> permission);
 		bool CanUserView(const std::string& username);
 		bool CanUserEdit(const std::string& username);
 		bool CanUserAdmin(const std::string& username);
 	};
 
-	class AnalysisMergeConflict : public CoreRefCountObject<BNAnalysisMergeConflict, BNNewAnalysisMergeConflictReference, BNFreeAnalysisMergeConflict>
+	class AnalysisMergeConflict :
+		public CoreRefCountObject<BNAnalysisMergeConflict, BNNewAnalysisMergeConflictReference,
+			BNFreeAnalysisMergeConflict>
 	{
 	public:
 		AnalysisMergeConflict(BNAnalysisMergeConflict* conflict);
@@ -19731,19 +20271,26 @@ namespace BinaryNinja::Collaboration
 		Ref<Snapshot> GetFirstSnapshot();
 		Ref<Snapshot> GetSecondSnapshot();
 
-		template<typename T> T GetPathItem(const std::string& key);
+		template <typename T>
+		T GetPathItem(const std::string& key);
 
 		bool Success(std::nullopt_t value);
 		bool Success(std::optional<const nlohmann::json*> value);
 		bool Success(const std::optional<nlohmann::json>& value);
 	};
 
-	template<> std::any AnalysisMergeConflict::GetPathItem<std::any>(const std::string& path);
-	template<> std::string AnalysisMergeConflict::GetPathItem<std::string>(const std::string& path);
-	template<> uint64_t AnalysisMergeConflict::GetPathItem<uint64_t>(const std::string& path);
-	template<> nlohmann::json AnalysisMergeConflict::GetPathItem<nlohmann::json>(const std::string& path);
+	template <>
+	std::any AnalysisMergeConflict::GetPathItem<std::any>(const std::string& path);
+	template <>
+	std::string AnalysisMergeConflict::GetPathItem<std::string>(const std::string& path);
+	template <>
+	uint64_t AnalysisMergeConflict::GetPathItem<uint64_t>(const std::string& path);
+	template <>
+	nlohmann::json AnalysisMergeConflict::GetPathItem<nlohmann::json>(const std::string& path);
 
-	class TypeArchiveMergeConflict : public CoreRefCountObject<BNTypeArchiveMergeConflict, BNNewTypeArchiveMergeConflictReference, BNFreeTypeArchiveMergeConflict>
+	class TypeArchiveMergeConflict :
+		public CoreRefCountObject<BNTypeArchiveMergeConflict, BNNewTypeArchiveMergeConflictReference,
+			BNFreeTypeArchiveMergeConflict>
 	{
 	public:
 		TypeArchiveMergeConflict(BNTypeArchiveMergeConflict* conflict);
@@ -19757,7 +20304,9 @@ namespace BinaryNinja::Collaboration
 		bool Success(const std::string& value);
 	};
 
-	class CollabChangeset : public CoreRefCountObject<BNCollaborationChangeset, BNNewCollaborationChangesetReference, BNFreeCollaborationChangeset>
+	class CollabChangeset :
+		public CoreRefCountObject<BNCollaborationChangeset, BNNewCollaborationChangesetReference,
+			BNFreeCollaborationChangeset>
 	{
 	public:
 		CollabChangeset(BNCollaborationChangeset* changeset);
@@ -19772,7 +20321,8 @@ namespace BinaryNinja::Collaboration
 
 	typedef std::function<bool(Ref<CollabChangeset>)> NameChangesetFunction;
 	typedef std::function<bool(size_t, size_t)> ProgressFunction;
-	typedef std::function<bool(const std::unordered_map<std::string, Ref<AnalysisMergeConflict>>& conflicts)> AnalysisConflictHandler;
+	typedef std::function<bool(const std::unordered_map<std::string, Ref<AnalysisMergeConflict>>& conflicts)>
+		AnalysisConflictHandler;
 	typedef std::function<bool(const std::vector<Ref<TypeArchiveMergeConflict>>& conflicts)> TypeArchiveConflictHandler;
 
 	Ref<Remote> GetActiveRemote();
@@ -19799,7 +20349,10 @@ namespace BinaryNinja::Collaboration
 	    \param nameChangeset Function to call for naming a pushed changeset, if necessary
 	    \throws SyncException If there is an error syncing
 	 */
-	void SyncDatabase(Ref<Database> database, Ref<RemoteFile> file, AnalysisConflictHandler conflictHandler, std::function<bool(size_t, size_t)> progress = {}, NameChangesetFunction nameChangeset = [](Ref<CollabChangeset>){ return true; });
+	void SyncDatabase(
+		Ref<Database> database, Ref<RemoteFile> file, AnalysisConflictHandler conflictHandler,
+		std::function<bool(size_t, size_t)> progress = {},
+		NameChangesetFunction nameChangeset = [](Ref<CollabChangeset>) { return true; });
 
 	/*!
 	    Completely sync a type archive, pushing/pulling/merging/applying changes
@@ -19807,7 +20360,8 @@ namespace BinaryNinja::Collaboration
 	    \param file Remote file
 	    \param progress Function to call for progress updates
 	 */
-	void SyncTypeArchive(Ref<TypeArchive> archive, Ref<RemoteFile> file, TypeArchiveConflictHandler conflictHandler, ProgressFunction progress = {});
+	void SyncTypeArchive(Ref<TypeArchive> archive, Ref<RemoteFile> file, TypeArchiveConflictHandler conflictHandler,
+		ProgressFunction progress = {});
 
 	/*!
 	    Merge a pair of snapshots and create a new snapshot with the result.
@@ -19818,7 +20372,8 @@ namespace BinaryNinja::Collaboration
 	    \throws SyncException If the snapshots have no common ancestor
 	    \return Result snapshot
 	 */
-	Ref<Snapshot> MergeSnapshots(Ref<Snapshot> first, Ref<Snapshot> second, AnalysisConflictHandler conflictHandler, ProgressFunction progress);
+	Ref<Snapshot> MergeSnapshots(
+		Ref<Snapshot> first, Ref<Snapshot> second, AnalysisConflictHandler conflictHandler, ProgressFunction progress);
 
 	/*!
 	    Get the default directory path for a remote Project. This is based off the Setting for
@@ -19837,15 +20392,15 @@ namespace BinaryNinja::Collaboration
 	 */
 	std::string DefaultFilePath(Ref<RemoteFile> file);
 
-		/*!
-	    Download a file from its remote, saving all snapshots to a database in the
-	    specified location. Returns a FileContext for opening the file later.
-	    \param file Remote File to download and open
-	    \param dbPath File path for saved database
-	    \param progress Function to call for progress updates
-	    \return FileContext for opening
-	    \throws SyncException If there was an error downloading
-	 */
+	/*!
+	Download a file from its remote, saving all snapshots to a database in the
+	specified location. Returns a FileContext for opening the file later.
+	\param file Remote File to download and open
+	\param dbPath File path for saved database
+	\param progress Function to call for progress updates
+	\return FileContext for opening
+	\throws SyncException If there was an error downloading
+ */
 	Ref<FileMetadata> DownloadFile(Ref<RemoteFile> file, const std::string& dbPath, ProgressFunction progress = {});
 
 	/*!
@@ -19865,7 +20420,8 @@ namespace BinaryNinja::Collaboration
 	    \return Remote File created
 	    \throws SyncException If there was an error uploading
 	 */
-	Ref<RemoteFile> UploadDatabase(Ref<FileMetadata> metadata, Ref<RemoteProject> project, Ref<RemoteFolder> folder, ProgressFunction progress, NameChangesetFunction nameChangeset = {});
+	Ref<RemoteFile> UploadDatabase(Ref<FileMetadata> metadata, Ref<RemoteProject> project, Ref<RemoteFolder> folder,
+		ProgressFunction progress, NameChangesetFunction nameChangeset = {});
 
 	/*!
 	    Get the remote author of a local snapshot
@@ -19915,7 +20471,8 @@ namespace BinaryNinja::Collaboration
 	    \return Number of snapshots pulled
 	    \throws SyncException If there is an error pulling
 	 */
-	size_t PullDatabase(Ref<Database> database, Ref<RemoteFile> file, AnalysisConflictHandler conflictHandler, ProgressFunction progress = {}, NameChangesetFunction nameChangeset = {});
+	size_t PullDatabase(Ref<Database> database, Ref<RemoteFile> file, AnalysisConflictHandler conflictHandler,
+		ProgressFunction progress = {}, NameChangesetFunction nameChangeset = {});
 
 	/*!
 	    Merge all leaf snapshots in a database down to a single leaf snapshot.
@@ -20024,7 +20581,8 @@ namespace BinaryNinja::Collaboration
 	    \param archive Local type archive to search
 	    \return Snapshot id if it exists, or nullopt if not
 	 */
-	std::optional<std::string> GetLocalSnapshotFromRemoteTypeArchive(Ref<CollabSnapshot> snapshot, Ref<TypeArchive> archive);
+	std::optional<std::string> GetLocalSnapshotFromRemoteTypeArchive(
+		Ref<CollabSnapshot> snapshot, Ref<TypeArchive> archive);
 
 	/*!
 	    Test if a snapshot is ignored from the archive
@@ -20043,7 +20601,8 @@ namespace BinaryNinja::Collaboration
 	    \return TypeArchive for using
 	    \throws SyncException If there was an error downloading
 	 */
-	Ref<TypeArchive> DownloadTypeArchive(Ref<RemoteFile> file, const std::string& dbPath, ProgressFunction progress = {});
+	Ref<TypeArchive> DownloadTypeArchive(
+		Ref<RemoteFile> file, const std::string& dbPath, ProgressFunction progress = {});
 
 	/*!
 	    Upload a type archive
@@ -20054,7 +20613,8 @@ namespace BinaryNinja::Collaboration
 	    \param coreFile Core ProjectFile structure, if archive is in a project
 	    \return Created file
 	 */
-	Ref<RemoteFile> UploadTypeArchive(Ref<TypeArchive> archive, Ref<RemoteProject> project, Ref<RemoteFolder> folder = nullptr, ProgressFunction progress = {}, Ref<ProjectFile> coreFile = nullptr);
+	Ref<RemoteFile> UploadTypeArchive(Ref<TypeArchive> archive, Ref<RemoteProject> project,
+		Ref<RemoteFolder> folder = nullptr, ProgressFunction progress = {}, Ref<ProjectFile> coreFile = nullptr);
 
 	/*!
 	    Push locally added snapshots to the remote
@@ -20077,9 +20637,12 @@ namespace BinaryNinja::Collaboration
 	    \return Number of snapshots pulled
 	    \throws SyncException If there is an error pulling
 	 */
-	size_t PullTypeArchive(Ref<TypeArchive> archive, Ref<RemoteFile> file, std::function<bool(const std::vector<Ref<TypeArchiveMergeConflict>>)> conflictHandler, ProgressFunction progress = {});
+	size_t PullTypeArchive(Ref<TypeArchive> archive, Ref<RemoteFile> file,
+		std::function<bool(const std::vector<Ref<TypeArchiveMergeConflict>>)> conflictHandler,
+		ProgressFunction progress = {});
 
-	void DownloadDatabaseForFile(Ref<RemoteFile> file, const std::string& dbPath, bool force, ProgressFunction progress = {});
+	void DownloadDatabaseForFile(
+		Ref<RemoteFile> file, const std::string& dbPath, bool force, ProgressFunction progress = {});
 
 	/*!
 	    Set the remote author of a local snapshot (does not upload)
@@ -20089,21 +20652,19 @@ namespace BinaryNinja::Collaboration
 	 */
 	void SetSnapshotAuthor(Ref<Database> database, Ref<Snapshot> snapshot, const std::string& author);
 
-} // namespace BinaryNinja::Collaboration
+}  // namespace BinaryNinja::Collaboration
 
 
-namespace std
-{
-	template<> struct hash<BinaryNinja::QualifiedName>
+namespace std {
+	template <>
+	struct hash<BinaryNinja::QualifiedName>
 	{
 		typedef BinaryNinja::QualifiedName argument_type;
-		size_t operator()(argument_type const& value) const
-		{
-			return std::hash<std::string>()(value.GetString());
-		}
+		size_t operator()(argument_type const& value) const { return std::hash<std::string>()(value.GetString()); }
 	};
 
-	template<typename T> struct hash<BinaryNinja::Ref<T>>
+	template <typename T>
+	struct hash<BinaryNinja::Ref<T>>
 	{
 		typedef BinaryNinja::Ref<T> argument_type;
 		size_t operator()(argument_type const& value) const
@@ -20114,7 +20675,8 @@ namespace std
 }  // namespace std
 
 
-template<typename T> struct fmt::formatter<BinaryNinja::Ref<T>>
+template <typename T>
+struct fmt::formatter<BinaryNinja::Ref<T>>
 {
 	format_context::iterator format(const BinaryNinja::Ref<T>& obj, format_context& ctx) const
 	{
@@ -20123,7 +20685,8 @@ template<typename T> struct fmt::formatter<BinaryNinja::Ref<T>>
 	constexpr auto parse(format_parse_context& ctx) -> format_parse_context::iterator { return ctx.begin(); }
 };
 
-template<typename T> struct fmt::formatter<BinaryNinja::Confidence<T>>
+template <typename T>
+struct fmt::formatter<BinaryNinja::Confidence<T>>
 {
 	format_context::iterator format(const BinaryNinja::Confidence<T>& obj, format_context& ctx) const
 	{
@@ -20132,19 +20695,21 @@ template<typename T> struct fmt::formatter<BinaryNinja::Confidence<T>>
 	constexpr auto parse(format_parse_context& ctx) -> format_parse_context::iterator { return ctx.begin(); }
 };
 
-template<> struct fmt::formatter<BinaryNinja::Metadata>
+template <>
+struct fmt::formatter<BinaryNinja::Metadata>
 {
 	format_context::iterator format(const BinaryNinja::Metadata& obj, format_context& ctx) const;
 	constexpr auto parse(format_parse_context& ctx) -> format_parse_context::iterator { return ctx.begin(); }
 };
 
-template<> struct fmt::formatter<BinaryNinja::NameList>
+template <>
+struct fmt::formatter<BinaryNinja::NameList>
 {
 	format_context::iterator format(const BinaryNinja::NameList& obj, format_context& ctx) const;
 	constexpr auto parse(format_parse_context& ctx) -> format_parse_context::iterator { return ctx.begin(); }
 };
 
-template<typename T>
+template <typename T>
 struct fmt::formatter<T, char, std::enable_if_t<std::is_enum_v<T>, void>>
 {
 	// s -> name, S -> scoped::name, d -> int, x -> hex
@@ -20176,8 +20741,10 @@ struct fmt::formatter<T, char, std::enable_if_t<std::is_enum_v<T>, void>>
 	constexpr auto parse(format_parse_context& ctx) -> format_parse_context::iterator
 	{
 		auto it = ctx.begin(), end = ctx.end();
-		if (it != end && (*it == 's' || *it == 'S' || *it == 'd' || *it == 'x')) presentation = *it++;
-		if (it != end && *it != '}') report_error("invalid format");
+		if (it != end && (*it == 's' || *it == 'S' || *it == 'd' || *it == 'x'))
+			presentation = *it++;
+		if (it != end && *it != '}')
+			report_error("invalid format");
 		return it;
 	}
 };

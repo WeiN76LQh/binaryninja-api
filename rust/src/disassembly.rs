@@ -30,9 +30,10 @@ pub type DisassemblyOption = BNDisassemblyOption;
 pub type InstructionTextTokenType = BNInstructionTextTokenType;
 pub type StringType = BNStringType;
 
-#[derive(Clone, PartialEq, Debug, Default)]
+#[derive(Clone, PartialEq, Debug, Default, Eq)]
 pub struct DisassemblyTextLine {
     pub address: u64,
+    // TODO: This is not always available.
     pub instruction_index: usize,
     pub tokens: Vec<InstructionTextToken>,
     pub highlight: HighlightColor,
@@ -234,7 +235,7 @@ impl DisassemblyTextLineTypeInfo {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InstructionTextToken {
     pub address: u64,
     pub text: String,
@@ -881,6 +882,8 @@ impl From<InstructionTextTokenKind> for BNInstructionTextTokenType {
         }
     }
 }
+
+impl Eq for InstructionTextTokenKind {}
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum InstructionTextTokenContext {

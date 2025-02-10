@@ -701,7 +701,7 @@ pub fn is_type_archive_snapshot_ignored<S: BnStrCompatible>(
 pub fn download_type_archive<S: BnStrCompatible>(
     file: &RemoteFile,
     location: S,
-) -> Result<Option<TypeArchive>, ()> {
+) -> Result<Option<Ref<TypeArchive>>, ()> {
     download_type_archive_with_progress(file, location, NoProgressCallback)
 }
 
@@ -711,7 +711,7 @@ pub fn download_type_archive_with_progress<S: BnStrCompatible, F: ProgressCallba
     file: &RemoteFile,
     location: S,
     mut progress: F,
-) -> Result<Option<TypeArchive>, ()> {
+) -> Result<Option<Ref<TypeArchive>>, ()> {
     let mut value = std::ptr::null_mut();
     let db_path = location.into_bytes_with_nul();
     let success = unsafe {
@@ -724,7 +724,7 @@ pub fn download_type_archive_with_progress<S: BnStrCompatible, F: ProgressCallba
         )
     };
     success
-        .then(|| NonNull::new(value).map(|handle| unsafe { TypeArchive::from_raw(handle) }))
+        .then(|| NonNull::new(value).map(|handle| unsafe { TypeArchive::ref_from_raw(handle) }))
         .ok_or(())
 }
 

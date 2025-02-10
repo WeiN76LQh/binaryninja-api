@@ -1214,7 +1214,7 @@ public:
 					else if (instr.operands[i].cls == REG_LIST_DOUBLE)
 						base = REG_D0;
 
-					for (int32_t j = 0; j < 16; j++)
+					for (int32_t j = 0; j < 32; j++)
 					{
 						if (((instr.operands[i].reg >> j) & 1) == 1)
 						{

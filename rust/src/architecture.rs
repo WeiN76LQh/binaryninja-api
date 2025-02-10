@@ -305,7 +305,7 @@ pub trait RegisterStackInfo: Sized {
     fn stack_top_reg(&self) -> Self::RegType;
 }
 
-pub trait RegisterStack: Sized + Clone + Copy {
+pub trait RegisterStack: Debug + Sized + Clone + Copy {
     type InfoType: RegisterStackInfo<
         RegType = Self::RegType,
         RegInfoType = Self::RegInfoType,
@@ -641,7 +641,7 @@ pub struct UnusedRegisterStackInfo<R: Register> {
     _reg: std::marker::PhantomData<R>,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct UnusedRegisterStack<R: Register> {
     _reg: std::marker::PhantomData<R>,
 }

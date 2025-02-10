@@ -1,11 +1,12 @@
 use super::operation::*;
 use super::{HighLevelILFunction, HighLevelInstructionIndex};
+use std::fmt::{Debug, Formatter};
 
 use crate::architecture::CoreIntrinsic;
 use crate::rc::Ref;
 use crate::variable::{ConstantData, SSAVariable, Variable};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum HighLevelILLiftedOperand {
     ConstantData(ConstantData),
     Expr(HighLevelILLiftedInstruction),
@@ -25,7 +26,7 @@ pub enum HighLevelILLiftedOperand {
 // TODO: We dont even need to say instruction in the type!
 // TODO: IF you want to have an instruction type, there needs to be a separate expression type
 // TODO: See the lowlevelil module.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct HighLevelILLiftedInstruction {
     pub function: Ref<HighLevelILFunction>,
     pub address: u64,
@@ -458,5 +459,16 @@ impl HighLevelILLiftedInstruction {
                 ("body", Operand::Expr(*op.body.clone())),
             ],
         }
+    }
+}
+
+impl Debug for HighLevelILLiftedInstruction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HighLevelILLiftedInstruction")
+            .field("address", &self.address)
+            .field("expr_index", &self.expr_index)
+            .field("size", &self.size)
+            .field("kind", &self.kind)
+            .finish()
     }
 }

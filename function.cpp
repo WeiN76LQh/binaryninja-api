@@ -410,6 +410,7 @@ void Function::AddUserTypeReference(Architecture* fromArch, uint64_t fromAddr, c
 {
 	BNQualifiedName nameObj = name.GetAPIObject();
 	BNAddUserTypeReference(m_object, fromArch->GetObject(), fromAddr, &nameObj);
+	QualifiedName::FreeAPIObject(&nameObj);
 }
 
 
@@ -417,6 +418,7 @@ void Function::RemoveUserTypeReference(Architecture* fromArch, uint64_t fromAddr
 {
 	BNQualifiedName nameObj = name.GetAPIObject();
 	BNRemoveUserTypeReference(m_object, fromArch->GetObject(), fromAddr, &nameObj);
+	QualifiedName::FreeAPIObject(&nameObj);
 }
 
 
@@ -425,6 +427,7 @@ void Function::AddUserTypeFieldReference(
 {
 	BNQualifiedName nameObj = name.GetAPIObject();
 	BNAddUserTypeFieldReference(m_object, fromArch->GetObject(), fromAddr, &nameObj, offset, size);
+	QualifiedName::FreeAPIObject(&nameObj);
 }
 
 
@@ -433,6 +436,7 @@ void Function::RemoveUserTypeFieldReference(
 {
 	BNQualifiedName nameObj = name.GetAPIObject();
 	BNRemoveUserTypeFieldReference(m_object, fromArch->GetObject(), fromAddr, &nameObj, offset, size);
+	QualifiedName::FreeAPIObject(&nameObj);
 }
 
 
