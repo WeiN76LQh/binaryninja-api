@@ -3161,7 +3161,7 @@ extern "C"
 			auto value = cache->object->LoadAllSymbolsAndWait();
 			*count = value.size();
 
-			BNDSCSymbolRep* symbols = (BNDSCSymbolRep*)malloc(sizeof(BNDSCSymbolRep) * value.size());
+			BNDSCSymbolRep* symbols = new BNDSCSymbolRep[value.size()];
 			for (size_t i = 0; i < value.size(); i++)
 			{
 				symbols[i].address = value[i].second->GetAddress();
@@ -3227,7 +3227,7 @@ extern "C"
 		{
 			auto regions = cache->object->GetMappedRegions();
 			*count = regions.size();
-			BNDSCMappedMemoryRegion* mappedRegions = (BNDSCMappedMemoryRegion*)malloc(sizeof(BNDSCMappedMemoryRegion) * regions.size());
+			BNDSCMappedMemoryRegion* mappedRegions = new BNDSCMappedMemoryRegion[regions.size()];
 			for (size_t i = 0; i < regions.size(); i++)
 			{
 				mappedRegions[i].vmAddress = regions[i].start;
@@ -3258,14 +3258,14 @@ extern "C"
 		{
 			auto viewCaches = cache->object->BackingCaches();
 			*count = viewCaches.size();
-			caches = (BNDSCBackingCache*)malloc(sizeof(BNDSCBackingCache) * viewCaches.size());
+			caches = new BNDSCBackingCache[viewCaches.size()];
 			for (size_t i = 0; i < viewCaches.size(); i++)
 			{
 				caches[i].path = BNAllocString(viewCaches[i].path.c_str());
 				caches[i].isPrimary = viewCaches[i].isPrimary;
 
 				BNDSCBackingCacheMapping* mappings;
-				mappings = (BNDSCBackingCacheMapping*)malloc(sizeof(BNDSCBackingCacheMapping) * viewCaches[i].mappings.size());
+				mappings = new BNDSCBackingCacheMapping[viewCaches[i].mappings.size()];
 
 				size_t j = 0;
 				for (const auto& mapping : viewCaches[i].mappings)
@@ -3309,14 +3309,14 @@ extern "C"
 				auto vm = cache->object->GetVMMap(true);
 				auto viewImageHeaders = cache->object->AllImageHeaders();
 				*count = viewImageHeaders.size();
-				BNDSCImage* images = (BNDSCImage*)malloc(sizeof(BNDSCImage) * viewImageHeaders.size());
+				BNDSCImage* images = new BNDSCImage[viewImageHeaders.size()];
 				size_t i = 0;
 				for (const auto& [baseAddress, header] : viewImageHeaders)
 				{
 					images[i].name = BNAllocString(header.installName.c_str());
 					images[i].headerAddress = baseAddress;
 					images[i].mappingCount = header.sections.size();
-					images[i].mappings = (BNDSCImageMemoryMapping*)malloc(sizeof(BNDSCImageMemoryMapping) * header.sections.size());
+					images[i].mappings =  new BNDSCImageMemoryMapping[header.sections.size()];
 					for (size_t j = 0; j < header.sections.size(); j++)
 					{
 						const auto sectionStart = header.sections[j].addr;
