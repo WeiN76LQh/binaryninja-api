@@ -839,7 +839,9 @@ impl From<InstructionTextTokenKind> for BNInstructionTextTokenType {
             }
             InstructionTextTokenKind::Opcode => BNInstructionTextTokenType::OpcodeToken,
             InstructionTextTokenKind::String { .. } => BNInstructionTextTokenType::StringToken,
-            InstructionTextTokenKind::StringContent { .. } => BNInstructionTextTokenType::StringToken,
+            InstructionTextTokenKind::StringContent { .. } => {
+                BNInstructionTextTokenType::StringToken
+            }
             InstructionTextTokenKind::CharacterConstant => {
                 BNInstructionTextTokenType::CharacterConstantToken
             }

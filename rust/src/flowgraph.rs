@@ -65,7 +65,7 @@ impl FlowGraph {
                     let arch = CoreArchitecture::from_raw(arch_ptr);
                     BNFreeFunction(func_ptr);
                     Ok(RegularLowLevelILFunction::ref_from_raw(arch, llil_ptr))
-                },
+                }
                 true => Err(()),
             }
         }
