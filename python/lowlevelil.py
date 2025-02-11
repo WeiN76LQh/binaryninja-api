@@ -4826,7 +4826,28 @@ class LowLevelILFunction:
 		return self.expr(LowLevelILOperation.LLIL_CMP_UGT, a, b, size=size)
 
 	def test_bit(self, size: int, a: ExpressionIndex, b: ExpressionIndex) -> ExpressionIndex:
+		"""
+		``test_bit`` returns an expression of size ``size`` that tells whether expression ``a`` has its bit with an
+		index of the expression ``b`` is set
+
+		:param int size: size in bytes
+		:param ExpressionIndex a: an expression to be tested
+		:param ExpressionIndex b: an expression for the index of the big
+		:return: the result expression.
+		:rtype: ExpressionIndex
+		"""
 		return self.expr(LowLevelILOperation.LLIL_TEST_BIT, a, b, size=size)
+
+	def bool_to_int(self, size: int, a: ExpressionIndex) -> ExpressionIndex:
+		"""
+		``bool_to_int`` returns an expression of size ``size`` converting the boolean expression ``a`` to an integer
+
+		:param int size: size in bytes
+		:param ExpressionIndex a: boolean expression to be converted
+		:return: the converted integer expression.
+		:rtype: ExpressionIndex
+		"""
+		return self.expr(LowLevelILOperation.LLIL_BOOL_TO_INT, a, size=size)
 
 	def system_call(self) -> ExpressionIndex:
 		"""
