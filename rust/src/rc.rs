@@ -68,6 +68,12 @@ impl<T: RefCountable> AsRef<T> for Ref<T> {
     }
 }
 
+impl<T: RefCountable> AsMut<T> for Ref<T> {
+    fn as_mut(&mut self) -> &mut T {
+        &mut self.contents
+    }
+}
+
 impl<T: RefCountable> Deref for Ref<T> {
     type Target = T;
 
