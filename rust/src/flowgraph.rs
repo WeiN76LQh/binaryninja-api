@@ -58,12 +58,14 @@ impl FlowGraph {
     pub fn low_level_il(&self) -> Result<Ref<RegularLowLevelILFunction<CoreArchitecture>>, ()> {
         unsafe {
             let llil_ptr = BNGetFlowGraphLowLevelILFunction(self.handle);
-            let func_ptr = BNGetLowLevelILOwnerFunction(llil_ptr);
-            let arch_ptr = BNGetFunctionArchitecture(func_ptr);
-            let arch = CoreArchitecture::from_raw(arch_ptr);
-            BNFreeFunction(func_ptr);
             match llil_ptr.is_null() {
-                false => Ok(RegularLowLevelILFunction::ref_from_raw(arch, llil_ptr)),
+                false => {
+                    let func_ptr = BNGetLowLevelILOwnerFunction(llil_ptr);
+                    let arch_ptr = BNGetFunctionArchitecture(func_ptr);
+                    let arch = CoreArchitecture::from_raw(arch_ptr);
+                    BNFreeFunction(func_ptr);
+                    Ok(RegularLowLevelILFunction::ref_from_raw(arch, llil_ptr))
+                },
                 true => Err(()),
             }
         }
