@@ -2000,6 +2000,9 @@ namespace BinaryNinja {
 	*/
 	bool OpenUrl(const std::string& url);
 
+	typedef std::function<bool(size_t, size_t)> ProgressFunction;
+	bool DefaultProgressFunction(size_t, size_t);
+
 	/*! Run a given task in a background thread, and show an updating progress bar which the user can cancel
 
 		@threadsafe
@@ -2011,7 +2014,7 @@ namespace BinaryNinja {
 		            to cancel, and the task should handle this appropriately.
 		\return True if not cancelled
 	*/
-	bool RunProgressDialog(const std::string& title, bool canCancel, std::function<void(std::function<bool(size_t, size_t)> progress)> task);
+	bool RunProgressDialog(const std::string& title, bool canCancel, std::function<void(ProgressFunction progress)> task);
 
 	/*!
 	    Split a single progress function into equally sized subparts.
@@ -2030,8 +2033,8 @@ namespace BinaryNinja {
 	    \param subpartCount Total number of subparts
 	    \return A function that will call originalFn() within a modified progress region
 	*/
-	std::function<bool(size_t, size_t)> SplitProgress(
-	    std::function<bool(size_t, size_t)> originalFn, size_t subpart, size_t subpartCount);
+	ProgressFunction SplitProgress(
+	    ProgressFunction originalFn, size_t subpart, size_t subpartCount);
 
 
 	/*!
@@ -2052,8 +2055,8 @@ namespace BinaryNinja {
 	    \param subpartWeights Weights of subparts, described above
 	    \return A function that will call originalFn() within a modified progress region
 	*/
-	std::function<bool(size_t, size_t)> SplitProgress(
-	    std::function<bool(size_t, size_t)> originalFn, size_t subpart, std::vector<double> subpartWeights);
+	ProgressFunction SplitProgress(
+	    ProgressFunction originalFn, size_t subpart, std::vector<double> subpartWeights);
 
 	struct ProgressContext
 	{
