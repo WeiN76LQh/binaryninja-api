@@ -59,7 +59,7 @@ struct DeserializationContext;
 
 struct SerializationContext {
 	rapidjson::StringBuffer buffer;
-	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer;
+	rapidjson::Writer<rapidjson::StringBuffer> writer;
 
 	SerializationContext() : buffer(), writer(buffer) {
 	}
