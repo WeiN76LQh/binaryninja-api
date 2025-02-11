@@ -111,14 +111,6 @@ impl InitializationOptions {
         Self::default()
     }
 
-    pub fn minimal() -> Self {
-        Self {
-            user_plugins: false,
-            repo_plugins: false,
-            ..Self::default()
-        }
-    }
-
     /// A license to override with, you can use this to make sure you initialize with a specific license.
     ///
     /// This takes the form of a JSON array. The string should be formed like:
@@ -174,8 +166,8 @@ impl Default for InitializationOptions {
             floating_license_duration: Duration::from_secs(900),
             bundled_plugin_directory: bundled_plugin_directory()
                 .expect("Failed to get bundled plugin directory"),
-            user_plugins: true,
-            repo_plugins: true,
+            user_plugins: false,
+            repo_plugins: false,
         }
     }
 }
