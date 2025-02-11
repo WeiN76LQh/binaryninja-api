@@ -421,6 +421,14 @@ pub enum InstructionTextTokenKind {
     },
     Opcode,
     String {
+        // TODO: What is this?
+        // TODO: It seems like people just throw things in here...
+        value: u64,
+    },
+    /// String content is only present for:
+    /// - [`InstructionTextTokenContext::StringReference`]
+    /// - [`InstructionTextTokenContext::StringDisplay`]
+    StringContent {
         ty: StringType,
     },
     CharacterConstant,
@@ -588,14 +596,29 @@ impl InstructionTextTokenKind {
                 Self::HexDumpText { width: value.value }
             }
             BNInstructionTextTokenType::OpcodeToken => Self::Opcode,
-            BNInstructionTextTokenType::StringToken => Self::String {
-                ty: match value.value {
-                    0 => StringType::AsciiString,
-                    1 => StringType::Utf8String,
-                    2 => StringType::Utf16String,
-                    3 => StringType::Utf32String,
-                    _ => unreachable!(),
-                },
+            BNInstructionTextTokenType::StringToken => match value.context {
+                BNInstructionTextTokenContext::StringReferenceTokenContext
+                | BNInstructionTextTokenContext::StringDisplayTokenContext => {
+                    match value.value {
+                        0 => Self::StringContent {
+                            ty: StringType::AsciiString,
+                        },
+                        1 => Self::StringContent {
+                            ty: StringType::Utf8String,
+                        },
+                        2 => Self::StringContent {
+                            ty: StringType::Utf16String,
+                        },
+                        3 => Self::StringContent {
+                            ty: StringType::Utf32String,
+                        },
+                        // If we reach here all hope is lost.
+                        // Reaching here means someone made a ref or display context token with no
+                        // StringType and instead some other random value...
+                        value => Self::String { value },
+                    }
+                }
+                _ => Self::String { value: value.value },
             },
             BNInstructionTextTokenType::CharacterConstantToken => Self::CharacterConstant,
             BNInstructionTextTokenType::KeywordToken => Self::Keyword,
@@ -712,7 +735,8 @@ impl InstructionTextTokenKind {
             InstructionTextTokenKind::ArgumentName { value, .. } => Some(*value),
             InstructionTextTokenKind::HexDumpByteValue { value, .. } => Some(*value as u64),
             InstructionTextTokenKind::HexDumpText { width, .. } => Some(*width),
-            InstructionTextTokenKind::String { ty, .. } => Some(*ty as u64),
+            InstructionTextTokenKind::String { value, .. } => Some(*value),
+            InstructionTextTokenKind::StringContent { ty, .. } => Some(*ty as u64),
             InstructionTextTokenKind::FieldName { offset, .. } => Some(*offset),
             InstructionTextTokenKind::StructOffset { offset, .. } => Some(*offset),
             InstructionTextTokenKind::StructureHexDumpText { width, .. } => Some(*width),
@@ -815,6 +839,7 @@ impl From<InstructionTextTokenKind> for BNInstructionTextTokenType {
             }
             InstructionTextTokenKind::Opcode => BNInstructionTextTokenType::OpcodeToken,
             InstructionTextTokenKind::String { .. } => BNInstructionTextTokenType::StringToken,
+            InstructionTextTokenKind::StringContent { .. } => BNInstructionTextTokenType::StringToken,
             InstructionTextTokenKind::CharacterConstant => {
                 BNInstructionTextTokenType::CharacterConstantToken
             }

@@ -147,7 +147,7 @@ fn get_info_string<R: Reader>(
             if let Ok(attr_string) = attr_reader.to_string() {
                 attr_line.push(InstructionTextToken::new(
                     attr_string.as_ref(),
-                    InstructionTextTokenKind::String {
+                    InstructionTextTokenKind::StringContent {
                         ty: StringType::Utf8String,
                     },
                 ));
