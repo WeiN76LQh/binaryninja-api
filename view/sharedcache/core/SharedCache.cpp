@@ -1539,7 +1539,6 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 	}
 
 	SharedCacheMachOHeader targetHeader;
-	CacheImage* targetImage = nullptr;
 	MemoryRegion* targetSegment = nullptr;
 
 	for (auto& image : MutableState().images)
@@ -1549,7 +1548,6 @@ bool SharedCache::LoadSectionAtAddress(uint64_t address)
 			if (region.start <= address && region.start + region.size > address)
 			{
 				targetHeader = MutableState().headers[image.headerLocation];
-				targetImage = &image;
 				targetSegment = &region;
 				break;
 			}
@@ -2532,7 +2530,6 @@ void SharedCache::InitializeHeader(
 			vm->MappingAtAddress(header.linkeditSegment.vmaddr)
 				.first.fileAccessor->lock()
 				->ReadBuffer(header.functionStarts.funcoff, header.functionStarts.funcsize);
-		size_t i = 0;
 		uint64_t curfunc = header.textBase;
 		uint64_t curOffset;
 

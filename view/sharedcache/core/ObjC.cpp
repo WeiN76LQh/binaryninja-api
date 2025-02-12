@@ -549,7 +549,6 @@ void DSCObjCProcessor::LoadCategories(VMReader* reader, Ref<Section> classPtrSec
 	if (size == 0)
 		return;
 	auto ptrSize = m_data->GetAddressSize();
-	auto ptrCount = size / m_data->GetAddressSize();
 
 	auto classPtrSectionStart = classPtrSection->GetStart();
 	auto classPtrSectionEnd = classPtrSection->GetEnd();

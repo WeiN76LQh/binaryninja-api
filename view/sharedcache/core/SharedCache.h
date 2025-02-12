@@ -578,11 +578,12 @@ namespace SharedCacheCore {
 		bool m_metadataValid = false;
 
 		/* VIEWSTATE END -- NOTHING PAST THIS IS SERIALIZED */
-		std::shared_ptr<ViewSpecificState> m_viewSpecificState;
 
 		/* API VIEW START */
 		BinaryNinja::Ref<BinaryNinja::BinaryView> m_dscView;
 		/* API VIEW END */
+
+		std::shared_ptr<ViewSpecificState> m_viewSpecificState;
 
 	private:
 		void PerformInitialLoad();
