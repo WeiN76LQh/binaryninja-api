@@ -1363,6 +1363,7 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 
 SharedCache::SharedCache(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView) : m_dscView(dscView), m_viewSpecificState(ViewSpecificStateForView(dscView))
 {
+	m_logger = LogRegistry::GetLogger("SharedCache", dscView->GetFile()->GetSessionId());
 	if (dscView->GetTypeName() != VIEW_NAME)
 	{
 		// Unreachable?
@@ -1371,7 +1372,6 @@ SharedCache::SharedCache(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView) : m_
 	}
 	sharedCacheReferences++;
 	INIT_SHAREDCACHE_API_OBJECT()
-	m_logger = LogRegistry::GetLogger("SharedCache", dscView->GetFile()->GetSessionId());
 	DeserializeFromRawView();
 	if (!m_metadataValid)
 		return;
