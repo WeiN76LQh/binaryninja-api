@@ -668,6 +668,12 @@ Symbol::Symbol(BNSymbolType type, const std::string& name, uint64_t addr, BNSymb
 }
 
 
+Symbol::Symbol(BNSymbolType type, const std::string& name, uint64_t addr, BNNameSpace* nameSpace, BNSymbolBinding binding, uint64_t ordinal)
+{
+	m_object = BNCreateSymbol(type, name.c_str(), name.c_str(), name.c_str(), addr, binding, nameSpace, ordinal);
+}
+
+
 Symbol::Symbol(BNSymbol* sym)
 {
 	m_object = sym;

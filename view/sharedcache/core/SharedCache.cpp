@@ -2722,13 +2722,8 @@ void SharedCache::ReadExportNode(std::vector<Ref<Symbol>>& symbolList, const Sha
 #if EXPORT_TRIE_DEBUG
 					// BNLogInfo("export: %s -> 0x%llx", n.text.c_str(), image.baseAddress + n.offset);
 #endif
-				// TODO: The usual `Symbol` constructors take a `NameSpace` and do unnecessary memory allocations
-				// to pass its fields down to the core API. Here we pass nullptr for the namespace which is treated
-				// the same, but avoids the memory allocations. Switch back to directly constructing a `Symbol`
-				// once it gains constructors without that overhead.
-				auto symbol = new Symbol(BNCreateSymbol(type, currentText.c_str(), currentText.c_str(),
-					currentText.c_str(), textBase + imageOffset, NoBinding, nullptr, 0));
-				symbolList.push_back(symbol);
+				auto symbol = new Symbol(type, currentText, textBase + imageOffset, nullptr);
+				symbolList.emplace_back(symbol);
 			}
 		}
 	}

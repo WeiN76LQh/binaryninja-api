@@ -3899,6 +3899,8 @@ namespace BinaryNinja {
 		    const NameSpace& nameSpace = NameSpace(DEFAULT_INTERNAL_NAMESPACE), uint64_t ordinal = 0);
 		Symbol(BNSymbolType type, const std::string& name, uint64_t addr, BNSymbolBinding binding = NoBinding,
 		    const NameSpace& nameSpace = NameSpace(DEFAULT_INTERNAL_NAMESPACE), uint64_t ordinal = 0);
+		Symbol(BNSymbolType type, const std::string& name, uint64_t addr, BNNameSpace* nameSpace,
+			BNSymbolBinding binding = NoBinding, uint64_t ordinal = 0);
 		Symbol(BNSymbol* sym);
 
 		/*!
