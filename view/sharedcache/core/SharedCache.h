@@ -51,6 +51,7 @@ namespace SharedCacheCore {
 				.MSL(size),
 				.MSL(loaded),
 				.MSL(rawViewOffsetIfLoaded),
+				.headerInitialized = false, // NOTE: I guess this is not stored?
 				.MSL_CAST(flags, uint64_t, BNSegmentFlag),
 			};
 		}
@@ -443,7 +444,7 @@ namespace SharedCacheCore {
 			MSS_SUBCLASS(symtab);
 			MSS_SUBCLASS(dysymtab);
 			MSS_SUBCLASS(dyldInfo);
-			// MSS_SUBCLASS(routines64);
+			MSS_SUBCLASS(routines64);
 			MSS_SUBCLASS(functionStarts);
 			MSS_SUBCLASS(moduleInitSections);
 			MSS_SUBCLASS(exportTrie);
@@ -458,8 +459,8 @@ namespace SharedCacheCore {
 			MSS(dylibs);
 			MSS_SUBCLASS(buildVersion);
 			MSS_SUBCLASS(buildToolVersions);
-			MSS(linkeditPresent);
 			MSS(exportTriePath);
+			MSS(linkeditPresent);
 			MSS(dysymPresent);
 			MSS(dyldInfoPresent);
 			MSS(exportTriePresent);
@@ -481,7 +482,7 @@ namespace SharedCacheCore {
 				.MSL(symtab),
 				.MSL(dysymtab),
 				.MSL(dyldInfo),
-				// .MSL(routines64), // FIXME CRASH but also do we even use this?
+				.MSL(routines64), // TODO: This supposedly caused a crash on some binary? Need a repro.
 				.MSL(functionStarts),
 				.MSL(moduleInitSections),
 				.MSL(exportTrie),
@@ -496,13 +497,13 @@ namespace SharedCacheCore {
 				.MSL(dylibs),
 				.MSL(buildVersion),
 				.MSL(buildToolVersions),
-				.MSL(linkeditPresent),
 				.MSL(exportTriePath),
+				.MSL(linkeditPresent),
 				.MSL(dysymPresent),
 				.MSL(dyldInfoPresent),
 				.MSL(exportTriePresent),
 				.MSL(chainedFixupsPresent),
-				// .MSL(routinesPresent),
+				.MSL(routinesPresent),
 				.MSL(functionStartsPresent),
 				.MSL(relocatable),
 			};
