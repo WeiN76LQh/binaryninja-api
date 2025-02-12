@@ -3154,7 +3154,7 @@ extern "C"
 			for (size_t i = 0; i < value.size(); i++)
 			{
 				symbols[i].address = value[i].second->GetAddress();
-				symbols[i].name = BNAllocString(value[i].second->GetRawName().c_str());
+				symbols[i].name = BNDuplicateStringRef(value[i].second->GetRawNameRef().GetObject());
 				symbols[i].image = BNAllocString(value[i].first.c_str());
 			}
 			return symbols;
@@ -3167,7 +3167,7 @@ extern "C"
 	{
 		for (size_t i = 0; i < count; i++)
 		{
-			BNFreeString(symbols[i].name);
+			BNFreeStringRef(symbols[i].name);
 			BNFreeString(symbols[i].image);
 		}
 		delete symbols;
@@ -3468,7 +3468,7 @@ void SharedCache::Store(SerializationContext& context) const
 			context.writer.StartObject();
 			Serialize(context, "key", pair2.first);
 			Serialize(context, "val1", pair2.second->GetType());
-			Serialize(context, "val2", pair2.second->GetRawName());
+			Serialize(context, "val2", (std::string_view)pair2.second->GetRawNameRef());
 			context.writer.EndObject();
 		}
 		context.writer.EndArray();

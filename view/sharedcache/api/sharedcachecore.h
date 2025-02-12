@@ -66,6 +66,7 @@ extern "C"
 
 	typedef struct BNBinaryView BNBinaryView;
 	typedef struct BNSharedCache BNSharedCache;
+	typedef struct BNStringRef BNStringRef;
 
 	typedef struct BNDSCImageMemoryMapping {
 		char* filePath;
@@ -109,7 +110,7 @@ extern "C"
 
 	typedef struct BNDSCSymbolRep {
 		uint64_t address;
-		char* name;
+		BNStringRef* name;
 		char* image;
 	} BNDSCSymbolRep;
 

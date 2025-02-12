@@ -126,7 +126,7 @@ namespace SharedCacheAPI {
 
 	struct DSCSymbol {
 		uint64_t address;
-		std::string name;
+		BinaryNinja::StringRef name;
 		std::string image;
 	};
 

@@ -165,7 +165,7 @@ namespace SharedCacheAPI {
 		{
 			DSCSymbol sym;
 			sym.address = value[i].address;
-			sym.name = value[i].name;
+			sym.name = StringRef(BNDuplicateStringRef(value[i].name));
 			sym.image = value[i].image;
 			result.push_back(sym);
 		}

@@ -422,7 +422,7 @@ QVariant SymbolTableModel::data(const QModelIndex& index, int role) const {
 	case 0: // Address column
 		return QString("0x%1").arg(symbol.address, 0, 16); // Display address as hexadecimal
 	case 1: // Name column
-		return QString::fromStdString(symbol.name);
+		return QString::fromUtf8(symbol.name.c_str(), symbol.name.size());
 	case 2: // Image column
 		return QString::fromStdString(symbol.image);
 	default:
@@ -473,7 +473,7 @@ void SymbolTableModel::setFilter(std::string text)
 		m_symbols.reserve(m_parent->m_symbols.size());
 		for (const auto& symbol : m_parent->m_symbols)
 		{
-			if (symbol.name.find(m_filter) != std::string::npos)
+			if (((std::string_view)symbol.name).find(m_filter) != std::string::npos)
 			{
 				m_symbols.push_back(symbol);
 			}
