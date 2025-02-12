@@ -1063,7 +1063,8 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 		auto slideInfoVersion = file->ReadUInt32(slideInfoOff);
 		if (slideInfoVersion != 2 && slideInfoVersion != 3)
 		{
-			abort();
+			m_logger->LogError("Unsupported slide info version %d", slideInfoVersion);
+			throw std::runtime_error("Unsupported slide info version");
 		}
 
 		MappingInfo map;
@@ -1763,9 +1764,17 @@ bool SharedCache::LoadImageWithInstallName(std::string installName, bool skipObj
 			break;
 		}
 	}
+
+	if (!targetImage)
+	{
+		m_logger->LogError("Failed to find target image %s", installName.c_str());
+		return false;
+	}
+
 	auto it = State().headers.find(targetImage->headerLocation);
 	if (it == State().headers.end())
 	{
+		m_logger->LogError("Failed to find target image header %s", installName.c_str());
 		return false;
 	}
 	const auto& header = it->second;
@@ -2693,11 +2702,10 @@ void SharedCache::ReadExportNode(std::vector<Ref<Symbol>>& symbolList, const Sha
 	uint64_t terminalSize = readValidULEB128(current, end);
 	const uint8_t* child = current + terminalSize;
 	if (terminalSize != 0) {
-		uint64_t imageOffset = 0;
 		uint64_t flags = readValidULEB128(current, end);
 		if (!(flags & EXPORT_SYMBOL_FLAGS_REEXPORT))
 		{
-			imageOffset = readValidULEB128(current, end);
+			uint64_t imageOffset = readValidULEB128(current, end);
 			if (!currentText.empty() && textBase + imageOffset)
 			{
 				uint32_t flags;
