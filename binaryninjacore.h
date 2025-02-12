@@ -305,6 +305,7 @@ extern "C"
 	typedef struct BNFirmwareNinjaRelationship BNFirmwareNinjaRelationship;
 	typedef struct BNLineFormatter BNLineFormatter;
 	typedef struct BNRenderLayer BNRenderLayer;
+	typedef struct BNStringRef BNStringRef;
 
 	//! Console log levels
 	typedef enum BNLogLevel
@@ -5654,8 +5655,11 @@ extern "C"
 	BINARYNINJACOREAPI BNSymbolBinding BNGetSymbolBinding(BNSymbol* sym);
 	BINARYNINJACOREAPI BNNameSpace BNGetSymbolNameSpace(BNSymbol* sym);
 	BINARYNINJACOREAPI char* BNGetSymbolShortName(BNSymbol* sym);
+	BINARYNINJACOREAPI BNStringRef* BNGetSymbolShortNameRef(BNSymbol* sym);
 	BINARYNINJACOREAPI char* BNGetSymbolFullName(BNSymbol* sym);
+	BINARYNINJACOREAPI BNStringRef* BNGetSymbolFullNameRef(BNSymbol* sym);
 	BINARYNINJACOREAPI char* BNGetSymbolRawName(BNSymbol* sym);
+	BINARYNINJACOREAPI BNStringRef* BNGetSymbolRawNameRef(BNSymbol* sym);
 	BINARYNINJACOREAPI void* BNGetSymbolRawBytes(BNSymbol* sym, size_t* count);
 	BINARYNINJACOREAPI void BNFreeSymbolRawBytes(void* bytes);
 
@@ -8215,6 +8219,11 @@ extern "C"
 		BNLinearDisassemblyLine** outLines,
 		size_t* outLineCount
 	);
+
+	BINARYNINJACOREAPI void BNFreeStringRef(BNStringRef* ref);
+	BINARYNINJACOREAPI BNStringRef* BNDuplicateStringRef(BNStringRef* ref);
+	BINARYNINJACOREAPI const char* BNGetStringRefContents(BNStringRef* ref);
+	BINARYNINJACOREAPI size_t BNGetStringRefSize(BNStringRef* ref);
 
 #ifdef __cplusplus
 }

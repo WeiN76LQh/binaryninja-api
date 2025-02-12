@@ -3888,6 +3888,35 @@ namespace BinaryNinja {
 		static NameSpace FromAPIObject(const BNNameSpace* name);
 	};
 
+	class StringRef
+	{
+		BNStringRef* m_ref;
+
+	public:
+		StringRef();
+		explicit StringRef(BNStringRef* ref);
+		StringRef(const StringRef& other);
+		StringRef(StringRef&& other);
+		~StringRef();
+		StringRef& operator=(const StringRef& other);
+		StringRef& operator=(StringRef&& other);
+
+		operator std::string_view() const { return std::string_view(c_str(), size()); }
+		operator std::string const() { return c_str(); }
+
+		const char* c_str() const;
+		size_t size() const;
+		BNStringRef* GetObject() { return m_ref; }
+
+		bool operator==(const StringRef& other) const { return this->operator std::string_view() == other.operator std::string_view(); }
+		bool operator!=(const StringRef& other) const { return this->operator std::string_view() != other.operator std::string_view(); }
+		bool operator<(const StringRef& other) const { return this->operator std::string_view() < other.operator std::string_view(); }
+		bool operator==(const std::string& other) const { return this->operator std::string_view() == other; }
+		bool operator!=(const std::string& other) const { return this->operator std::string_view() != other; }
+		bool operator==(const std::string_view& other) const { return this->operator std::string_view() == other; }
+		bool operator!=(const std::string_view& other) const { return this->operator std::string_view() != other; }
+	};
+
 	/*!
 		\ingroup types
 	*/
@@ -3935,14 +3964,29 @@ namespace BinaryNinja {
 		std::string GetShortName() const;
 
 		/*!
+		    \return Symbol short name
+		*/
+		StringRef GetShortNameRef() const;
+
+		/*!
 		    \return Symbol full name
 		*/
 		std::string GetFullName() const;
 
 		/*!
+		    \return Symbol full name
+		*/
+		StringRef GetFullNameRef() const;
+
+		/*!
 		    \return Symbol raw name
 		*/
 		std::string GetRawName() const;
+
+		/*!
+		    \return Symbol raw name
+		*/
+		StringRef GetRawNameRef() const;
 
 		/*!
 			\return Symbol Address
@@ -20662,6 +20706,15 @@ namespace std
 			return std::hash<decltype(T::GetObject(value.GetPtr()))>()(T::GetObject(value.GetPtr()));
 		}
 	};
+
+	template<> struct hash<BinaryNinja::StringRef>
+	{
+		typedef BinaryNinja::StringRef argument_type;
+		size_t operator()(argument_type const& value) const
+		{
+			return std::hash<std::string_view>()(value.operator std::string_view());
+		}
+	};
 }  // namespace std
 
 
@@ -20693,6 +20746,19 @@ template<> struct fmt::formatter<BinaryNinja::NameList>
 {
 	format_context::iterator format(const BinaryNinja::NameList& obj, format_context& ctx) const;
 	constexpr auto parse(format_parse_context& ctx) -> format_parse_context::iterator { return ctx.begin(); }
+};
+
+
+template<> struct fmt::formatter<BinaryNinja::StringRef> : fmt::formatter<std::string_view>
+{
+	format_context::iterator format(const BinaryNinja::StringRef& obj, format_context& ctx) const
+	{
+		return fmt::formatter<std::string_view>::format(obj.operator std::string_view(), ctx);
+	}
+	constexpr auto parse(format_parse_context& ctx) -> format_parse_context::iterator
+	{
+		return fmt::formatter<std::string_view>::parse(ctx);
+	}
 };
 
 template<typename T>

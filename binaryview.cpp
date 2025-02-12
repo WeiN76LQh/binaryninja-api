@@ -650,6 +650,83 @@ BinaryDataNotification::BinaryDataNotification(NotificationTypes notifications)
 }
 
 
+StringRef::StringRef()
+{
+	m_ref = nullptr;
+}
+
+
+StringRef::StringRef(BNStringRef* ref)
+{
+	m_ref = ref;
+}
+
+
+StringRef::StringRef(const StringRef& other)
+{
+	m_ref = BNDuplicateStringRef(other.m_ref);
+}
+
+
+StringRef::StringRef(StringRef&& other)
+{
+	m_ref = other.m_ref;
+	other.m_ref = nullptr;
+}
+
+
+StringRef::~StringRef()
+{
+	if (m_ref)
+	{
+		BNFreeStringRef(m_ref);
+	}
+}
+
+
+StringRef& StringRef::operator=(const StringRef& other)
+{
+	if (m_ref)
+	{
+		BNFreeStringRef(m_ref);
+		m_ref = nullptr;
+	}
+	if (other.m_ref)
+	{
+		m_ref = BNDuplicateStringRef(other.m_ref);
+	}
+	return *this;
+}
+
+
+StringRef& StringRef::operator=(StringRef&& other)
+{
+	if (m_ref)
+	{
+		BNFreeStringRef(m_ref);
+	}
+	m_ref = other.m_ref;
+	other.m_ref = nullptr;
+	return *this;
+}
+
+
+const char* StringRef::c_str() const
+{
+	if (!m_ref)
+		return ""; // todo: nullptr?
+	return BNGetStringRefContents(m_ref);
+}
+
+
+size_t StringRef::size() const
+{
+	if (!m_ref)
+		return 0;
+	return BNGetStringRefSize(m_ref);
+}
+
+
 Symbol::Symbol(BNSymbolType type, const string& shortName, const string& fullName, const string& rawName, uint64_t addr,
     BNSymbolBinding binding, const NameSpace& nameSpace, uint64_t ordinal)
 {
@@ -710,6 +787,13 @@ string Symbol::GetShortName() const
 }
 
 
+StringRef Symbol::GetShortNameRef() const
+{
+	BNStringRef* name = BNGetSymbolShortNameRef(m_object);
+	return StringRef(name);
+}
+
+
 string Symbol::GetFullName() const
 {
 	char* name = BNGetSymbolFullName(m_object);
@@ -719,12 +803,26 @@ string Symbol::GetFullName() const
 }
 
 
+StringRef Symbol::GetFullNameRef() const
+{
+	BNStringRef* name = BNGetSymbolFullNameRef(m_object);
+	return StringRef(name);
+}
+
+
 string Symbol::GetRawName() const
 {
 	char* name = BNGetSymbolRawName(m_object);
 	string result = name;
 	BNFreeString(name);
 	return result;
+}
+
+
+StringRef Symbol::GetRawNameRef() const
+{
+	BNStringRef* name = BNGetSymbolRawNameRef(m_object);
+	return StringRef(name);
 }
 
 
