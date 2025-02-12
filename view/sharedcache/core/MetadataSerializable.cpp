@@ -354,6 +354,10 @@ void Serialize(SerializationContext& context, const routines_command_64& value)
 void Deserialize(DeserializationContext& context, std::string_view name, routines_command_64& b)
 {
 	auto bArr = context.doc[name.data()].GetArray();
+	// Because we might open databases that had not previously serialized this, we must allow
+	// an empty array, otherwise we will crash!
+	if (bArr.Size() < 4)
+		return;
 	b.cmd = bArr[0].GetUint();
 	b.cmdsize = bArr[1].GetUint();
 	b.init_address = bArr[2].GetUint();

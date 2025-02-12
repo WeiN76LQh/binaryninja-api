@@ -482,7 +482,7 @@ namespace SharedCacheCore {
 				.MSL(symtab),
 				.MSL(dysymtab),
 				.MSL(dyldInfo),
-				.MSL(routines64), // TODO: This supposedly caused a crash on some binary? Need a repro.
+				.MSL(routines64),
 				.MSL(functionStarts),
 				.MSL(moduleInitSections),
 				.MSL(exportTrie),
