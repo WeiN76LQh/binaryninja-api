@@ -218,9 +218,8 @@ void FileAccessorCache::SetCacheSize(uint64_t cacheSize)
 void FileAccessorCache::RecordAccess(const std::string& path)
 {
 	auto it = m_accessors.find(path);
-	if (it == m_accessors.end()) {
+	if (it == m_accessors.end())
 		return;
-	}
 
 	// Move the entry for `path` to the end of `m_leastRecentlyOpened`.
 	m_leastRecentlyOpened.splice(m_leastRecentlyOpened.end(), m_leastRecentlyOpened, it->second.second);
@@ -229,7 +228,8 @@ void FileAccessorCache::RecordAccess(const std::string& path)
 void FileAccessorCache::EvictFromCacheIfNeeded()
 {
 	std::lock_guard lock(m_mutex);
-	while (m_accessors.size() > m_cacheSize) {
+	while (m_accessors.size() > m_cacheSize)
+	{
 		m_accessors.erase(m_leastRecentlyOpened.front());
 		m_leastRecentlyOpened.pop_front();
 	}
@@ -240,7 +240,8 @@ std::shared_ptr<LazyMappedFileAccessor> FileAccessorCache::OpenLazily(BinaryNinj
 	std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine)
 {
 	std::lock_guard lock(m_mutex);
-	if (auto it = m_lazyAccessors.find(path); it != m_lazyAccessors.end()) {
+	if (auto it = m_lazyAccessors.find(path); it != m_lazyAccessors.end())
+	{
 		RecordAccess(path);
 		return it->second;
 	}
@@ -249,7 +250,8 @@ std::shared_ptr<LazyMappedFileAccessor> FileAccessorCache::OpenLazily(BinaryNinj
 		[=, dscView = std::move(dscView), postAllocationRoutine = std::move(postAllocationRoutine)](
 			const std::string& path) {
 			auto accessor = Open(dscView, sessionID, path);
-			if (postAllocationRoutine) {
+			if (postAllocationRoutine)
+			{
 				postAllocationRoutine(accessor);
 			}
 			return accessor;
@@ -270,10 +272,13 @@ std::shared_ptr<MMappedFileAccessor> FileAccessorCache::Open(
 
 	std::lock_guard lock(m_mutex);
 	auto [it, inserted] = m_accessors.insert({path, {accessor, m_leastRecentlyOpened.end()}});
-	if (inserted) {
+	if (inserted)
+	{
 		m_leastRecentlyOpened.push_back(path);
 		it->second.second = std::prev(it->second.second);
-	} else {
+	}
+	else
+	{
 		RecordAccess(path);
 	}
 
@@ -335,9 +340,11 @@ void MMappedFileAccessor::InitialVMSetup()
 			struct rlimit rlim;
 			getrlimit(RLIMIT_NOFILE, &rlim);
 			unsigned long long previousLimit = rlim.rlim_cur;
-			if (rlim.rlim_cur < TargetFileDescriptorLimit) {
+			if (rlim.rlim_cur < TargetFileDescriptorLimit)
+			{
 				rlim.rlim_cur = std::min(TargetFileDescriptorLimit, rlim.rlim_max);
-				if (setrlimit(RLIMIT_NOFILE, &rlim) < 0) {
+				if (setrlimit(RLIMIT_NOFILE, &rlim) < 0)
+				{
 					perror("setrlimit(RLIMIT_NOFILE)");
 					rlim.rlim_cur = previousLimit;
 				}
@@ -423,7 +430,8 @@ void MMappedFileAccessor::WritePointer(size_t address, size_t pointer)
 }
 
 template <typename T>
-T MMappedFileAccessor::Read(size_t address) {
+T MMappedFileAccessor::Read(size_t address)
+{
 	T result;
 	Read(&result, address, sizeof(T));
 	return result;

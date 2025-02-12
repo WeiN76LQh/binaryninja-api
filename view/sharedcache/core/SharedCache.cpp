@@ -99,38 +99,39 @@ struct SharedCache::ViewSpecificState {
 };
 
 
-std::shared_ptr<SharedCache::ViewSpecificState> ViewSpecificStateForId(uint64_t viewIdentifier, bool insertIfNeeded = true) {
+std::shared_ptr<SharedCache::ViewSpecificState> ViewSpecificStateForId(uint64_t viewIdentifier, bool insertIfNeeded = true)
+{
 	static std::mutex viewSpecificStateMutex;
 	static std::unordered_map<uint64_t, std::weak_ptr<SharedCache::ViewSpecificState>> viewSpecificState;
 
 	std::lock_guard lock(viewSpecificStateMutex);
 
-	if (auto it = viewSpecificState.find(viewIdentifier); it != viewSpecificState.end()) {
-		if (auto statePtr = it->second.lock()) {
+	if (auto it = viewSpecificState.find(viewIdentifier); it != viewSpecificState.end())
+	{
+		if (auto statePtr = it->second.lock())
 			return statePtr;
-		}
 	}
 
-	if (!insertIfNeeded) {
+	if (!insertIfNeeded)
 		return nullptr;
-	}
 
 	auto statePtr = std::make_shared<SharedCache::ViewSpecificState>();
 	viewSpecificState[viewIdentifier] = statePtr;
 
 	// Prune entries for any views that are no longer in use.
-	for (auto it = viewSpecificState.begin(); it != viewSpecificState.end(); ) {
-		if (it->second.expired()) {
+	for (auto it = viewSpecificState.begin(); it != viewSpecificState.end(); )
+	{
+		if (it->second.expired())
 			it = viewSpecificState.erase(it);
-		} else {
+		else
 			++it;
-		}
 	}
 
 	return statePtr;
 }
 
-std::shared_ptr<SharedCache::ViewSpecificState> ViewSpecificStateForView(Ref<BinaryNinja::BinaryView> view) {
+std::shared_ptr<SharedCache::ViewSpecificState> ViewSpecificStateForView(Ref<BinaryNinja::BinaryView> view)
+{
 	return ViewSpecificStateForId(view->GetFile()->GetSessionId());
 }
 
@@ -139,7 +140,8 @@ std::string base_name(std::string const& path)
 	return path.substr(path.find_last_of("/\\") + 1);
 }
 
-BNSegmentFlag SegmentFlagsFromMachOProtections(int initProt, int maxProt) {
+BNSegmentFlag SegmentFlagsFromMachOProtections(int initProt, int maxProt)
+{
 
 	uint32_t flags = 0;
 	if (initProt & MACHO_VM_PROT_READ)
@@ -317,7 +319,8 @@ void SharedCache::PerformInitialLoad()
 			MutableState().cacheFormat = iOS16CacheFormat;
 	}
 
-	if (primaryCacheHeader.objcOptsOffset && primaryCacheHeader.objcOptsSize) {
+	if (primaryCacheHeader.objcOptsOffset && primaryCacheHeader.objcOptsSize)
+	{
 		uint64_t objcOptsOffset = primaryCacheHeader.objcOptsOffset;
 		uint64_t objcOptsSize = primaryCacheHeader.objcOptsSize;
 		MutableState().objcOptimizationDataRange = {objcOptsOffset, objcOptsSize};
@@ -977,8 +980,10 @@ std::shared_ptr<VM> SharedCache::GetVMMap()
 {
 	std::shared_ptr<VM> vm = std::make_shared<VM>(0x1000);
 
-	for (const auto& cache : State().backingCaches) {
-		for (const auto& mapping : cache.mappings) {
+	for (const auto& cache : State().backingCaches)
+	{
+		for (const auto& mapping : cache.mappings)
+		{
 			vm->MapPages(m_dscView, m_dscView->GetFile()->GetSessionId(), mapping.address, mapping.fileOffset, mapping.size, cache.path,
 				[this, vm=vm](std::shared_ptr<MMappedFileAccessor> mmap){
 					ParseAndApplySlideInfoForFile(mmap);
@@ -992,16 +997,19 @@ std::shared_ptr<VM> SharedCache::GetVMMap()
 
 void SharedCache::DeserializeFromRawView()
 {
-	if (m_dscView->QueryMetadata(SharedCacheMetadataTag)) {
+	if (m_dscView->QueryMetadata(SharedCacheMetadataTag))
+	{
 		std::lock_guard lock(m_viewSpecificState->stateMutex);
-		if (m_viewSpecificState->cachedState) {
+		if (m_viewSpecificState->cachedState)
+		{
 			m_state = m_viewSpecificState->cachedState;
 			m_stateIsShared = true;
 			m_metadataValid = true;
 			return;
 		}
 
-		if (auto state = LoadFromString(m_dscView->GetStringMetadata(SharedCacheMetadataTag))) {
+		if (auto state = LoadFromString(m_dscView->GetStringMetadata(SharedCacheMetadataTag)))
+		{
 			m_state = std::make_shared<SharedCacheState>(std::move(*state));
 			m_stateIsShared = false;
 			m_metadataValid = true;
@@ -2701,7 +2709,8 @@ void SharedCache::ReadExportNode(std::vector<Ref<Symbol>>& symbolList, const Sha
 
 	uint64_t terminalSize = readValidULEB128(current, end);
 	const uint8_t* child = current + terminalSize;
-	if (terminalSize != 0) {
+	if (terminalSize != 0)
+	{
 		uint64_t flags = readValidULEB128(current, end);
 		if (!(flags & EXPORT_SYMBOL_FLAGS_REEXPORT))
 		{
@@ -2758,9 +2767,8 @@ void SharedCache::ReadExportNode(std::vector<Ref<Symbol>>& symbolList, const Sha
 
 std::vector<Ref<Symbol>> SharedCache::ParseExportTrie(std::shared_ptr<MMappedFileAccessor> linkeditFile, const SharedCacheMachOHeader& header)
 {
-	if (!header.exportTrie.datasize) {
+	if (!header.exportTrie.datasize)
 		return {};
-	}
 
 	try
 	{
@@ -2785,28 +2793,26 @@ std::shared_ptr<std::unordered_map<uint64_t, Ref<Symbol>>> SharedCache::GetExpor
 			*didModifyExportList = false;
 		return it->second;
 	}
-	else
-	{
-		std::shared_ptr<MMappedFileAccessor> linkeditFile = provideLinkeditFile();
-		if (!linkeditFile)
-		{
-			if (didModifyExportList)
-				*didModifyExportList = false;
-			return nullptr;
-		}
 
-		// FIXME: This is the only place ParseExportTrie is used, it can be optimized for the output we need here.
-		std::vector<Ref<Symbol>> exportList = SharedCache::ParseExportTrie(linkeditFile, header);
-		auto exportMapping = std::make_shared<std::unordered_map<uint64_t, Ref<Symbol>>>(exportList.size());
-		for (auto& sym : exportList)
-		{
-			exportMapping->insert_or_assign(sym->GetAddress(), std::move(sym));
-		}
-		MutableState().exportInfos.emplace(header.textBase, exportMapping);
+	std::shared_ptr<MMappedFileAccessor> linkeditFile = provideLinkeditFile();
+	if (!linkeditFile)
+	{
 		if (didModifyExportList)
-			*didModifyExportList = true;
-		return m_state->exportInfos[header.textBase];
+			*didModifyExportList = false;
+		return nullptr;
 	}
+
+	// FIXME: This is the only place ParseExportTrie is used, it can be optimized for the output we need here.
+	std::vector<Ref<Symbol>> exportList = SharedCache::ParseExportTrie(linkeditFile, header);
+	auto exportMapping = std::make_shared<std::unordered_map<uint64_t, Ref<Symbol>>>(exportList.size());
+	for (auto& sym : exportList)
+	{
+		exportMapping->insert_or_assign(sym->GetAddress(), std::move(sym));
+	}
+	MutableState().exportInfos.emplace(header.textBase, exportMapping);
+	if (didModifyExportList)
+		*didModifyExportList = true;
+	return m_state->exportInfos[header.textBase];
 }
 
 
@@ -2903,16 +2909,18 @@ std::string SharedCache::SerializedImageHeaderForName(std::string name)
 	return "";
 }
 
-Ref<TypeLibrary> SharedCache::TypeLibraryForImage(const std::string& installName) {
+Ref<TypeLibrary> SharedCache::TypeLibraryForImage(const std::string& installName)
+{
 	std::lock_guard lock(m_viewSpecificState->typeLibraryMutex);
-	if (auto it = m_viewSpecificState->typeLibraries.find(installName); it != m_viewSpecificState->typeLibraries.end()) {
+	if (auto it = m_viewSpecificState->typeLibraries.find(installName); it != m_viewSpecificState->typeLibraries.end())
 		return it->second;
-	}
 
 	auto typeLib = m_dscView->GetTypeLibrary(installName);
-	if (!typeLib) {
+	if (!typeLib)
+	{
 		auto typeLibs = m_dscView->GetDefaultPlatform()->GetTypeLibrariesByName(installName);
-		if (!typeLibs.empty()) {
+		if (!typeLibs.empty())
+		{
 			typeLib = typeLibs[0];
 			m_dscView->AddTypeLibrary(typeLib);
 		}
@@ -2929,17 +2937,19 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 	if (symbolLocation != targetLocation)
 		prefix = "j_";
 
-	if (auto targetSymbol = m_dscView->GetSymbolByAddress(targetLocation)) {
+	if (auto targetSymbol = m_dscView->GetSymbolByAddress(targetLocation))
+	{
 		// A symbol already exists at the target location. If the source and target address are the same,
 		// there's nothing more to do. If they're different but the symbol has the `j_` prefix that is added
 		// to stubs, there's also nothing more to do.
-		if (symbolLocation == targetLocation || targetSymbol->GetFullName().find("j_") != std::string::npos) {
+		if (symbolLocation == targetLocation || targetSymbol->GetFullName().find("j_") != std::string::npos)
 			return;
-		}
 	}
 
-	if (symbolLocation != targetLocation) {
-		if (auto symbol = m_dscView->GetSymbolByAddress(symbolLocation)) {
+	if (symbolLocation != targetLocation)
+	{
+		if (auto symbol = m_dscView->GetSymbolByAddress(symbolLocation))
+		{
 			// A symbol already exists at the source location. Add a stub symbol at `targetLocation` based on the existing symbol.
 			auto id = m_dscView->BeginUndoActions();
 			if (m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation))
@@ -2955,9 +2965,8 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 	// for the image containing `symbolLocation` to find a symbol corresponding to that address.
 
 	auto header = HeaderForAddress(symbolLocation);
-	if (!header) {
+	if (!header)
 		return;
-	}
 
 	WillMutateState();
 	auto exportList = GetExportListForHeader(*header, [&]() {
@@ -2969,38 +2978,33 @@ void SharedCache::FindSymbolAtAddrAndApplyToAddr(
 		}
 	});
 
-	if (!exportList) {
+	if (!exportList)
 		return;
-	}
 
 	auto it = exportList->find(symbolLocation);
-	if (it == exportList->end()) {
+	if (it == exportList->end())
 		return;
-	}
 
 	const auto& symbol = it->second;
 	auto id = m_dscView->BeginUndoActions();
 	auto typeLib = TypeLibraryForImage(header->installName);
 	auto type = typeLib ? m_dscView->ImportTypeLibraryObject(typeLib, {symbol->GetFullName()}) : nullptr;
 
-	if (auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation)) {
+	if (auto func = m_dscView->GetAnalysisFunction(m_dscView->GetDefaultPlatform(), targetLocation))
+	{
 		m_dscView->DefineUserSymbol(
 			new Symbol(FunctionSymbol, prefix + symbol->GetFullName(), targetLocation));
-
-		if (type) {
+		if (type)
 			func->SetUserType(type);
-		}
-
-		if (triggerReanalysis) {
+		if (triggerReanalysis)
 			func->Reanalyze();
-		}
-	} else {
+	}
+	else
+	{
 		m_dscView->DefineUserSymbol(
 			new Symbol(symbol->GetType(), prefix + symbol->GetFullName(), targetLocation));
-
-		if (type) {
+		if (type)
 			m_dscView->DefineUserDataVariable(targetLocation, type);
-		}
 	}
 
 	m_dscView->ForgetUndoActions(id);
@@ -3380,9 +3384,8 @@ extern "C"
 
 	BNDSCViewLoadProgress BNDSCViewGetLoadProgress(uint64_t sessionID)
 	{
-		if (auto viewSpecificState = ViewSpecificStateForId(sessionID, false)) {
+		if (auto viewSpecificState = ViewSpecificStateForId(sessionID, false))
 			return viewSpecificState->progress;
-		}
 
 		return LoadProgressNotStarted;
 	}
@@ -3505,13 +3508,16 @@ void SharedCache::Store(SerializationContext& context) const
 	Serialize(context, "nonImageRegions", State().nonImageRegions);
 }
 
-std::optional<SharedCacheState> SharedCache::Load(DeserializationContext& context) {
-	if (!context.doc.HasMember("metadataVersion")) {
+std::optional<SharedCacheState> SharedCache::Load(DeserializationContext& context)
+{
+	if (!context.doc.HasMember("metadataVersion"))
+	{
 		LogError("Shared Cache metadata version missing");
 		return std::nullopt;
 	}
 
-	if (context.doc["metadataVersion"].GetUint() != METADATA_VERSION) {
+	if (context.doc["metadataVersion"].GetUint() != METADATA_VERSION)
+	{
 		LogError("Shared Cache metadata version mismatch");
 		return std::nullopt;
 	}
@@ -3521,7 +3527,8 @@ std::optional<SharedCacheState> SharedCache::Load(DeserializationContext& contex
 	state.viewState = static_cast<DSCViewState>(context.load<uint8_t>("m_viewState"));
 	state.cacheFormat = static_cast<SharedCacheFormat>(context.load<uint8_t>("m_cacheFormat"));
 
-	for (auto& startAndHeader : context.doc["headers"].GetArray()) {
+	for (auto& startAndHeader : context.doc["headers"].GetArray())
+	{
 		SharedCacheMachOHeader header = SharedCacheMachOHeader::LoadFromValue(startAndHeader);
 		state.headers[header.textBase] = std::move(header);
 	}
@@ -3529,7 +3536,8 @@ std::optional<SharedCacheState> SharedCache::Load(DeserializationContext& contex
 	Deserialize(context, "m_imageStarts", state.imageStarts);
 	Deserialize(context, "m_baseFilePath", state.baseFilePath);
 
-	for (const auto& obj1 : context.doc["exportInfos"].GetArray()) {
+	for (const auto& obj1 : context.doc["exportInfos"].GetArray())
+	{
 		std::unordered_map<uint64_t, Ref<Symbol>> innerVec;
 		for (const auto& obj2 : obj1["value"].GetArray())
 		{
@@ -3542,7 +3550,8 @@ std::optional<SharedCacheState> SharedCache::Load(DeserializationContext& contex
 		state.exportInfos[obj1["key"].GetUint64()] = std::make_shared<std::unordered_map<uint64_t, Ref<Symbol>>>(innerVec);
 	}
 
-	for (auto& symbolInfo : context.doc["symbolInfos"].GetArray()) {
+	for (auto& symbolInfo : context.doc["symbolInfos"].GetArray())
+	{
 		std::vector<std::pair<uint64_t, std::pair<BNSymbolType, std::string>>>
 			symbolInfos;
 		auto symbolInfoArray = symbolInfo["value"].GetArray();
@@ -3555,40 +3564,36 @@ std::optional<SharedCacheState> SharedCache::Load(DeserializationContext& contex
 		state.symbolInfos[symbolInfo["key"].GetUint64()] = std::move(symbolInfos);
 	}
 
-	for (auto& bcV : context.doc["backingCaches"].GetArray()) {
+	for (auto& bcV : context.doc["backingCaches"].GetArray())
 		state.backingCaches.push_back(BackingCache::LoadFromValue(bcV));
-	}
 
-	for (auto& imgV : context.doc["images"].GetArray()) {
+	for (auto& imgV : context.doc["images"].GetArray())
 		state.images.push_back(CacheImage::LoadFromValue(imgV));
-	}
 
-	for (auto& rV : context.doc["regionsMappedIntoMemory"].GetArray()) {
+	for (auto& rV : context.doc["regionsMappedIntoMemory"].GetArray())
 		state.regionsMappedIntoMemory.push_back(MemoryRegion::LoadFromValue(rV));
-	}
 
-	for (auto& siV : context.doc["stubIslands"].GetArray()) {
+	for (auto& siV : context.doc["stubIslands"].GetArray())
 		state.stubIslandRegions.push_back(MemoryRegion::LoadFromValue(siV));
-	}
 
-	for (auto& siV : context.doc["dyldDataSections"].GetArray()) {
+	for (auto& siV : context.doc["dyldDataSections"].GetArray())
 		state.dyldDataRegions.push_back(MemoryRegion::LoadFromValue(siV));
-	}
 
-	for (auto& siV : context.doc["nonImageRegions"].GetArray()) {
+	for (auto& siV : context.doc["nonImageRegions"].GetArray())
 		state.nonImageRegions.push_back(MemoryRegion::LoadFromValue(siV));
-	}
 
 	return state;
 }
 
-void BackingCache::Store(SerializationContext& context) const {
+void BackingCache::Store(SerializationContext& context) const
+{
 	MSS(path);
 	MSS(isPrimary);
 	MSS(mappings);
 }
 
-BackingCache BackingCache::Load(DeserializationContext& context) {
+BackingCache BackingCache::Load(DeserializationContext& context)
+{
 	return BackingCache {
 		.MSL(path),
 		.MSL(isPrimary),
@@ -3644,29 +3649,29 @@ const std::unordered_map<uint64_t, SharedCacheMachOHeader>& SharedCache::AllImag
 {
 	return State().headers;
 }
-size_t SharedCache::GetBaseAddress() const {
-	if (State().backingCaches.empty()) {
+size_t SharedCache::GetBaseAddress() const
+{
+	if (State().backingCaches.empty())
 		return 0;
-	}
 
 	const BackingCache& primaryCache = State().backingCaches[0];
-	if (!primaryCache.isPrimary) {
+	if (!primaryCache.isPrimary)
+		{
 		abort();
 		return 0;
 	}
 
-	if (primaryCache.mappings.empty()) {
+	if (primaryCache.mappings.empty())
 		return 0;
-	}
 
 	return primaryCache.mappings[0].address;
 }
 
 // Intentionally takes a copy to avoid modifying the cursor position in the original reader.
-std::optional<ObjCOptimizationHeader> SharedCache::GetObjCOptimizationHeader(VMReader reader) const {
-	if (!State().objcOptimizationDataRange) {
+std::optional<ObjCOptimizationHeader> SharedCache::GetObjCOptimizationHeader(VMReader reader) const
+{
+	if (!State().objcOptimizationDataRange)
 		return {};
-	}
 
 	ObjCOptimizationHeader header{};
 	// Ignoring `objcOptsSize` in favor of `sizeof(ObjCOptimizationHeader)` matches dyld's behavior.
@@ -3675,10 +3680,10 @@ std::optional<ObjCOptimizationHeader> SharedCache::GetObjCOptimizationHeader(VMR
 	return header;
 }
 
-size_t SharedCache::GetObjCRelativeMethodBaseAddress(const VMReader& reader) const {
-	if (auto header = GetObjCOptimizationHeader(reader); header.has_value()) {
+size_t SharedCache::GetObjCRelativeMethodBaseAddress(const VMReader& reader) const
+{
+	if (auto header = GetObjCOptimizationHeader(reader); header.has_value())
 		return GetBaseAddress() + header->relativeMethodSelectorBaseAddressOffset;
-	}
 	return 0;
 }
 
@@ -3690,7 +3695,8 @@ std::shared_ptr<MMappedFileAccessor> SharedCache::MapFile(const std::string& pat
 		})->lock();
 }
 
-std::shared_ptr<MMappedFileAccessor> SharedCache::MapFileWithoutApplyingSlide(const std::string& path) {
+std::shared_ptr<MMappedFileAccessor> SharedCache::MapFileWithoutApplyingSlide(const std::string& path)
+{
 	return std::make_shared<MMappedFileAccessor>(path);
 }
 
