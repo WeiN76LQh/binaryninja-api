@@ -178,25 +178,30 @@ class FirmwareNinjaRelationship:
 
     @secondary.setter
     def secondary(
-        self, obj: Union[DataVariable, Function, int, str], project_file: Optional[ProjectFile] = None
-    ) -> None:
-        if isinstance(obj, str) and not project_file:
-            raise ValueError("Secondary object can only be a symbol string if external project file is provided")
+        self, obj: Union[DataVariable, Function, int, tuple[int, ProjectFile], tuple[str, ProjectFile]]) -> None:
+        if isinstance(obj, tuple):
+            if len(obj) != 2:
+                raise ValueError("External object must be a tuple of (address, ProjectFile) or (symbol, ProjectFile)")
 
-        if project_file and not (isinstance(obj, int) or isinstance(obj, str)):
-            raise ValueError("Secondary object must be an integer address or symbol if external project file is provided")
+            if not isinstance(obj[0], int) and not isinstance(obj[0], str):
+                raise ValueError("External object must be a tuple of (address, ProjectFile) or (symbol, ProjectFile)")
+
+            if not isinstance(obj[1], ProjectFile):
+                raise ValueError("External object must be a tuple of (address, ProjectFile) or (symbol, ProjectFile)")
 
         if isinstance(obj, DataVariable):
             core.BNFirmwareNinjaRelationshipSetSecondaryDataVariable(self.handle, obj.address)
         elif isinstance(obj, Function):
             core.BNFirmwareNinjaRelationshipSetSecondaryFunction(self.handle, obj.handle)
         elif isinstance(obj, int):
-            if project_file:
-                core.BNFirmwareNinjaRelationshipSetSecondaryExternalAddress(self.handle, project_file._handle, obj)
-            else:
-                core.BNFirmwareNinjaRelationshipSetSecondaryAddress(self.handle, obj)
-        elif isinstance(obj, str):
-            core.BNFirmwareNinjaRelationshipSetSecondaryExternalSymbol(self.handle, project_file._handle, obj)
+            core.BNFirmwareNinjaRelationshipSetSecondaryAddress(self.handle, obj)
+        elif isinstance(obj, tuple):
+            if isinstance(obj[0], int):
+                core.BNFirmwareNinjaRelationshipSetSecondaryExternalAddress(self.handle, obj[1]._handle, obj[0])
+            elif isinstance(obj[0], str):
+                core.BNFirmwareNinjaRelationshipSetSecondaryExternalSymbol(self.handle, obj[1]._handle, obj[0])
+        else:
+            raise ValueError("Invalid secondary object type")
 
     @property
     def description(self) -> str:
