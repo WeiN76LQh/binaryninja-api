@@ -2018,6 +2018,7 @@ extern "C"
 		LinearDisassemblyBlockColor,
 		LinearDisassemblyNoteColor,
 		LinearDisassemblySeparatorColor,
+		LinearDisassemblyCodeFoldColor,
 		StringColor,
 		TypeNameColor,
 		FieldNameColor,
