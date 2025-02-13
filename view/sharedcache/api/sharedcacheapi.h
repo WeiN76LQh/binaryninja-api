@@ -139,7 +139,7 @@ namespace SharedCacheAPI {
 		std::string installName;
 
 		std::vector<std::pair<uint64_t, bool>> entryPoints;
-		std::vector<uint64_t> m_entryPoints; //list of entrypoints
+		std::vector<uint64_t> m_entryPoints;  // list of entrypoints
 
 		symtab_command symtab;
 		dysymtab_command dysymtab;
@@ -152,7 +152,7 @@ namespace SharedCacheAPI {
 
 		uint64_t relocationBase;
 		// Section and program headers, internally use 64-bit form as it is a superset of 32-bit
-		std::vector<segment_command_64> segments; //only three types of sections __TEXT, __DATA, __IMPORT
+		std::vector<segment_command_64> segments;  // only three types of sections __TEXT, __DATA, __IMPORT
 		segment_command_64 linkeditSegment;
 		std::vector<section_64> sections;
 		std::vector<std::string> sectionNames;
@@ -167,6 +167,7 @@ namespace SharedCacheAPI {
 
 		std::string exportTriePath;
 
+		bool linkeditPresent = false;
 		bool dysymPresent = false;
 		bool dyldInfoPresent = false;
 		bool exportTriePresent = false;
@@ -186,7 +187,7 @@ namespace SharedCacheAPI {
 			MSS_SUBCLASS(symtab);
 			MSS_SUBCLASS(dysymtab);
 			MSS_SUBCLASS(dyldInfo);
-			// MSS_SUBCLASS(routines64);
+			MSS_SUBCLASS(routines64);
 			MSS_SUBCLASS(functionStarts);
 			MSS_SUBCLASS(moduleInitSections);
 			MSS_SUBCLASS(exportTrie);
@@ -202,6 +203,7 @@ namespace SharedCacheAPI {
 			MSS_SUBCLASS(buildVersion);
 			MSS_SUBCLASS(buildToolVersions);
 			MSS(exportTriePath);
+			MSS(linkeditPresent);
 			MSS(dysymPresent);
 			MSS(dyldInfoPresent);
 			MSS(exportTriePresent);
@@ -212,41 +214,42 @@ namespace SharedCacheAPI {
 		}
 
 		static SharedCacheMachOHeader Load(SharedCacheCore::DeserializationContext& context) {
-			return SharedCacheMachOHeader {
-				.MSL(textBase),
-				.MSL(loadCommandOffset),
-				.MSL(ident),
-				.MSL(identifierPrefix),
-				.MSL(installName),
-				.MSL(entryPoints),
-				.MSL(m_entryPoints),
-				.MSL(symtab),
-				.MSL(dysymtab),
-				.MSL(dyldInfo),
-				// .MSL(routines64), // FIXME CRASH but also do we even use this?
-				.MSL(functionStarts),
-				.MSL(moduleInitSections),
-				.MSL(exportTrie),
-				.MSL(chainedFixups),
-				.MSL(relocationBase),
-				.MSL(segments),
-				.MSL(linkeditSegment),
-				.MSL(sections),
-				.MSL(sectionNames),
-				.MSL(symbolStubSections),
-				.MSL(symbolPointerSections),
-				.MSL(dylibs),
-				.MSL(buildVersion),
-				.MSL(buildToolVersions),
-				.MSL(exportTriePath),
-				.MSL(dysymPresent),
-				.MSL(dyldInfoPresent),
-				.MSL(exportTriePresent),
-				.MSL(chainedFixupsPresent),
-				// .MSL(routinesPresent),
-				.MSL(functionStartsPresent),
-				.MSL(relocatable),
-			};
+			SharedCacheMachOHeader header;
+			header.MSL(textBase);
+			header.MSL(loadCommandOffset);
+			header.MSL(ident);
+			header.MSL(identifierPrefix);
+			header.MSL(installName);
+			header.MSL(entryPoints);
+			header.MSL(m_entryPoints);
+			header.MSL(symtab);
+			header.MSL(dysymtab);
+			header.MSL(dyldInfo);
+			header.MSL(routines64);
+			header.MSL(functionStarts);
+			header.MSL(moduleInitSections);
+			header.MSL(exportTrie);
+			header.MSL(chainedFixups);
+			header.MSL(relocationBase);
+			header.MSL(segments);
+			header.MSL(linkeditSegment);
+			header.MSL(sections);
+			header.MSL(sectionNames);
+			header.MSL(symbolStubSections);
+			header.MSL(symbolPointerSections);
+			header.MSL(dylibs);
+			header.MSL(buildVersion);
+			header.MSL(buildToolVersions);
+			header.MSL(exportTriePath);
+			header.MSL(linkeditPresent);
+			header.MSL(dysymPresent);
+			header.MSL(dyldInfoPresent);
+			header.MSL(exportTriePresent);
+			header.MSL(chainedFixupsPresent);
+			header.MSL(routinesPresent);
+			header.MSL(functionStartsPresent);
+			header.MSL(relocatable);
+			return header;
 		}
 	};
 

@@ -45,15 +45,15 @@ namespace SharedCacheCore {
 		}
 
 		static MemoryRegion Load(DeserializationContext& context) {
-			return MemoryRegion {
-				.MSL(prettyName),
-				.MSL(start),
-				.MSL(size),
-				.MSL(loaded),
-				.MSL(rawViewOffsetIfLoaded),
-				.headerInitialized = false, // NOTE: I guess this is not stored?
-				.MSL_CAST(flags, uint64_t, BNSegmentFlag),
-			};
+			MemoryRegion region;
+			region.MSL(prettyName);
+			region.MSL(start);
+			region.MSL(size);
+			region.MSL(loaded);
+			region.MSL(rawViewOffsetIfLoaded);
+			region.headerInitialized = false; // NOTE: I guess this is not stored?
+			region.MSL_CAST(flags, uint64_t, BNSegmentFlag);
+			return region;
 		}
 	};
 
@@ -80,11 +80,11 @@ namespace SharedCacheCore {
 				regions.push_back(MemoryRegion::LoadFromString(region.GetString()));
 			}
 
-			return CacheImage {
-				.MSL(installName),
-				.MSL(headerLocation),
-				.regions = std::move(regions),
-			};
+			CacheImage image;
+			image.MSL(installName);
+			image.MSL(headerLocation);
+			image.regions = std::move(regions);
+			return image;
 		}
 	};
 
@@ -471,42 +471,42 @@ namespace SharedCacheCore {
 		}
 
 		static SharedCacheMachOHeader Load(DeserializationContext& context) {
-			return SharedCacheMachOHeader {
-				.MSL(textBase),
-				.MSL(loadCommandOffset),
-				.MSL(ident),
-				.MSL(identifierPrefix),
-				.MSL(installName),
-				.MSL(entryPoints),
-				.MSL(m_entryPoints),
-				.MSL(symtab),
-				.MSL(dysymtab),
-				.MSL(dyldInfo),
-				.MSL(routines64),
-				.MSL(functionStarts),
-				.MSL(moduleInitSections),
-				.MSL(exportTrie),
-				.MSL(chainedFixups),
-				.MSL(relocationBase),
-				.MSL(segments),
-				.MSL(linkeditSegment),
-				.MSL(sections),
-				.MSL(sectionNames),
-				.MSL(symbolStubSections),
-				.MSL(symbolPointerSections),
-				.MSL(dylibs),
-				.MSL(buildVersion),
-				.MSL(buildToolVersions),
-				.MSL(exportTriePath),
-				.MSL(linkeditPresent),
-				.MSL(dysymPresent),
-				.MSL(dyldInfoPresent),
-				.MSL(exportTriePresent),
-				.MSL(chainedFixupsPresent),
-				.MSL(routinesPresent),
-				.MSL(functionStartsPresent),
-				.MSL(relocatable),
-			};
+			SharedCacheMachOHeader header;
+			header.MSL(textBase);
+			header.MSL(loadCommandOffset);
+			header.MSL(ident);
+			header.MSL(identifierPrefix);
+			header.MSL(installName);
+			header.MSL(entryPoints);
+			header.MSL(m_entryPoints);
+			header.MSL(symtab);
+			header.MSL(dysymtab);
+			header.MSL(dyldInfo);
+			header.MSL(routines64);
+			header.MSL(functionStarts);
+			header.MSL(moduleInitSections);
+			header.MSL(exportTrie);
+			header.MSL(chainedFixups);
+			header.MSL(relocationBase);
+			header.MSL(segments);
+			header.MSL(linkeditSegment);
+			header.MSL(sections);
+			header.MSL(sectionNames);
+			header.MSL(symbolStubSections);
+			header.MSL(symbolPointerSections);
+			header.MSL(dylibs);
+			header.MSL(buildVersion);
+			header.MSL(buildToolVersions);
+			header.MSL(exportTriePath);
+			header.MSL(linkeditPresent);
+			header.MSL(dysymPresent);
+			header.MSL(dyldInfoPresent);
+			header.MSL(exportTriePresent);
+			header.MSL(chainedFixupsPresent);
+			header.MSL(routinesPresent);
+			header.MSL(functionStartsPresent);
+			header.MSL(relocatable);
+			return header;
 		}
 	};
 

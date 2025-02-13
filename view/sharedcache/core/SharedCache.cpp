@@ -3591,11 +3591,11 @@ void BackingCache::Store(SerializationContext& context) const
 
 BackingCache BackingCache::Load(DeserializationContext& context)
 {
-	return BackingCache {
-		.MSL(path),
-		.MSL(isPrimary),
-		.MSL(mappings),
-	};
+	BackingCache cache;
+	cache.MSL(path);
+	cache.MSL(isPrimary);
+	cache.MSL(mappings);
+	return cache;
 }
 
 #if defined(__GNUC__) || defined(__clang__)
