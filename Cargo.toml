@@ -8,7 +8,6 @@ members = [
     "rust",
     "arch/riscv",
     "arch/msp430",
-    "view/bintxt",
     "view/minidump",
     "plugins/dwarf/dwarf_import",
     "plugins/dwarf/dwarf_export",
