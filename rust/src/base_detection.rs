@@ -1,15 +1,17 @@
 use binaryninjacore_sys::*;
-use std::ffi::CStr;
+use std::ffi::{c_char, CStr};
 
 use crate::architecture::CoreArchitecture;
 use crate::rc::{Array, CoreArrayProvider, CoreArrayProviderInner};
-use crate::string::BnString;
 use std::num::NonZeroU32;
 use std::ptr::NonNull;
 
 pub type BaseAddressDetectionPOISetting = BNBaseAddressDetectionPOISetting;
 pub type BaseAddressDetectionConfidence = BNBaseAddressDetectionConfidence;
 pub type BaseAddressDetectionPOIType = BNBaseAddressDetectionPOIType;
+
+/// This is the architecture name used to use the architecture auto-detection feature.
+const BASE_ADDRESS_AUTO_DETECTION_ARCH: &CStr = c"auto detect";
 
 pub enum BaseAddressDetectionAnalysis {
     Basic,
@@ -169,9 +171,12 @@ pub struct BaseAddressDetectionSettings {
 
 impl BaseAddressDetectionSettings {
     pub(crate) fn into_raw(value: &Self) -> BNBaseAddressDetectionSettings {
-        let arch_name = value.arch.map(|a| a.name()).unwrap_or(BnString::new(""));
+        let arch_name = value
+            .arch
+            .map(|a| a.name().as_ptr())
+            .unwrap_or(BASE_ADDRESS_AUTO_DETECTION_ARCH.as_ptr() as *const c_char);
         BNBaseAddressDetectionSettings {
-            Architecture: arch_name.as_ptr(),
+            Architecture: arch_name,
             Analysis: value.analysis.as_raw().as_ptr(),
             MinStrlen: value.min_string_len,
             Alignment: value.alignment.get(),
