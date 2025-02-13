@@ -85,9 +85,11 @@ public:
 enum class SegmentColumn : int {
 	START = 0,
 	END,
+	LENGTH,
 	DATA_OFFSET,
 	DATA_LENGTH,
 	FLAGS,
+	SOURCE,
 	COLUMN_COUNT,
 };
 
@@ -137,6 +139,8 @@ class BINARYNINJAUIAPI SegmentWidget : public QWidget
 
 	//void updateInfo();
 	void showContextMenu(const QPoint& point);
+	QMenu* createHeaderContextMenu(const QPoint& p);
+	void restoreDefaults();
 
 	void addSegment();
 	void editSegment(SegmentRef segment);
