@@ -2776,6 +2776,10 @@ namespace BinaryNinja {
 	};
 
 
+	namespace Collaboration
+	{
+		class RemoteProject;
+	}
 	/*!
 
 		\ingroup project
@@ -2827,6 +2831,8 @@ namespace BinaryNinja {
 
 		void BeginBulkOperation();
 		void EndBulkOperation();
+
+		Ref<Collaboration::RemoteProject> GetRemoteProject();
 	};
 
 	/*!
