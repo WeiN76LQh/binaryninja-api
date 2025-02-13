@@ -317,6 +317,8 @@ class BINARYNINJAUIAPI ProjectBrowser: public QWidget, public UIContextNotificat
 
 	void initActions();
 
+	std::vector<ProjectFileRef> GetSelectedFilesRecursive();
+
 private slots:
 	void itemDoubleClicked(const QModelIndex& index);
 	void openProjectFile(ProjectFileRef file, bool openWithOptions = false);
@@ -337,6 +339,7 @@ protected:
 	void PromptAnalyzeSelected();
 	void PromptEditProjectDetails();
 	void Refresh();
+	void DownloadSelectedFilesRecursive();
 
 public:
 	ProjectBrowser(QWidget* parent, ProjectRef project);
