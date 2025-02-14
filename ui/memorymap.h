@@ -144,6 +144,7 @@ class BINARYNINJAUIAPI SegmentWidget : public QWidget
 
 	void addSegment();
 	void editSegment(SegmentRef segment);
+	void disableSegment(SegmentRef segment);
 	void removeSegment(SegmentRef segment);
 
 public:
