@@ -643,7 +643,10 @@ private:
 			std::shared_ptr<MMappedFileAccessor> linkeditFile, const SharedCacheMachOHeader& header);
 		std::shared_ptr<std::unordered_map<uint64_t, Ref<Symbol>>> GetExportListForHeader(std::lock_guard<std::mutex>&, const SharedCacheMachOHeader& header,
 			std::function<std::shared_ptr<MMappedFileAccessor>()> provideLinkeditFile, bool* didModifyExportList = nullptr);
-		std::shared_ptr<std::unordered_map<uint64_t, Ref<Symbol>>> GetExistingExportListForBaseAddress(std::lock_guard<std::mutex>&, uint64_t baseAddress) const; 
+		std::shared_ptr<std::unordered_map<uint64_t, Ref<Symbol>>> GetExistingExportListForBaseAddress(std::lock_guard<std::mutex>&, uint64_t baseAddress) const;
+		void ProcessSymbols(std::shared_ptr<MMappedFileAccessor> file, const SharedCacheMachOHeader& header,
+			uint64_t stringsOffset, size_t stringsSize, uint64_t nlistEntriesOffset, uint32_t nlistCount, uint32_t nlistStartIndex = 0);
+		void ApplySymbol(Ref<BinaryView> view, Ref<TypeLibrary> typeLib, Ref<Symbol> symbol);
 
 		void ProcessAllObjCSections(std::lock_guard<std::mutex>&);
 		bool LoadImageWithInstallName(std::lock_guard<std::mutex>&, std::string installName, bool skipObjC);

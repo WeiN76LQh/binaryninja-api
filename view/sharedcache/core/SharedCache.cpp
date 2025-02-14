@@ -2268,6 +2268,152 @@ std::optional<SharedCacheMachOHeader> SharedCache::LoadHeaderForAddress(std::sha
 	return header;
 }
 
+
+void SharedCache::ProcessSymbols(std::shared_ptr<MMappedFileAccessor> file, const SharedCacheMachOHeader& header, uint64_t stringsOffset, size_t stringsSize, uint64_t nlistEntriesOffset, uint32_t nlistCount, uint32_t nlistStartIndex)
+{
+	auto addressSize = m_dscView->GetAddressSize();
+	auto strings = file->ReadBuffer(stringsOffset, stringsSize);
+
+	std::vector<Ref<Symbol>> symbolList;
+	for (uint64_t i = 0; i < nlistCount; i++)
+	{
+		uint64_t entryIndex = (nlistStartIndex + i);
+
+		nlist_64 nlist = {};
+		if (addressSize == 4)
+		{
+			// 32-bit DSC
+			struct nlist nlist32 = {};
+			file->Read(&nlist, nlistEntriesOffset + (entryIndex * sizeof(nlist32)), sizeof(nlist32));
+			nlist.n_strx = nlist32.n_strx;
+			nlist.n_type = nlist32.n_type;
+			nlist.n_sect = nlist32.n_sect;
+			nlist.n_desc = nlist32.n_desc;
+			nlist.n_value = nlist32.n_value;
+		}
+		else
+		{
+			// 64-bit DSC
+			file->Read(&nlist, nlistEntriesOffset + (entryIndex * sizeof(nlist)), sizeof(nlist));
+		}
+
+		auto symbolAddress = nlist.n_value;
+		if (((nlist.n_type & N_TYPE) == N_INDR) || symbolAddress == 0)
+			continue;
+
+		if (nlist.n_strx >= stringsSize)
+		{
+			m_logger->LogError("Symbol entry at index %llu has a string offset of %u which is outside the strings buffer of size %llu for file %s", entryIndex, nlist.n_strx, stringsSize, file->Path().c_str());
+			continue;
+		}
+		
+		std::string symbolName((char*)strings.GetDataAt(nlist.n_strx));
+		if (symbolName == "<redacted>")
+			continue;
+
+		std::optional<BNSymbolType> symbolType;
+		if ((nlist.n_type & N_TYPE) == N_SECT && nlist.n_sect > 0 && (size_t)(nlist.n_sect - 1) < header.sections.size())
+		{
+			symbolType = DataSymbol;
+		}
+		else if ((nlist.n_type & N_TYPE) == N_ABS)
+		{
+			symbolType = DataSymbol;
+		}
+		else if ((nlist.n_type & N_EXT))
+		{
+			symbolType = ExternalSymbol;
+		}
+
+		if (!symbolType.has_value())
+		{
+			m_logger->LogError("Symbol %s at address %" PRIx64 " has unknown symbol type", symbolName.c_str(), symbolAddress);
+			continue;
+		}
+
+		std::optional<uint32_t> flags;
+		for (auto s : header.sections)
+		{
+			if (s.addr <= symbolAddress && symbolAddress < s.addr + s.size)
+			{
+				flags = s.flags;
+			}
+		}
+
+		if (symbolType != ExternalSymbol)
+		{
+			if (!flags.has_value())
+			{
+				m_logger->LogError("Symbol %s at address %" PRIx64 " is not in any section", symbolName.c_str(), symbolAddress);
+				continue;
+			}
+
+			if ((flags.value() & S_ATTR_PURE_INSTRUCTIONS) == S_ATTR_PURE_INSTRUCTIONS
+				|| (flags.value() & S_ATTR_SOME_INSTRUCTIONS) == S_ATTR_SOME_INSTRUCTIONS)
+				symbolType = FunctionSymbol;
+			else
+				symbolType = DataSymbol;
+		}
+		if ((nlist.n_desc & N_ARM_THUMB_DEF) == N_ARM_THUMB_DEF)
+			symbolAddress++;
+
+		Ref<Symbol> sym = new Symbol(symbolType.value(), symbolName, symbolAddress, GlobalBinding);
+		symbolList.emplace_back(sym);
+	}
+
+	auto symListPtr = std::make_shared<std::vector<Ref<Symbol>>>(symbolList);
+	m_modifiedState->symbolInfos.emplace(header.textBase, symListPtr);
+}
+
+void SharedCache::ApplySymbol(Ref<BinaryView> view, Ref<TypeLibrary> typeLib, Ref<Symbol> symbol)
+{
+	Ref<Function> func = nullptr;
+	auto symbolAddress = symbol->GetAddress();
+
+	if (symbol->GetType() == FunctionSymbol)
+	{
+		Ref<Platform> targetPlatform = view->GetDefaultPlatform();
+		func = view->AddFunctionForAnalysis(targetPlatform, symbolAddress);
+	}
+
+	if (!typeLib)
+	{
+		// No type library just define the symbol.
+		view->DefineAutoSymbol(symbol);
+		return;
+	}
+
+	auto type = m_dscView->ImportTypeLibraryObject(typeLib, {symbol->GetFullName()});
+	if (type)
+		view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symbol, type);
+	else
+		view->DefineAutoSymbol(symbol);
+
+	if (!func)
+		func = view->GetAnalysisFunction(view->GetDefaultPlatform(), symbolAddress);
+	if (func)
+	{
+		if (symbol->GetFullName() == "_objc_msgSend")
+		{
+			func->SetHasVariableArguments(false);
+		}
+		else if (symbol->GetFullName().find("_objc_retain_x") != std::string::npos || symbol->GetFullName().find("_objc_release_x") != std::string::npos)
+		{
+			auto x = symbol->GetFullName().rfind("x");
+			auto num = symbol->GetFullName().substr(x + 1);
+
+			std::vector<BinaryNinja::FunctionParameter> callTypeParams;
+			auto cc = m_dscView->GetDefaultArchitecture()->GetCallingConventionByName("apple-arm64-objc-fast-arc-" + num);
+
+			callTypeParams.push_back({"obj", m_dscView->GetTypeByName({ "id" }), true, BinaryNinja::Variable()});
+
+			auto funcType = BinaryNinja::Type::FunctionType(m_dscView->GetTypeByName({ "id" }), cc, callTypeParams);
+			func->SetUserType(funcType);
+		}
+	}
+}
+
+
 void SharedCache::InitializeHeader(
 	std::lock_guard<std::mutex>& lock,
 	Ref<BinaryView> view, VM* vm, const SharedCacheMachOHeader& header, std::vector<const MemoryRegion*> regionsToLoad)
@@ -2566,132 +2712,29 @@ void SharedCache::InitializeHeader(
 	{
 		// Mach-O View symtab processing with
 		// a ton of stuff cut out so it can work
-
 		auto reader = vm->MappingAtAddress(header.linkeditSegment.vmaddr).first.fileAccessor->lock();
-		// auto symtab = reader->ReadBuffer(header.symtab.symoff, header.symtab.nsyms * sizeof(nlist_64));
-		auto strtab = reader->ReadBuffer(header.symtab.stroff, header.symtab.strsize);
-		nlist_64 sym;
-		memset(&sym, 0, sizeof(sym));
-		auto N_TYPE = 0xE;	// idk
-		std::vector<Ref<Symbol>> symbols;
-		symbols.reserve(header.symtab.nsyms);
-
-		for (size_t i = 0; i < header.symtab.nsyms; i++)
-		{
-			reader->Read(&sym, header.symtab.symoff + i * sizeof(nlist_64), sizeof(nlist_64));
-			if (sym.n_strx >= header.symtab.strsize || ((sym.n_type & N_TYPE) == N_INDR))
-				continue;
-
-			std::string symbol((char*)strtab.GetDataAt(sym.n_strx));
-			// BNLogError("%s: 0x%llx", symbol.c_str(), sym.n_value);
-			if (symbol == "<redacted>")
-				continue;
-
-			BNSymbolType type = DataSymbol;
-			uint32_t flags;
-			if ((sym.n_type & N_TYPE) == N_SECT && sym.n_sect > 0 && (size_t)(sym.n_sect - 1) < header.sections.size())
-			{}
-			else if ((sym.n_type & N_TYPE) == N_ABS)
-			{}
-			else if ((sym.n_type & 0x1))
-			{
-				type = ExternalSymbol;
-			}
-			else
-				continue;
-
-			for (auto s : header.sections)
-			{
-				if (s.addr < sym.n_value)
-				{
-					if (s.addr + s.size > sym.n_value)
-					{
-						flags = s.flags;
-					}
-				}
-			}
-
-			if (type != ExternalSymbol)
-			{
-				if ((flags & S_ATTR_PURE_INSTRUCTIONS) == S_ATTR_PURE_INSTRUCTIONS
-					|| (flags & S_ATTR_SOME_INSTRUCTIONS) == S_ATTR_SOME_INSTRUCTIONS)
-					type = FunctionSymbol;
-				else
-					type = DataSymbol;
-			}
-			if ((sym.n_desc & N_ARM_THUMB_DEF) == N_ARM_THUMB_DEF)
-				sym.n_value++;
-
-			Ref<Symbol> symbolObj = new Symbol(type, symbol, sym.n_value, GlobalBinding);
-			if (type == FunctionSymbol)
-			{
-				Ref<Platform> targetPlatform = view->GetDefaultPlatform();
-				view->AddFunctionForAnalysis(targetPlatform, sym.n_value);
-			}
-			if (typeLib)
-			{
-				auto _type = m_dscView->ImportTypeLibraryObject(typeLib, {symbolObj->GetFullName()});
-				if (_type)
-				{
-					view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symbolObj, _type);
-				}
-				else
-					view->DefineAutoSymbol(symbolObj);
-			}
-			else
-				view->DefineAutoSymbol(symbolObj);
-			symbols.push_back(std::move(symbolObj));
-		}
-		m_modifiedState->symbolInfos[header.textBase] = std::make_shared<std::vector<Ref<Symbol>>>(std::move(symbols));
+		ProcessSymbols(
+			reader,
+			header,
+			header.symtab.stroff,
+			header.symtab.strsize,
+			header.symtab.symoff,
+			header.symtab.nsyms
+		);
 	}
+
+	view->BeginBulkModifySymbols();
+	for (const auto& symbol : *m_modifiedState->symbolInfos[header.textBase])
+		ApplySymbol(view, typeLib, symbol);
 
 	if (header.exportTriePresent && header.linkeditPresent && vm->AddressIsMapped(header.linkeditSegment.vmaddr))
 	{
 		auto symbols = GetExportListForHeader(lock, header, [&]() {
 			return vm->MappingAtAddress(header.linkeditSegment.vmaddr).first.fileAccessor->lock();
 		});
-		if (symbols)
-		{
-			for (const auto& [symbolAddress, symbol] : *symbols)
-			{
-				if (typeLib)
-				{
-					auto type = m_dscView->ImportTypeLibraryObject(typeLib, symbol->GetRawName());
 
-					if (type)
-					{
-						view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symbol, type);
-					}
-					else
-						view->DefineAutoSymbol(symbol);
-
-					if (view->GetAnalysisFunction(view->GetDefaultPlatform(), symbolAddress))
-					{
-						auto func = view->GetAnalysisFunction(view->GetDefaultPlatform(), symbolAddress);
-						auto name = symbol->GetFullName();
-						if (name == "_objc_msgSend")
-						{
-							func->SetHasVariableArguments(false);
-						}
-						else if (name.find("_objc_retain_x") != std::string::npos || name.find("_objc_release_x") != std::string::npos)
-						{
-							auto x = name.rfind("x");
-							auto num = name.substr(x + 1);
-
-							std::vector<BinaryNinja::FunctionParameter> callTypeParams;
-							auto cc = m_dscView->GetDefaultArchitecture()->GetCallingConventionByName("apple-arm64-objc-fast-arc-" + num);
-
-							callTypeParams.push_back({"obj", m_dscView->GetTypeByName({ "id" }), true, BinaryNinja::Variable()});
-
-							auto funcType = BinaryNinja::Type::FunctionType(m_dscView->GetTypeByName({ "id" }), cc, callTypeParams);
-							func->SetUserType(funcType);
-						}
-					}
-				}
-				else
-					view->DefineAutoSymbol(symbol);
-			}
-		}
+		for (const auto& [symbolAddress, symbol] : *symbols)
+			ApplySymbol(view, typeLib, symbol);
 	}
 	view->EndBulkModifySymbols();
 
