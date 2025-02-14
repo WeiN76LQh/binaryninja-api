@@ -899,7 +899,7 @@ class Variable(CoreVariable):
 	@property
 	def il_function(self) -> 'function.ILFunctionType':
 		"""returns the IL Function object which this variable belongs to"""
-		return self.var._il_function
+		return self._il_function
 
 	def set_name_async(self, name: Optional[str]) -> None:
 		"""
