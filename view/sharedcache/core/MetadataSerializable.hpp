@@ -45,6 +45,8 @@
 #include "../api/sharedcachecore.h"
 #include "view/macho/machoview.h"
 
+using namespace BinaryNinja;
+
 namespace SharedCacheCore {
 
 #define MSS(name)						 context.store(#name, name)
@@ -52,8 +54,6 @@ namespace SharedCacheCore {
 #define MSS_SUBCLASS(name)		 		 Serialize(context, #name, name)
 #define MSL(name)						 name = context.load<decltype(name)>(#name)
 #define MSL_CAST(name, storedType, type) name = (type)context.load<storedType>(#name)
-
-using namespace BinaryNinja;
 
 struct DeserializationContext;
 

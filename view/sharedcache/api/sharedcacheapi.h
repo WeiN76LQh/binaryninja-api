@@ -5,8 +5,6 @@
 #include "view/macho/machoview.h"
 #include "sharedcachecore.h"
 
-using namespace BinaryNinja;
-
 namespace SharedCacheAPI {
 	template<class T>
 	class SCRefCountObject {
@@ -130,7 +128,6 @@ namespace SharedCacheAPI {
 		std::string image;
 	};
 
-	using namespace BinaryNinja;
 	struct SharedCacheMachOHeader : public SharedCacheCore::MetadataSerializable<SharedCacheMachOHeader> {
 		uint64_t textBase = 0;
 		uint64_t loadCommandOffset = 0;

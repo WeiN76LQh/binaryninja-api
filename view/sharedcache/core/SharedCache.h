@@ -378,8 +378,7 @@ namespace SharedCacheCore {
 	#else
 
 	#endif
-
-	using namespace BinaryNinja;
+	
 	struct SharedCacheMachOHeader : public MetadataSerializable<SharedCacheMachOHeader>
 	{
 		uint64_t textBase = 0;
