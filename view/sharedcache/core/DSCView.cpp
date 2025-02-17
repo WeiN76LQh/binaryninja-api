@@ -192,6 +192,9 @@ bool DSCView::Init()
 		programSettings->Set("analysis.workflows.functionWorkflow", "core.function.dsc", this);
 	}
 
+	if (m_parseOnly)
+		return true;
+
 	// Add Mach-O file header type info
 	EnumerationBuilder cpuTypeBuilder;
 	cpuTypeBuilder.AddMemberWithValue("CPU_TYPE_ANY", MACHO_CPU_TYPE_ANY);

@@ -9,7 +9,7 @@
 
 
 class DSCView : public BinaryNinja::BinaryView {
-	[[maybe_unused]] bool m_parseOnly;
+	bool m_parseOnly;
 public:
 
     DSCView(const std::string &typeName, BinaryView *data, bool parseOnly = false);
