@@ -365,8 +365,8 @@ void Deserialize(DeserializationContext& context, std::string_view name, routine
 		return;
 	b.cmd = bArr[0].GetUint();
 	b.cmdsize = bArr[1].GetUint();
-	b.init_address = bArr[2].GetUint();
-	b.init_module = bArr[3].GetUint();
+	b.init_address = bArr[2].GetUint64();
+	b.init_module = bArr[3].GetUint64();
 }
 
 void Serialize(SerializationContext& context, const function_starts_command& value)
