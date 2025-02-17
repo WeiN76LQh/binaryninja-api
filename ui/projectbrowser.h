@@ -229,6 +229,8 @@ Q_SIGNALS:
 
 class BINARYNINJAUIAPI InfoWidget: public QWidget
 {
+	ProjectRef m_project;
+
 	std::unordered_map<std::string, ProjectFileRef> m_files;
 	std::unordered_map<std::string, ProjectFolderRef> m_folders;
 
@@ -250,7 +252,7 @@ class BINARYNINJAUIAPI InfoWidget: public QWidget
 	void saveDescription();
 
 public:
-	InfoWidget(QWidget* parent = nullptr);
+	InfoWidget(ProjectRef project, QWidget* parent = nullptr);
 
 	bool ContainsFile(const std::string& id);
 	bool ContainsFolder(const std::string& id);
