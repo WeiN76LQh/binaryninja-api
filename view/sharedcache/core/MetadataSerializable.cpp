@@ -47,11 +47,6 @@ void Serialize(SerializationContext& context, uint64_t value) {
 	context.writer.Uint64(value);
 }
 
-void Serialize(SerializationContext& context, unsigned long value)
-{
-	context.writer.Uint64(value);
-}
-
 void Deserialize(DeserializationContext& context, std::string_view name, bool& b) {
 	b = context.doc[name.data()].GetBool();
 }
