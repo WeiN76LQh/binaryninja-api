@@ -2357,11 +2357,11 @@ void SharedCache::ProcessSymbols(std::shared_ptr<MMappedFileAccessor> file, cons
 		if ((nlist.n_desc & N_ARM_THUMB_DEF) == N_ARM_THUMB_DEF)
 			symbolAddress++;
 
-		Ref<Symbol> sym = new Symbol(symbolType.value(), symbolName, symbolAddress, GlobalBinding);
+		Ref<Symbol> sym = new Symbol(symbolType.value(), symbolName, symbolAddress, nullptr, GlobalBinding);
 		symbolList.emplace_back(sym);
 	}
 
-	auto symListPtr = std::make_shared<std::vector<Ref<Symbol>>>(symbolList);
+	auto symListPtr = std::make_shared<std::vector<Ref<Symbol>>>(std::move(symbolList));
 	m_modifiedState->symbolInfos.emplace(header.textBase, symListPtr);
 }
 
@@ -2376,18 +2376,18 @@ void SharedCache::ApplySymbol(Ref<BinaryView> view, Ref<TypeLibrary> typeLib, Re
 		func = view->AddFunctionForAnalysis(targetPlatform, symbolAddress);
 	}
 
-	if (!typeLib)
+	if (typeLib)
 	{
-		// No type library just define the symbol.
-		view->DefineAutoSymbol(symbol);
-		return;
+		auto type = m_dscView->ImportTypeLibraryObject(typeLib, {symbol->GetFullName()});
+		if (type)
+			view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symbol, type);
+		else
+			view->DefineAutoSymbol(symbol);
 	}
-
-	auto type = m_dscView->ImportTypeLibraryObject(typeLib, {symbol->GetFullName()});
-	if (type)
-		view->DefineAutoSymbolAndVariableOrFunction(view->GetDefaultPlatform(), symbol, type);
 	else
+	{
 		view->DefineAutoSymbol(symbol);
+	}
 
 	if (!func)
 		func = view->GetAnalysisFunction(view->GetDefaultPlatform(), symbolAddress);
@@ -2707,7 +2707,6 @@ void SharedCache::InitializeHeader(
 		}
 	}
 
-	view->BeginBulkModifySymbols();
 	if (header.symtab.symoff != 0 && header.linkeditPresent && vm->AddressIsMapped(header.linkeditSegment.vmaddr))
 	{
 		// Mach-O View symtab processing with
