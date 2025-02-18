@@ -1,10 +1,10 @@
-use std::collections::BTreeMap;
-
 use super::operation::*;
 use super::{MediumLevelILFunction, MediumLevelInstructionIndex};
 use crate::architecture::CoreIntrinsic;
 use crate::rc::Ref;
 use crate::variable::{ConstantData, SSAVariable, Variable};
+use std::collections::BTreeMap;
+use std::fmt::{Debug, Formatter};
 
 #[derive(Clone)]
 pub enum MediumLevelILLiftedOperand {
@@ -23,13 +23,24 @@ pub enum MediumLevelILLiftedOperand {
     InstructionIndex(MediumLevelInstructionIndex),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct MediumLevelILLiftedInstruction {
     pub function: Ref<MediumLevelILFunction>,
     pub address: u64,
     pub index: MediumLevelInstructionIndex,
     pub size: usize,
     pub kind: MediumLevelILLiftedInstructionKind,
+}
+
+impl Debug for MediumLevelILLiftedInstruction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MediumLevelILLiftedInstruction")
+            .field("address", &self.address)
+            .field("index", &self.index)
+            .field("size", &self.size)
+            .field("kind", &self.kind)
+            .finish()
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
