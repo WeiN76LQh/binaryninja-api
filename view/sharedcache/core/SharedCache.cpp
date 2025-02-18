@@ -317,19 +317,16 @@ uint64_t SharedCache::FastGetBackingCacheCount(BinaryNinja::Ref<BinaryNinja::Bin
 	}
 	case LargeCacheFormat:
 	{
-		auto mainFileName = baseFile->Path();
 		auto subCacheCount = header.subCacheArrayCount;
 		return subCacheCount + 1;
 	}
 	case SplitCacheFormat:
 	{
-		auto mainFileName = baseFile->Path();
 		auto subCacheCount = header.subCacheArrayCount;
 		return subCacheCount + 2;
 	}
 	case iOS16CacheFormat:
 	{
-		auto mainFileName = baseFile->Path();
 		auto subCacheCount = header.subCacheArrayCount;
 		return subCacheCount + 2;
 	}
@@ -640,7 +637,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 				subCachePath = path + "." + entry.fileExtension;
 				subCacheFilename = mainFileName + "." + entry.fileExtension;
 			}
-			auto subCacheFile = MapFileWithoutApplyingSlide(subCachePath);
+			auto subCacheFile = MapFileWithoutApplyingSlide(ResolveFilePath(m_dscView, subCachePath));
 
 			dyld_cache_header subCacheHeader {};
 			uint64_t headerSize = subCacheFile->ReadUInt32(16);
@@ -727,7 +724,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 		{
 			auto subCachePath = path + "." + std::to_string(i);
 			auto subCacheFilename = mainFileName + "." + std::to_string(i);
-			auto subCacheFile = MapFileWithoutApplyingSlide(subCachePath);
+			auto subCacheFile = MapFileWithoutApplyingSlide(ResolveFilePath(m_dscView, subCachePath));
 
 			dyld_cache_header subCacheHeader {};
 			uint64_t headerSize = subCacheFile->ReadUInt32(16);
@@ -773,7 +770,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 		// Load .symbols subcache
 		try {
 			auto subCachePath = path + ".symbols";
-			auto subCacheFile = MapFileWithoutApplyingSlide(subCachePath);
+			auto subCacheFile = MapFileWithoutApplyingSlide(ResolveFilePath(m_dscView, subCachePath));
 
 			dyld_cache_header subCacheHeader {};
 			uint64_t headerSize = subCacheFile->ReadUInt32(16);
@@ -870,7 +867,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 				subCacheFilename = mainFileName + "." + entry.fileExtension;
 			}
 
-			auto subCacheFile = MapFileWithoutApplyingSlide(subCachePath);
+			auto subCacheFile = MapFileWithoutApplyingSlide(ResolveFilePath(m_dscView, subCachePath));
 
 			dyld_cache_header subCacheHeader {};
 			uint64_t headerSize = subCacheFile->ReadUInt32(16);
@@ -931,7 +928,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 		try
 		{
 			auto subCachePath = path + ".symbols";
-			auto subCacheFile = MapFileWithoutApplyingSlide(subCachePath);
+			auto subCacheFile = MapFileWithoutApplyingSlide(ResolveFilePath(m_dscView, subCachePath));
 			dyld_cache_header subCacheHeader {};
 			uint64_t headerSize = subCacheFile->ReadUInt32(16);
 			if (subCacheFile->ReadUInt32(16) > sizeof(dyld_cache_header))
@@ -3564,7 +3561,7 @@ uint64_t SharedCache::GetObjCRelativeMethodBaseAddress(const VMReader& reader) c
 std::shared_ptr<MMappedFileAccessor> SharedCache::MapFile(const std::string& path)
 {
 	uint64_t baseAddress = m_cacheInfo->BaseAddress();
-	return MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), path,
+	return MMappedFileAccessor::Open(m_dscView->GetFile()->GetSessionId(), path,
 		[baseAddress, logger = m_logger](std::shared_ptr<MMappedFileAccessor> mmap) {
 			ParseAndApplySlideInfoForFile(mmap, baseAddress, logger);
 		})

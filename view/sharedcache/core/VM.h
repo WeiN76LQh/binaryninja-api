@@ -79,7 +79,7 @@ public:
 	std::string_view filePath() const { return m_filePath; }
 
 private:
-    std::string m_filePath;
+	std::string m_filePath;
 };
 
 uint64_t MMapCount();
@@ -93,7 +93,7 @@ public:
 	MMappedFileAccessor(const std::string &path);
 	~MMappedFileAccessor();
 
-	static std::shared_ptr<LazyMappedFileAccessor> Open(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, const uint64_t sessionID, const std::string &path, std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine = nullptr);
+	static std::shared_ptr<LazyMappedFileAccessor> Open(const uint64_t sessionID, const std::string &path, std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine = nullptr);
 
 	static void CloseAll(const uint64_t sessionID);
 
@@ -163,7 +163,7 @@ class FileAccessorCache
 public:
 	static FileAccessorCache& Shared();
 
-	std::shared_ptr<LazyMappedFileAccessor> OpenLazily(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView,
+	std::shared_ptr<LazyMappedFileAccessor> OpenLazily(
 		const uint64_t sessionID, const std::string& path,
 		std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine);
 
@@ -173,7 +173,7 @@ private:
 	FileAccessorCache();
 
 	std::shared_ptr<MMappedFileAccessor> Open(
-		BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, const uint64_t sessionID, const std::string& path);
+		const uint64_t sessionID, const std::string& path);
 
 	void Close(MMappedFileAccessor* accessor);
 

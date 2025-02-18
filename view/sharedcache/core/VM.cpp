@@ -63,6 +63,13 @@ void VMShutdown() {}
 std::string ResolveFilePath(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, const std::string& path)
 {
 	auto dscProjectFile = dscView->GetFile()->GetProjectFile();
+	BinaryNinja::LogDebugF(
+		"ResolveFilePath:\n    of: {}\n    path: {}\n    pfn: {}\n    pfp: {}",
+		dscView->GetFile()->GetOriginalFilename(),
+		path,
+		dscProjectFile ? dscProjectFile->GetName() : "",
+		dscProjectFile ? dscProjectFile->GetPathOnDisk() : ""
+	);
 
 	// If we're not in a project, just return the path we were given
 	if (!dscProjectFile)
@@ -73,8 +80,22 @@ std::string ResolveFilePath(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, c
 	// TODO: do we need to support looking in subfolders?
 	// Replace project file path on disk with project file name for resolution
 	std::string projectFilePathOnDisk = dscProjectFile->GetPathOnDisk();
+	std::string originalFilePathOnDisk = dscView->GetFile()->GetOriginalFilename();
 	std::string cleanPath = path;
-	cleanPath.replace(cleanPath.find(projectFilePathOnDisk), projectFilePathOnDisk.size(), dscProjectFile->GetName());
+	if (auto pindex = cleanPath.find(projectFilePathOnDisk); pindex != std::string::npos)
+	{
+		cleanPath.replace(pindex, projectFilePathOnDisk.size(), dscProjectFile->GetName());
+	}
+	else if (auto oindex = cleanPath.find(originalFilePathOnDisk); oindex != std::string::npos)
+	{
+		BinaryNinja::Ref<BinaryNinja::ProjectFile> originalProjectFile = dscProjectFile->GetProject()->GetFileByPathOnDisk(originalFilePathOnDisk);
+		if (!originalProjectFile)
+		{
+			BinaryNinja::LogErrorF("Failed to resolve file path for {}: original file {} not found", path, originalFilePathOnDisk);
+			return path;
+		}
+		cleanPath.replace(oindex, originalFilePathOnDisk.size(), originalProjectFile->GetName());
+	}
 
 	size_t lastSlashPos = cleanPath.find_last_of("/\\");
 	std::string fileName;
@@ -108,10 +129,7 @@ std::string ResolveFilePath(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, c
 		}
 	}
 
-	if (dscView->GetFile()->GetProjectFile())
-	{
-		BinaryNinja::LogError("Failed to resolve file path for %s", path.c_str());
-	}
+	BinaryNinja::LogErrorF("Failed to resolve file path for {}", path);
 
 	// If we couldn't find a sibling filename, just return the path we were given
 	return path;
@@ -235,7 +253,7 @@ void FileAccessorCache::EvictFromCacheIfNeeded()
 	}
 }
 
-std::shared_ptr<LazyMappedFileAccessor> FileAccessorCache::OpenLazily(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView,
+std::shared_ptr<LazyMappedFileAccessor> FileAccessorCache::OpenLazily(
 	const uint64_t sessionID, const std::string& path,
 	std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine)
 {
@@ -247,9 +265,9 @@ std::shared_ptr<LazyMappedFileAccessor> FileAccessorCache::OpenLazily(BinaryNinj
 	}
 
 	auto accessor = std::make_shared<LazyMappedFileAccessor>(path,
-		[=, dscView = std::move(dscView), postAllocationRoutine = std::move(postAllocationRoutine)](
+		[=, postAllocationRoutine = std::move(postAllocationRoutine)](
 			const std::string& path) {
-			auto accessor = Open(dscView, sessionID, path);
+			auto accessor = Open(sessionID, path);
 			if (postAllocationRoutine)
 			{
 				postAllocationRoutine(accessor);
@@ -262,12 +280,12 @@ std::shared_ptr<LazyMappedFileAccessor> FileAccessorCache::OpenLazily(BinaryNinj
 }
 
 std::shared_ptr<MMappedFileAccessor> FileAccessorCache::Open(
-	BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, const uint64_t sessionID, const std::string& path)
+	const uint64_t sessionID, const std::string& path)
 {
 	EvictFromCacheIfNeeded();
 
 	mmapCount++;
-	auto accessor = std::shared_ptr<MMappedFileAccessor>(new MMappedFileAccessor(ResolveFilePath(dscView, path)),
+	auto accessor = std::shared_ptr<MMappedFileAccessor>(new MMappedFileAccessor(path),
 		[this](MMappedFileAccessor* accessor) { Close(accessor); });
 
 	std::lock_guard lock(m_mutex);
@@ -291,11 +309,11 @@ void FileAccessorCache::Close(MMappedFileAccessor* accessor)
 	delete accessor;
 }
 
-std::shared_ptr<LazyMappedFileAccessor> MMappedFileAccessor::Open(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView,
+std::shared_ptr<LazyMappedFileAccessor> MMappedFileAccessor::Open(
 	const uint64_t sessionID, const std::string& path,
 	std::function<void(std::shared_ptr<MMappedFileAccessor>)> postAllocationRoutine)
 {
-	return FileAccessorCache::Shared().OpenLazily(dscView, sessionID, path, std::move(postAllocationRoutine));
+	return FileAccessorCache::Shared().OpenLazily(sessionID, path, std::move(postAllocationRoutine));
 }
 
 void MMappedFileAccessor::InitialVMSetup()
@@ -537,7 +555,7 @@ void VM::MapPages(BinaryNinja::Ref<BinaryNinja::BinaryView> dscView, uint64_t se
 	}
 
 	auto accessor =
-		MMappedFileAccessor::Open(std::move(dscView), sessionID, filePath, std::move(postAllocationRoutine));
+		MMappedFileAccessor::Open(sessionID, ResolveFilePath(dscView, filePath), std::move(postAllocationRoutine));
 	auto [it, inserted] = m_map.insert_or_assign({vm_address, vm_address + size}, PageMapping(std::move(accessor), fileoff));
 	if (m_safe && !inserted)
 	{
