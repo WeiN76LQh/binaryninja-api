@@ -3195,369 +3195,6 @@ bool SharedCache::IsMemoryMapped(uint64_t address)
 	return m_dscView->IsValidOffset(address);
 }
 
-extern "C"
-{
-	BNSharedCache* BNGetSharedCache(BNBinaryView* data)
-	{
-		if (!data)
-			return nullptr;
-
-		Ref<BinaryView> view = new BinaryView(BNNewViewReference(data));
-		if (auto cache = SharedCache::GetFromDSCView(view))
-		{
-			cache->AddAPIRef();
-			return cache->GetAPIObject();
-		}
-
-		return nullptr;
-	}
-
-	BNSharedCache* BNNewSharedCacheReference(BNSharedCache* cache)
-	{
-		if (!cache->object)
-			return nullptr;
-
-		cache->object->AddAPIRef();
-		return cache;
-	}
-
-	void BNFreeSharedCacheReference(BNSharedCache* cache)
-	{
-		if (!cache->object)
-			return;
-
-		cache->object->ReleaseAPIRef();
-	}
-
-	bool BNDSCViewLoadImageWithInstallName(BNSharedCache* cache, char* name, bool skipObjC)
-	{
-		std::string imageName = std::string(name);
-		// FIXME !!!!!!!! BNFreeString(name);
-
-		if (cache->object)
-			return cache->object->LoadImageWithInstallName(imageName, skipObjC);
-
-		return false;
-	}
-
-	bool BNDSCViewLoadSectionAtAddress(BNSharedCache* cache, uint64_t addr)
-	{
-		if (cache->object)
-		{
-			return cache->object->LoadSectionAtAddress(addr);
-		}
-
-		return false;
-	}
-
-	bool BNDSCViewLoadImageContainingAddress(BNSharedCache* cache, uint64_t address, bool skipObjC)
-	{
-		if (cache->object)
-		{
-			return cache->object->LoadImageContainingAddress(address, skipObjC);
-		}
-
-		return false;
-	}
-
-	void BNDSCViewProcessObjCSectionsForImageWithInstallName(BNSharedCache* cache, char* name, bool deallocName)
-	{
-		std::string imageName = std::string(name);
-		if (deallocName)
-			BNFreeString(name);
-
-		if (cache->object)
-			cache->object->ProcessObjCSectionsForImageWithInstallName(imageName);
-	}
-
-	void BNDSCViewProcessAllObjCSections(BNSharedCache* cache)
-	{
-		if (cache->object)
-			cache->object->ProcessAllObjCSections();
-	}
-
-	char** BNDSCViewGetInstallNames(BNSharedCache* cache, size_t* count)
-	{
-		if (cache->object)
-		{
-			auto value = cache->object->GetAvailableImages();
-			*count = value.size();
-
-			std::vector<const char*> cstrings;
-			cstrings.reserve(value.size());
-			for (size_t i = 0; i < value.size(); i++)
-			{
-				cstrings.push_back(value[i].c_str());
-			}
-			return BNAllocStringList(cstrings.data(), cstrings.size());
-		}
-		*count = 0;
-		return nullptr;
-	}
-
-	BNDSCSymbolRep* BNDSCViewLoadAllSymbolsAndWait(BNSharedCache* cache, size_t* count)
-	{
-		if (cache->object)
-		{
-			auto symbolsByImageName = cache->object->LoadAllSymbolsAndWait();
-			size_t totalSymbolCount = 0;
-			for (const auto& [_, symbols] : symbolsByImageName)
-			{
-				totalSymbolCount += symbols.size();
-			}
-			*count = totalSymbolCount;
-
-			BNDSCSymbolRep* outputSymbols = new BNDSCSymbolRep[totalSymbolCount];
-			size_t i = 0;
-			for (const auto& [imageName, symbols] : symbolsByImageName)
-			{
-				for (const auto& symbol : symbols)
-				{
-					outputSymbols[i].address = symbol->GetAddress();
-					outputSymbols[i].name = BNDuplicateStringRef(symbol->GetRawNameRef().GetObject());
-					outputSymbols[i].image = BNAllocStringWithLength(imageName.c_str(), imageName.length());
-					++i;
-				}
-			}
-			assert(i == totalSymbolCount);
-			return outputSymbols;
-		}
-		*count = 0;
-		return nullptr;
-	}
-
-	void BNDSCViewFreeSymbols(BNDSCSymbolRep* symbols, size_t count)
-	{
-		for (size_t i = 0; i < count; i++)
-		{
-			BNFreeStringRef(symbols[i].name);
-			BNFreeString(symbols[i].image);
-		}
-		delete symbols;
-	}
-
-	char* BNDSCViewGetNameForAddress(BNSharedCache* cache, uint64_t address)
-	{
-		if (cache->object)
-		{
-			return BNAllocString(cache->object->NameForAddress(address).c_str());
-		}
-
-		return nullptr;
-	}
-
-	char* BNDSCViewGetImageNameForAddress(BNSharedCache* cache, uint64_t address)
-	{
-		if (cache->object)
-		{
-			return BNAllocString(cache->object->ImageNameForAddress(address).c_str());
-		}
-
-		return nullptr;
-	}
-
-	uint64_t BNDSCViewLoadedImageCount(BNSharedCache* cache)
-	{
-		// FIXME?
-		return 0;
-	}
-
-	BNDSCViewState BNDSCViewGetState(BNSharedCache* cache)
-	{
-		if (cache->object)
-		{
-			return (BNDSCViewState)cache->object->ViewState();
-		}
-
-		return BNDSCViewState::Unloaded;
-	}
-
-
-	BNDSCMappedMemoryRegion* BNDSCViewGetLoadedRegions(BNSharedCache* cache, size_t* count)
-	{
-		if (cache->object)
-		{
-			auto regions = cache->object->GetMappedRegions();
-			*count = regions.size();
-			BNDSCMappedMemoryRegion* mappedRegions = new BNDSCMappedMemoryRegion[regions.size()];
-			for (size_t i = 0; i < regions.size(); i++)
-			{
-				mappedRegions[i].vmAddress = regions[i]->start;
-				mappedRegions[i].size = regions[i]->size;
-				mappedRegions[i].name =
-					BNAllocStringWithLength(regions[i]->prettyName.c_str(), regions[i]->prettyName.length());
-			}
-			return mappedRegions;
-		}
-		*count = 0;
-		return nullptr;
-	}
-
-	void BNDSCViewFreeLoadedRegions(BNDSCMappedMemoryRegion* images, size_t count)
-	{
-		for (size_t i = 0; i < count; i++)
-		{
-			BNFreeString(images[i].name);
-		}
-		delete images;
-	}
-
-
-	BNDSCBackingCache* BNDSCViewGetBackingCaches(BNSharedCache* cache, size_t* count)
-	{
-		BNDSCBackingCache* caches = nullptr;
-
-		if (cache->object)
-		{
-			auto viewCaches = cache->object->BackingCaches();
-			*count = viewCaches.size();
-			caches = new BNDSCBackingCache[viewCaches.size()];
-			for (size_t i = 0; i < viewCaches.size(); i++)
-			{
-				caches[i].path = BNAllocString(viewCaches[i].path.c_str());
-				caches[i].cacheType = viewCaches[i].cacheType;
-
-				BNDSCBackingCacheMapping* mappings;
-				mappings = new BNDSCBackingCacheMapping[viewCaches[i].mappings.size()];
-
-				size_t j = 0;
-				for (const auto& mapping : viewCaches[i].mappings)
-				{
-					mappings[j].vmAddress = mapping.address;
-					mappings[j].size = mapping.size;
-					mappings[j].fileOffset = mapping.fileOffset;
-					j++;
-				}
-				caches[i].mappings = mappings;
-				caches[i].mappingCount = viewCaches[i].mappings.size();
-			}
-		}
-
-		return caches;
-	}
-
-	void BNDSCViewFreeBackingCaches(BNDSCBackingCache* caches, size_t count)
-	{
-		for (size_t i = 0; i < count; i++)
-		{
-			delete[] caches[i].mappings;
-			BNFreeString(caches[i].path);
-		}
-		delete[] caches;
-	}
-
-	void BNDSCFindSymbolAtAddressAndApplyToAddress(BNSharedCache* cache, uint64_t symbolLocation, uint64_t targetLocation, bool triggerReanalysis)
-	{
-		if (cache->object)
-		{
-			cache->object->FindSymbolAtAddrAndApplyToAddr(symbolLocation, targetLocation, triggerReanalysis);
-		}
-	}
-
-	BNDSCImage* BNDSCViewGetAllImages(BNSharedCache* cache, size_t* count)
-	{
-		if (cache->object)
-		{
-			try {
-				auto vm = cache->object->GetVMMap();
-				auto viewImageHeaders = cache->object->AllImageHeaders();
-				*count = viewImageHeaders.size();
-				BNDSCImage* images = new BNDSCImage[viewImageHeaders.size()];
-				size_t i = 0;
-				for (const auto& [baseAddress, header] : viewImageHeaders)
-				{
-					images[i].name = BNAllocString(header.installName.c_str());
-					images[i].headerAddress = baseAddress;
-					images[i].mappingCount = header.sections.size();
-					images[i].mappings =  new BNDSCImageMemoryMapping[header.sections.size()];
-					for (size_t j = 0; j < header.sections.size(); j++)
-					{
-						const auto sectionStart = header.sections[j].addr;
-						images[i].mappings[j].rawViewOffset = header.sections[j].offset;
-						images[i].mappings[j].vmAddress = sectionStart;
-						images[i].mappings[j].size = header.sections[j].size;
-						images[i].mappings[j].name = BNAllocString(header.sectionNames[j].c_str());
-						auto fileAccessor = vm->MappingAtAddress(sectionStart).first.fileAccessor;
-						images[i].mappings[j].filePath = BNAllocStringWithLength(fileAccessor->filePath().data(), fileAccessor->filePath().length());
-						images[i].mappings[j].loaded = cache->object->IsMemoryMapped(sectionStart);
-					}
-					i++;
-				}
-				return images;
-			}
-			catch (...)
-			{
-				LogError("SharedCache: Failed to load image listing. Likely caused by a ser/deserialization error or load failure");
-				*count = 0;
-				return nullptr;
-			}
-		}
-		*count = 0;
-		return nullptr;
-	}
-
-	void BNDSCViewFreeAllImages(BNDSCImage* images, size_t count)
-	{
-		for (size_t i = 0; i < count; i++)
-		{
-			for (size_t j = 0; j < images[i].mappingCount; j++)
-			{
-				BNFreeString(images[i].mappings[j].name);
-				BNFreeString(images[i].mappings[j].filePath);
-			}
-			delete[] images[i].mappings;
-			BNFreeString(images[i].name);
-		}
-		delete[] images;
-	}
-
-	char* BNDSCViewGetImageHeaderForAddress(BNSharedCache* cache, uint64_t address)
-	{
-		if (cache->object)
-		{
-			auto header = cache->object->SerializedImageHeaderForAddress(address);
-			return BNAllocString(header.c_str());
-		}
-
-		return nullptr;
-	}
-
-	char* BNDSCViewGetImageHeaderForName(BNSharedCache* cache, char* name)
-	{
-		std::string imageName = std::string(name);
-		BNFreeString(name);
-		if (cache->object)
-		{
-			auto header = cache->object->SerializedImageHeaderForName(imageName);
-			return BNAllocString(header.c_str());
-		}
-
-		return nullptr;
-	}
-
-	BNDSCMemoryUsageInfo BNDSCViewGetMemoryUsageInfo()
-	{
-		BNDSCMemoryUsageInfo info;
-		info.mmapRefs = MMapCount();
-		info.sharedCacheRefs = sharedCacheReferences.load();
-		return info;
-	}
-
-	BNDSCViewLoadProgress BNDSCViewGetLoadProgress(uint64_t sessionID)
-	{
-		if (auto viewSpecificState = ViewSpecificStateForId(sessionID, false))
-			return viewSpecificState->progress;
-
-		return LoadProgressNotStarted;
-	}
-
-	uint64_t BNDSCViewFastGetBackingCacheCount(BNBinaryView* data)
-	{
-		Ref<BinaryView> view = new BinaryView(BNNewViewReference(data));
-		return SharedCache::FastGetBackingCacheCount(view);
-	}
-}
-
 void Serialize(SerializationContext& context, const dyld_cache_mapping_info& value)
 {
 	context.writer.StartArray();
@@ -4004,4 +3641,367 @@ void InitDSCViewType() {
 	static DSCViewType type;
 	BinaryViewType::Register(&type);
 	g_dscViewType = &type;
+}
+
+extern "C"
+{
+	BNSharedCache* BNGetSharedCache(BNBinaryView* data)
+	{
+		if (!data)
+			return nullptr;
+
+		Ref<BinaryView> view = new BinaryView(BNNewViewReference(data));
+		if (auto cache = SharedCache::GetFromDSCView(view))
+		{
+			cache->AddAPIRef();
+			return cache->GetAPIObject();
+		}
+
+		return nullptr;
+	}
+
+	BNSharedCache* BNNewSharedCacheReference(BNSharedCache* cache)
+	{
+		if (!cache->object)
+			return nullptr;
+
+		cache->object->AddAPIRef();
+		return cache;
+	}
+
+	void BNFreeSharedCacheReference(BNSharedCache* cache)
+	{
+		if (!cache->object)
+			return;
+
+		cache->object->ReleaseAPIRef();
+	}
+
+	bool BNDSCViewLoadImageWithInstallName(BNSharedCache* cache, char* name, bool skipObjC)
+	{
+		std::string imageName = std::string(name);
+		// FIXME !!!!!!!! BNFreeString(name);
+
+		if (cache->object)
+			return cache->object->LoadImageWithInstallName(imageName, skipObjC);
+
+		return false;
+	}
+
+	bool BNDSCViewLoadSectionAtAddress(BNSharedCache* cache, uint64_t addr)
+	{
+		if (cache->object)
+		{
+			return cache->object->LoadSectionAtAddress(addr);
+		}
+
+		return false;
+	}
+
+	bool BNDSCViewLoadImageContainingAddress(BNSharedCache* cache, uint64_t address, bool skipObjC)
+	{
+		if (cache->object)
+		{
+			return cache->object->LoadImageContainingAddress(address, skipObjC);
+		}
+
+		return false;
+	}
+
+	void BNDSCViewProcessObjCSectionsForImageWithInstallName(BNSharedCache* cache, char* name, bool deallocName)
+	{
+		std::string imageName = std::string(name);
+		if (deallocName)
+			BNFreeString(name);
+
+		if (cache->object)
+			cache->object->ProcessObjCSectionsForImageWithInstallName(imageName);
+	}
+
+	void BNDSCViewProcessAllObjCSections(BNSharedCache* cache)
+	{
+		if (cache->object)
+			cache->object->ProcessAllObjCSections();
+	}
+
+	char** BNDSCViewGetInstallNames(BNSharedCache* cache, size_t* count)
+	{
+		if (cache->object)
+		{
+			auto value = cache->object->GetAvailableImages();
+			*count = value.size();
+
+			std::vector<const char*> cstrings;
+			cstrings.reserve(value.size());
+			for (size_t i = 0; i < value.size(); i++)
+			{
+				cstrings.push_back(value[i].c_str());
+			}
+			return BNAllocStringList(cstrings.data(), cstrings.size());
+		}
+		*count = 0;
+		return nullptr;
+	}
+
+	BNDSCSymbolRep* BNDSCViewLoadAllSymbolsAndWait(BNSharedCache* cache, size_t* count)
+	{
+		if (cache->object)
+		{
+			auto symbolsByImageName = cache->object->LoadAllSymbolsAndWait();
+			size_t totalSymbolCount = 0;
+			for (const auto& [_, symbols] : symbolsByImageName)
+			{
+				totalSymbolCount += symbols.size();
+			}
+			*count = totalSymbolCount;
+
+			BNDSCSymbolRep* outputSymbols = new BNDSCSymbolRep[totalSymbolCount];
+			size_t i = 0;
+			for (const auto& [imageName, symbols] : symbolsByImageName)
+			{
+				for (const auto& symbol : symbols)
+				{
+					outputSymbols[i].address = symbol->GetAddress();
+					outputSymbols[i].name = BNDuplicateStringRef(symbol->GetRawNameRef().GetObject());
+					outputSymbols[i].image = BNAllocStringWithLength(imageName.c_str(), imageName.length());
+					++i;
+				}
+			}
+			assert(i == totalSymbolCount);
+			return outputSymbols;
+		}
+		*count = 0;
+		return nullptr;
+	}
+
+	void BNDSCViewFreeSymbols(BNDSCSymbolRep* symbols, size_t count)
+	{
+		for (size_t i = 0; i < count; i++)
+		{
+			BNFreeStringRef(symbols[i].name);
+			BNFreeString(symbols[i].image);
+		}
+		delete symbols;
+	}
+
+	char* BNDSCViewGetNameForAddress(BNSharedCache* cache, uint64_t address)
+	{
+		if (cache->object)
+		{
+			return BNAllocString(cache->object->NameForAddress(address).c_str());
+		}
+
+		return nullptr;
+	}
+
+	char* BNDSCViewGetImageNameForAddress(BNSharedCache* cache, uint64_t address)
+	{
+		if (cache->object)
+		{
+			return BNAllocString(cache->object->ImageNameForAddress(address).c_str());
+		}
+
+		return nullptr;
+	}
+
+	uint64_t BNDSCViewLoadedImageCount(BNSharedCache* cache)
+	{
+		// FIXME?
+		return 0;
+	}
+
+	BNDSCViewState BNDSCViewGetState(BNSharedCache* cache)
+	{
+		if (cache->object)
+		{
+			return (BNDSCViewState)cache->object->ViewState();
+		}
+
+		return BNDSCViewState::Unloaded;
+	}
+
+
+	BNDSCMappedMemoryRegion* BNDSCViewGetLoadedRegions(BNSharedCache* cache, size_t* count)
+	{
+		if (cache->object)
+		{
+			auto regions = cache->object->GetMappedRegions();
+			*count = regions.size();
+			BNDSCMappedMemoryRegion* mappedRegions = new BNDSCMappedMemoryRegion[regions.size()];
+			for (size_t i = 0; i < regions.size(); i++)
+			{
+				mappedRegions[i].vmAddress = regions[i]->start;
+				mappedRegions[i].size = regions[i]->size;
+				mappedRegions[i].name =
+					BNAllocStringWithLength(regions[i]->prettyName.c_str(), regions[i]->prettyName.length());
+			}
+			return mappedRegions;
+		}
+		*count = 0;
+		return nullptr;
+	}
+
+	void BNDSCViewFreeLoadedRegions(BNDSCMappedMemoryRegion* images, size_t count)
+	{
+		for (size_t i = 0; i < count; i++)
+		{
+			BNFreeString(images[i].name);
+		}
+		delete images;
+	}
+
+
+	BNDSCBackingCache* BNDSCViewGetBackingCaches(BNSharedCache* cache, size_t* count)
+	{
+		BNDSCBackingCache* caches = nullptr;
+
+		if (cache->object)
+		{
+			auto viewCaches = cache->object->BackingCaches();
+			*count = viewCaches.size();
+			caches = new BNDSCBackingCache[viewCaches.size()];
+			for (size_t i = 0; i < viewCaches.size(); i++)
+			{
+				caches[i].path = BNAllocString(viewCaches[i].path.c_str());
+				caches[i].cacheType = viewCaches[i].cacheType;
+
+				BNDSCBackingCacheMapping* mappings;
+				mappings = new BNDSCBackingCacheMapping[viewCaches[i].mappings.size()];
+
+				size_t j = 0;
+				for (const auto& mapping : viewCaches[i].mappings)
+				{
+					mappings[j].vmAddress = mapping.address;
+					mappings[j].size = mapping.size;
+					mappings[j].fileOffset = mapping.fileOffset;
+					j++;
+				}
+				caches[i].mappings = mappings;
+				caches[i].mappingCount = viewCaches[i].mappings.size();
+			}
+		}
+
+		return caches;
+	}
+
+	void BNDSCViewFreeBackingCaches(BNDSCBackingCache* caches, size_t count)
+	{
+		for (size_t i = 0; i < count; i++)
+		{
+			delete[] caches[i].mappings;
+			BNFreeString(caches[i].path);
+		}
+		delete[] caches;
+	}
+
+	void BNDSCFindSymbolAtAddressAndApplyToAddress(BNSharedCache* cache, uint64_t symbolLocation, uint64_t targetLocation, bool triggerReanalysis)
+	{
+		if (cache->object)
+		{
+			cache->object->FindSymbolAtAddrAndApplyToAddr(symbolLocation, targetLocation, triggerReanalysis);
+		}
+	}
+
+	BNDSCImage* BNDSCViewGetAllImages(BNSharedCache* cache, size_t* count)
+	{
+		if (cache->object)
+		{
+			try {
+				auto vm = cache->object->GetVMMap();
+				auto viewImageHeaders = cache->object->AllImageHeaders();
+				*count = viewImageHeaders.size();
+				BNDSCImage* images = new BNDSCImage[viewImageHeaders.size()];
+				size_t i = 0;
+				for (const auto& [baseAddress, header] : viewImageHeaders)
+				{
+					images[i].name = BNAllocString(header.installName.c_str());
+					images[i].headerAddress = baseAddress;
+					images[i].mappingCount = header.sections.size();
+					images[i].mappings =  new BNDSCImageMemoryMapping[header.sections.size()];
+					for (size_t j = 0; j < header.sections.size(); j++)
+					{
+						const auto sectionStart = header.sections[j].addr;
+						images[i].mappings[j].rawViewOffset = header.sections[j].offset;
+						images[i].mappings[j].vmAddress = sectionStart;
+						images[i].mappings[j].size = header.sections[j].size;
+						images[i].mappings[j].name = BNAllocString(header.sectionNames[j].c_str());
+						auto fileAccessor = vm->MappingAtAddress(sectionStart).first.fileAccessor;
+						images[i].mappings[j].filePath = BNAllocStringWithLength(fileAccessor->filePath().data(), fileAccessor->filePath().length());
+						images[i].mappings[j].loaded = cache->object->IsMemoryMapped(sectionStart);
+					}
+					i++;
+				}
+				return images;
+			}
+			catch (...)
+			{
+				LogError("SharedCache: Failed to load image listing. Likely caused by a ser/deserialization error or load failure");
+				*count = 0;
+				return nullptr;
+			}
+		}
+		*count = 0;
+		return nullptr;
+	}
+
+	void BNDSCViewFreeAllImages(BNDSCImage* images, size_t count)
+	{
+		for (size_t i = 0; i < count; i++)
+		{
+			for (size_t j = 0; j < images[i].mappingCount; j++)
+			{
+				BNFreeString(images[i].mappings[j].name);
+				BNFreeString(images[i].mappings[j].filePath);
+			}
+			delete[] images[i].mappings;
+			BNFreeString(images[i].name);
+		}
+		delete[] images;
+	}
+
+	char* BNDSCViewGetImageHeaderForAddress(BNSharedCache* cache, uint64_t address)
+	{
+		if (cache->object)
+		{
+			auto header = cache->object->SerializedImageHeaderForAddress(address);
+			return BNAllocString(header.c_str());
+		}
+
+		return nullptr;
+	}
+
+	char* BNDSCViewGetImageHeaderForName(BNSharedCache* cache, char* name)
+	{
+		std::string imageName = std::string(name);
+		BNFreeString(name);
+		if (cache->object)
+		{
+			auto header = cache->object->SerializedImageHeaderForName(imageName);
+			return BNAllocString(header.c_str());
+		}
+
+		return nullptr;
+	}
+
+	BNDSCMemoryUsageInfo BNDSCViewGetMemoryUsageInfo()
+	{
+		BNDSCMemoryUsageInfo info;
+		info.mmapRefs = MMapCount();
+		info.sharedCacheRefs = sharedCacheReferences.load();
+		return info;
+	}
+
+	BNDSCViewLoadProgress BNDSCViewGetLoadProgress(uint64_t sessionID)
+	{
+		if (auto viewSpecificState = ViewSpecificStateForId(sessionID, false))
+			return viewSpecificState->progress;
+
+		return LoadProgressNotStarted;
+	}
+
+	uint64_t BNDSCViewFastGetBackingCacheCount(BNBinaryView* data)
+	{
+		Ref<BinaryView> view = new BinaryView(BNNewViewReference(data));
+		return SharedCache::FastGetBackingCacheCount(view);
+	}
 }
