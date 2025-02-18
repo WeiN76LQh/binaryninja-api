@@ -1,6 +1,6 @@
-use core::ffi;
-
 use binaryninjacore_sys::*;
+use core::ffi;
+use std::fmt::{Debug, Formatter};
 
 use super::HighLevelILLiftedInstruction;
 use crate::architecture::CoreIntrinsic;
@@ -9,7 +9,7 @@ use crate::rc::Ref;
 use crate::string::{BnStrCompatible, BnString};
 use crate::variable::{ConstantData, SSAVariable, Variable};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct GotoLabel {
     pub(crate) function: Ref<Function>,
     pub target: u64,
@@ -29,6 +29,15 @@ impl GotoLabel {
                 raw.as_ref().as_ptr() as *const ffi::c_char,
             )
         }
+    }
+}
+
+impl Debug for GotoLabel {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("GotoLabel")
+            .field("name", &self.name())
+            .field("target", &self.target)
+            .finish()
     }
 }
 
