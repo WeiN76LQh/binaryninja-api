@@ -10,7 +10,7 @@ file(GLOB RUST_API_SOURCES CONFIGURE_DEPENDS
 	binaryninjacore-sys/Cargo.toml
 	binaryninjacore-sys/src/*
 	Cargo.toml
-	src/*.rs)
+	src/*/*.rs)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
 	set(CARGO_CHECK_OPTS --workspace)

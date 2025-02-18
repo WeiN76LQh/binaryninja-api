@@ -6,14 +6,6 @@ file(GLOB PLUGIN_SOURCES CONFIGURE_DEPENDS
 	${PROJECT_SOURCE_DIR}/Cargo.toml
 	${PROJECT_SOURCE_DIR}/src/*.rs)
 
-file(GLOB_RECURSE API_SOURCES CONFIGURE_DEPENDS
-	${PROJECT_SOURCE_DIR}/../../binaryninjacore.h
-	${PROJECT_SOURCE_DIR}/../../rust/binaryninjacore-sys/build.rs
-	${PROJECT_SOURCE_DIR}/../../rust/binaryninjacore-sys/Cargo.toml
-	${PROJECT_SOURCE_DIR}/../../rust/binaryninjacore-sys/src/*
-	${PROJECT_SOURCE_DIR}/../../rust/Cargo.toml
-	${PROJECT_SOURCE_DIR}/../../rust/src/*.rs)
-
 if(CMAKE_BUILD_TYPE MATCHES Debug)
 	if(DEMO)
 		set(TARGET_DIR ${PROJECT_BINARY_DIR}/target/dev-demo)
@@ -61,6 +53,14 @@ add_dependencies(${PROJECT_NAME} binaryninjaapi)
 get_target_property(BN_API_SOURCE_DIR binaryninjaapi SOURCE_DIR)
 list(APPEND CMAKE_MODULE_PATH "${BN_API_SOURCE_DIR}/cmake")
 find_package(BinaryNinjaCore REQUIRED)
+
+file(GLOB API_SOURCES CONFIGURE_DEPENDS
+	${BN_API_SOURCE_DIR}/binaryninjacore.h
+	${BN_API_SOURCE_DIR}/rust/binaryninjacore-sys/build.rs
+	${BN_API_SOURCE_DIR}/rust/binaryninjacore-sys/Cargo.toml
+	${BN_API_SOURCE_DIR}/rust/binaryninjacore-sys/src/*
+	${BN_API_SOURCE_DIR}/rust/Cargo.toml
+	${BN_API_SOURCE_DIR}/rust/src/*/*.rs)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY OUTPUT_FILE_PATH ${OUTPUT_FILE_PATH})
 
