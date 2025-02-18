@@ -265,7 +265,11 @@ impl MediumLevelILFunction {
     /// Clear all user defined variable values.
     pub fn clear_user_var_values(&self) -> Result<(), ()> {
         for user_var_val in &self.user_var_values() {
-            self.clear_user_var_value(&user_var_val.variable, user_var_val.def_site.addr, user_var_val.after)?;
+            self.clear_user_var_value(
+                &user_var_val.variable,
+                user_var_val.def_site.addr,
+                user_var_val.after,
+            )?;
         }
         Ok(())
     }
