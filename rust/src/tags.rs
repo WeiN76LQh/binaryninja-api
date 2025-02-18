@@ -245,7 +245,7 @@ impl From<&BNTagReference> for TagReference {
         Self {
             reference_type: value.refType,
             auto_defined: value.autoDefined,
-            tag: unsafe { Tag::ref_from_raw(value.tag).to_owned() },
+            tag: unsafe { Tag::from_raw(value.tag).to_owned() },
             arch: unsafe { CoreArchitecture::from_raw(value.arch) },
             func: unsafe { Function::from_raw(value.func).to_owned() },
             addr: value.addr,
