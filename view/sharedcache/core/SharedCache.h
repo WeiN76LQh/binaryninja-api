@@ -596,7 +596,7 @@ namespace SharedCacheCore {
 		bool SaveCacheInfoToDSCView(std::lock_guard<std::mutex>&);
 		bool SaveModifiedStateToDSCView(std::lock_guard<std::mutex>&);
 
-		void ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAccessor> file, uint64_t baseAddress);
+		static void ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAccessor> file, uint64_t baseAddress, Ref<Logger> logger);
 		std::optional<uint64_t> GetImageStart(std::string_view installName);
 		const SharedCacheMachOHeader* HeaderForAddress(uint64_t);
 		bool LoadImageWithInstallName(std::string installName, bool skipObjC);

@@ -1079,13 +1079,14 @@ std::shared_ptr<VM> SharedCache::GetVMMap(const CacheInfo& cacheInfo)
 	std::shared_ptr<VM> vm = std::make_shared<VM>(0x1000);
 
 	uint64_t baseAddress = cacheInfo.BaseAddress();
+	Ref<Logger> logger = m_logger;
 	for (const auto& cache : cacheInfo.backingCaches)
 	{
 		for (const auto& mapping : cache.mappings)
 		{
 			vm->MapPages(m_dscView, m_dscView->GetFile()->GetSessionId(), mapping.address, mapping.fileOffset, mapping.size, cache.path,
-				[this, vm, baseAddress](std::shared_ptr<MMappedFileAccessor> mmap){
-					ParseAndApplySlideInfoForFile(mmap, baseAddress);
+				[vm, baseAddress, logger](std::shared_ptr<MMappedFileAccessor> mmap){
+					ParseAndApplySlideInfoForFile(mmap, baseAddress, logger);
 				});
 		}
 	}
@@ -1140,7 +1141,8 @@ std::string to_hex_string(uint64_t value)
 }
 
 
-void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAccessor> file, uint64_t base)
+// static
+void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAccessor> file, uint64_t base, Ref<Logger> logger)
 {
 	if (file->SlideInfoWasApplied())
 		return;
@@ -1158,7 +1160,7 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 		auto slideInfoVersion = file->ReadUInt32(slideInfoOff);
 		if (slideInfoVersion != 2 && slideInfoVersion != 3)
 		{
-			m_logger->LogError("Unsupported slide info version %d", slideInfoVersion);
+			logger->LogError("Unsupported slide info version %d", slideInfoVersion);
 			throw std::runtime_error("Unsupported slide info version");
 		}
 
@@ -1181,7 +1183,7 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 
 		if (targetHeader.mappingWithSlideCount == 0)
 		{
-			m_logger->LogDebug("No mappings with slide info found");
+			logger->LogDebug("No mappings with slide info found");
 		}
 
 		for (auto i = 0; i < targetHeader.mappingWithSlideCount; i++)
@@ -1195,7 +1197,7 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 				if (mappingAndSlideInfo.size == 0)
 					continue;
 				map.slideInfoVersion = file->ReadUInt32(mappingAndSlideInfo.slideInfoFileOffset);
-				m_logger->LogDebug("Slide Info Version: %d", map.slideInfoVersion);
+				logger->LogDebug("Slide Info Version: %d", map.slideInfoVersion);
 				map.mappingInfo.address = mappingAndSlideInfo.address;
 				map.mappingInfo.size = mappingAndSlideInfo.size;
 				map.mappingInfo.fileOffset = mappingAndSlideInfo.fileOffset;
@@ -1218,30 +1220,30 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 				}
 				else
 				{
-					m_logger->LogError("Unknown slide info version: %d", map.slideInfoVersion);
+					logger->LogError("Unknown slide info version: %d", map.slideInfoVersion);
 					continue;
 				}
 
 				uint64_t slideInfoOffset = mappingAndSlideInfo.slideInfoFileOffset;
 				mappings.emplace_back(slideInfoOffset, map);
-				m_logger->LogDebug("Filename: %s", file->Path().c_str());
-				m_logger->LogDebug("Slide Info Offset: 0x%llx", slideInfoOffset);
-				m_logger->LogDebug("Mapping Address: 0x%llx", map.mappingInfo.address);
-				m_logger->LogDebug("Slide Info v", map.slideInfoVersion);
+				logger->LogDebug("Filename: %s", file->Path().c_str());
+				logger->LogDebug("Slide Info Offset: 0x%llx", slideInfoOffset);
+				logger->LogDebug("Mapping Address: 0x%llx", map.mappingInfo.address);
+				logger->LogDebug("Slide Info v", map.slideInfoVersion);
 			}
 		}
 	}
 
 	if (mappings.empty())
 	{
-		m_logger->LogDebug("No slide info found");
+		logger->LogDebug("No slide info found");
 		file->SetSlideInfoWasApplied(true);
 		return;
 	}
 
 	for (const auto& [off, mapping] : mappings)
 	{
-		m_logger->LogDebug("Slide Info Version: %d", mapping.slideInfoVersion);
+		logger->LogDebug("Slide Info Version: %d", mapping.slideInfoVersion);
 		uint64_t extrasOffset = off;
 		uint64_t pageStartsOffset = off;
 		uint64_t pageStartCount;
@@ -1294,7 +1296,7 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 							}
 							catch (MappingReadException& ex)
 							{
-								m_logger->LogError("Failed to read v2 slide pointer at 0x%llx\n", loc);
+								logger->LogError("Failed to read v2 slide pointer at 0x%llx\n", loc);
 								break;
 							}
 						}
@@ -1319,7 +1321,7 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 							}
 							catch (MappingReadException& ex)
 							{
-								m_logger->LogError("Failed to read v2 slide extra at 0x%llx\n", cursor);
+								logger->LogError("Failed to read v2 slide extra at 0x%llx\n", cursor);
 								break;
 							}
 						} while (!done);
@@ -1333,7 +1335,7 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 				}
 				catch (MappingReadException& ex)
 				{
-					m_logger->LogError("Failed to read v2 slide info at 0x%llx\n", cursor);
+					logger->LogError("Failed to read v2 slide info at 0x%llx\n", cursor);
 				}
 			}
 		}
@@ -1381,14 +1383,14 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 						}
 						catch (MappingReadException& ex)
 						{
-							m_logger->LogError("Failed to read v3 slide pointer at 0x%llx\n", loc);
+							logger->LogError("Failed to read v3 slide pointer at 0x%llx\n", loc);
 							break;
 						}
 					} while (delta != 0);
 				}
 				catch (MappingReadException& ex)
 				{
-					m_logger->LogError("Failed to read v3 slide info at 0x%llx\n", cursor);
+					logger->LogError("Failed to read v3 slide info at 0x%llx\n", cursor);
 				}
 			}
 		}
@@ -1431,19 +1433,19 @@ void SharedCache::ParseAndApplySlideInfoForFile(std::shared_ptr<MMappedFileAcces
 						}
 						catch (MappingReadException& ex)
 						{
-							m_logger->LogError("Failed to read v5 slide pointer at 0x%llx\n", loc);
+							logger->LogError("Failed to read v5 slide pointer at 0x%llx\n", loc);
 							break;
 						}
 					} while (delta != 0);
 				}
 				catch (MappingReadException& ex)
 				{
-					m_logger->LogError("Failed to read v5 slide info at 0x%llx\n", cursor);
+					logger->LogError("Failed to read v5 slide info at 0x%llx\n", cursor);
 				}
 			}
 		}
 	}
-	// m_logger->LogDebug("Applied slide info for %s (0x%llx rewrites)", file->Path().c_str(), rewrites.size());
+	// logger->LogDebug("Applied slide info for %s (0x%llx rewrites)", file->Path().c_str(), rewrites.size());
 	file->SetSlideInfoWasApplied(true);
 }
 
@@ -3561,10 +3563,12 @@ uint64_t SharedCache::GetObjCRelativeMethodBaseAddress(const VMReader& reader) c
 
 std::shared_ptr<MMappedFileAccessor> SharedCache::MapFile(const std::string& path)
 {
-	return MMappedFileAccessor::
-		Open(m_dscView, m_dscView->GetFile()->GetSessionId(), path, [this](std::shared_ptr<MMappedFileAccessor> mmap) {
-			ParseAndApplySlideInfoForFile(mmap, m_cacheInfo->BaseAddress());
-		})->lock();
+	uint64_t baseAddress = m_cacheInfo->BaseAddress();
+	return MMappedFileAccessor::Open(m_dscView, m_dscView->GetFile()->GetSessionId(), path,
+		[baseAddress, logger = m_logger](std::shared_ptr<MMappedFileAccessor> mmap) {
+			ParseAndApplySlideInfoForFile(mmap, baseAddress, logger);
+		})
+		->lock();
 }
 
 std::shared_ptr<MMappedFileAccessor> SharedCache::MapFileWithoutApplyingSlide(const std::string& path)
