@@ -128,7 +128,7 @@ std::optional<bool> WorkflowMachine::QueryOverride(const string& activity)
 	rapidjson::Document::AllocatorType& allocator = request.GetAllocator();
 	request.AddMember("command", "override", allocator);
 	request.AddMember("action", "query", allocator);
-	request.AddMember("activity", rapidjson::Value(activity.c_str(), allocator), allocator);
+	request.AddMember("activity", activity, allocator);
 	rapidjson::StringBuffer buffer;
 	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 	request.Accept(writer);
@@ -154,7 +154,7 @@ bool WorkflowMachine::SetOverride(const string& activity, bool enable)
 	rapidjson::Document::AllocatorType& allocator = request.GetAllocator();
 	request.AddMember("command", "override", allocator);
 	request.AddMember("action", "set", allocator);
-	request.AddMember("activity", rapidjson::Value(activity.c_str(), allocator), allocator);
+	request.AddMember("activity", activity, allocator);
 	request.AddMember("enable", enable, allocator);
 	rapidjson::StringBuffer buffer;
 	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -181,7 +181,7 @@ bool WorkflowMachine::ClearOverride(const string& activity)
 	rapidjson::Document::AllocatorType& allocator = request.GetAllocator();
 	request.AddMember("command", "override", allocator);
 	request.AddMember("action", "clear", allocator);
-	request.AddMember("activity", rapidjson::Value(activity.c_str(), allocator), allocator);
+	request.AddMember("activity", activity, allocator);
 	rapidjson::StringBuffer buffer;
 	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 	request.Accept(writer);
