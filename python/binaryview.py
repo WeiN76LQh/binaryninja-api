@@ -5102,7 +5102,7 @@ class BinaryView:
 			]
 
 		fns = []
-		addresses = [sym.address for sym in self.get_symbols_by_name(name, ordered_filter=ordered_filter)]
+		addresses = list(dict.fromkeys(sym.address for sym in self.get_symbols_by_name(name, ordered_filter=ordered_filter)))
 		if len(addresses) == 0 and name.startswith("sub_"):
 			try:
 				addresses = [int(name[4:], 16)]
