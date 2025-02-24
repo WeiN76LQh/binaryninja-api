@@ -26,12 +26,12 @@ use std::slice;
 
 use crate::architecture::Architecture;
 use crate::binary_view::{BinaryView, BinaryViewBase, BinaryViewExt, Result};
+use crate::metadata::Metadata;
 use crate::platform::Platform;
-use crate::settings::Settings;
-use crate::Endianness;
-
 use crate::rc::*;
+use crate::settings::Settings;
 use crate::string::*;
+use crate::Endianness;
 
 /// Registers a custom `BinaryViewType` with the core.
 ///
@@ -235,6 +235,68 @@ pub trait BinaryViewTypeExt: BinaryViewTypeBase {
 
         unsafe {
             BNRegisterPlatformForViewType(self.as_ref().handle, id, arch.handle, plat.handle);
+        }
+    }
+
+    /// Expanded identification of [`Platform`] for [`BinaryViewType`]'s. Supersedes [`BinaryViewTypeExt::register_arch`]
+    /// and [`BinaryViewTypeExt::register_platform`], as these have certain edge cases (overloaded elf families, for example)
+    /// that can't be represented.
+    ///
+    /// The callback returns a [`Platform`] object or `None` (failure), and most recently added callbacks are called first
+    /// to allow plugins to override any default behaviors. When a callback returns a platform, architecture will be
+    /// derived from the identified platform.
+    ///
+    /// The [`BinaryView`] is the *parent* view (usually 'Raw') that the [`BinaryView`] is being created for. This
+    /// means that generally speaking the callbacks need to be aware of the underlying file format, however the
+    /// [`BinaryView`] implementation may have created datavars in the 'Raw' view by the time the callback is invoked.
+    /// Behavior regarding when this callback is invoked and what has been made available in the [`BinaryView`] passed as an
+    /// argument to the callback is up to the discretion of the [`BinaryView`] implementation.
+    ///
+    /// The `id` ind `endian` arguments are used as a filter to determine which registered [`Platform`] recognizer callbacks
+    /// are invoked.
+    ///
+    /// Support for this API tentatively requires explicit support in the [`BinaryView`] implementation.
+    fn register_platform_recognizer<R>(&self, id: u32, endian: Endianness, recognizer: R)
+    where
+        R: 'static + Fn(&BinaryView, &Metadata) -> Option<Platform> + Send + Sync,
+    {
+        #[repr(C)]
+        struct PlatformRecognizerHandlerContext<R>
+        where
+            R: 'static + Fn(&BinaryView, &Metadata) -> Option<Platform> + Send + Sync,
+        {
+            recognizer: R,
+        }
+
+        extern "C" fn cb_recognize_low_level_il<R>(
+            ctxt: *mut c_void,
+            bv: *mut BNBinaryView,
+            metadata: *mut BNMetadata,
+        ) -> *mut BNPlatform
+        where
+            R: 'static + Fn(&BinaryView, &Metadata) -> Option<Platform> + Send + Sync,
+        {
+            let context = unsafe { &*(ctxt as *mut PlatformRecognizerHandlerContext<R>) };
+            let bv = unsafe { BinaryView::from_raw(bv).to_owned() };
+            let metadata = unsafe { Metadata::from_raw(metadata).to_owned() };
+            match (context.recognizer)(&bv, &metadata) {
+                Some(plat) => plat.handle,
+                None => std::ptr::null_mut(),
+            }
+        }
+
+        let recognizer = PlatformRecognizerHandlerContext { recognizer };
+        // TODO: Currently we leak `recognizer`.
+        let raw = Box::into_raw(Box::new(recognizer));
+
+        unsafe {
+            BNRegisterPlatformRecognizerForViewType(
+                self.as_ref().handle,
+                id as u64,
+                endian,
+                Some(cb_recognize_low_level_il::<R>),
+                raw as *mut c_void,
+            )
         }
     }
 
