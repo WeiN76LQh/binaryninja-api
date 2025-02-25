@@ -255,6 +255,8 @@ pub enum LicenseLocation {
     EnvironmentVariable,
     /// The license used when initializing will be the file in the Binary Ninja user directory.
     File,
+    /// The license is retrieved using keychain credentials for `BN_ENTERPRISE_USERNAME`.
+    Keychain
 }
 
 /// Attempts to identify the license location type, this follows the same order as core initialization.
@@ -269,7 +271,11 @@ pub fn license_location() -> Option<LicenseLocation> {
             if license_path().exists() {
                 Some(LicenseLocation::File)
             } else {
-                None
+                // Check to see if we might be authorizing with keychain credentials.
+                match std::env::var("BN_ENTERPRISE_USERNAME") {
+                    Ok(_) => Some(LicenseLocation::Keychain),
+                    Err(_) => None,
+                }
             }
         }
     }
