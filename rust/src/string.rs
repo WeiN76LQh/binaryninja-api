@@ -101,11 +101,11 @@ impl BnString {
     }
 
     pub fn len(&self) -> usize {
-        self.as_ref().len()
+        self.as_str().len()
     }
 
     pub fn is_empty(&self) -> bool {
-        self.as_ref().is_empty()
+        self.as_str().is_empty()
     }
 }
 
