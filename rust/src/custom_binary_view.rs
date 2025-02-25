@@ -258,12 +258,12 @@ pub trait BinaryViewTypeExt: BinaryViewTypeBase {
     /// Support for this API tentatively requires explicit support in the [`BinaryView`] implementation.
     fn register_platform_recognizer<R>(&self, id: u32, endian: Endianness, recognizer: R)
     where
-        R: 'static + Fn(&BinaryView, &Metadata) -> Option<Platform> + Send + Sync,
+        R: 'static + Fn(&BinaryView, &Metadata) -> Option<Ref<Platform>> + Send + Sync,
     {
         #[repr(C)]
         struct PlatformRecognizerHandlerContext<R>
         where
-            R: 'static + Fn(&BinaryView, &Metadata) -> Option<Platform> + Send + Sync,
+            R: 'static + Fn(&BinaryView, &Metadata) -> Option<Ref<Platform>> + Send + Sync,
         {
             recognizer: R,
         }
@@ -274,7 +274,7 @@ pub trait BinaryViewTypeExt: BinaryViewTypeBase {
             metadata: *mut BNMetadata,
         ) -> *mut BNPlatform
         where
-            R: 'static + Fn(&BinaryView, &Metadata) -> Option<Platform> + Send + Sync,
+            R: 'static + Fn(&BinaryView, &Metadata) -> Option<Ref<Platform>> + Send + Sync,
         {
             let context = unsafe { &*(ctxt as *mut PlatformRecognizerHandlerContext<R>) };
             let bv = unsafe { BinaryView::from_raw(bv).to_owned() };
