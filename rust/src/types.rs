@@ -965,7 +965,6 @@ impl Debug for Type {
             .field("is_signed", &self.is_signed())
             .field("is_const", &self.is_const())
             .field("is_volatile", &self.is_volatile())
-            .field("is_floating_point", &self.is_floating_point())
             .field("child_type", &self.child_type())
             .field("calling_convention", &self.calling_convention())
             .field("parameters", &self.parameters())
