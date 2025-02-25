@@ -80,7 +80,7 @@ extern "C" {
 		// Run rtti before debug info is applied.
 		msvcMetaWorkflow->Insert("core.module.loadDebugInfo", "plugin.msvc.rttiAnalysis");
 		// Run vft after functions have analyzed (so that the virtual functions have analyzed)
-		msvcMetaWorkflow->Insert("core.module.notifyCompletion", "plugin.msvc.vftAnalysis");
+		msvcMetaWorkflow->Insert("core.module.deleteUnusedAutoFunctions", "plugin.msvc.vftAnalysis");
 		Workflow::RegisterWorkflow(msvcMetaWorkflow);
 
 		return true;

@@ -650,13 +650,6 @@ class WorkflowMachine:
 		else:
 			return json.loads(core.BNPostWorkflowRequestForBinaryView(self.handle, request))
 
-	def abort(self):
-		request = json.dumps({"command": "abort"})
-		if self.is_function_machine:
-			return json.loads(core.BNPostWorkflowRequestForFunction(self.handle, request))
-		else:
-			return json.loads(core.BNPostWorkflowRequestForBinaryView(self.handle, request))
-
 	def halt(self):
 		request = json.dumps({"command": "halt"})
 		if self.is_function_machine:
@@ -768,7 +761,6 @@ class WorkflowMachineCLI(cmd.Cmd):
 		"d": "dump",
 		"c": "resume",
 		"r": "run",
-		"a": "abort",
 		"h": "halt",
 		"s": "step",
 		"b": "breakpoint",
@@ -852,11 +844,6 @@ class WorkflowMachineCLI(cmd.Cmd):
 	def do_run(self, line):
 		"""Run the workflow machine and generate a default configuration if the workflow is not configured."""
 		status = self.machine.run()
-		print(json.dumps(status, indent=4))
-
-	def do_abort(self, line):
-		"""Abort the workflow machine."""
-		status = self.machine.abort()
 		print(json.dumps(status, indent=4))
 
 	def do_halt(self, line):
