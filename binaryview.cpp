@@ -2286,6 +2286,8 @@ bool BinaryView::HasDataVariables() const
 
 Ref<Function> BinaryView::GetAnalysisFunction(Platform* platform, uint64_t addr)
 {
+	if (!platform)
+		return nullptr;
 	BNFunction* func = BNGetAnalysisFunction(m_object, platform->GetObject(), addr);
 	if (!func)
 		return nullptr;
