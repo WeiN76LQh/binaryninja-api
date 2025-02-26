@@ -256,7 +256,7 @@ pub enum LicenseLocation {
     /// The license used when initializing will be the file in the Binary Ninja user directory.
     File,
     /// The license is retrieved using keychain credentials for `BN_ENTERPRISE_USERNAME`.
-    Keychain
+    Keychain,
 }
 
 /// Attempts to identify the license location type, this follows the same order as core initialization.
