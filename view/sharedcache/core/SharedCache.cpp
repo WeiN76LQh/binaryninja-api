@@ -2424,13 +2424,13 @@ void SharedCache::InitializeHeader(
 
 	for (size_t i = 0; i < header.sections.size(); i++)
 	{
-		bool skip = false;
+		bool skip = true;
 		for (const auto& region : regionsToLoad)
 		{
 			if (header.sections[i].addr >= region->start && header.sections[i].addr < region->start + region->size)
 			{
-				if (MemoryRegionIsHeaderInitialized(lock, *region))
-					skip = true;
+				if (!MemoryRegionIsHeaderInitialized(lock, *region))
+					skip = false;
 				break;
 			}
 		}
